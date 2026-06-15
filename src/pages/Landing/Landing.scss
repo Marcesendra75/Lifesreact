@@ -1,0 +1,466 @@
+// ============================================
+// LIFE'S — Landing Page SCSS
+// ============================================
+@use '../../styles/abstracts/variables' as v;
+@use '../../styles/abstracts/mixins' as m;
+
+// ── Animaciones ──
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes thanos-out {
+  0%   { opacity: 1; filter: blur(0);   transform: translateY(0) scale(1); }
+  100% { opacity: 0; filter: blur(6px); transform: translateY(-8px) scale(1.05); }
+}
+@keyframes thanos-in {
+  0%   { opacity: 0; filter: blur(6px); transform: translateY(8px) scale(0.95); }
+  100% { opacity: 1; filter: blur(0);   transform: translateY(0) scale(1); }
+}
+
+.fade-up { animation: fadeUp 0.5s ease both; }
+
+// ── Root ──
+.landing-root {
+  font-family: v.$font-body;
+  background: v.$cream;
+  color: v.$primary;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  position: relative;
+
+  // Grano de papel
+  &::before {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    background-size: 400px 400px;
+    opacity: 0.6;
+  }
+}
+
+// ── Orbes ──
+.landing-orb {
+  position: fixed;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+
+  &--1 {
+    width: 500px; height: 500px;
+    background: rgba(133, 83, 36, 0.07);
+    top: -100px; left: -150px;
+  }
+  &--2 {
+    width: 400px; height: 400px;
+    background: rgba(3, 25, 46, 0.05);
+    bottom: -80px; right: -100px;
+  }
+}
+
+// ── Contenedor centrado ──
+.landing-container {
+  position: relative; z-index: 1;
+  min-height: 100dvh;
+  display: flex; flex-direction: column;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+// ── Pill selector ──
+.landing-pill {
+  display: flex;
+  background: rgba(3, 25, 46, 0.06);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 2.5rem;
+  position: relative;
+
+  &__slider {
+    position: absolute;
+    top: 4px; bottom: 4px;
+    background: white;
+    border-radius: 999px;
+    box-shadow: 0 2px 12px rgba(3, 25, 46, 0.1);
+    transition: all 0.35s cubic-bezier(0.34, 1.1, 0.64, 1);
+    z-index: 1;
+  }
+
+  &__btn {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-family: v.$font-body;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: transparent;
+    color: rgba(3, 25, 46, 0.45);
+    transition: all 0.3s ease;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.4rem;
+    position: relative; z-index: 2;
+
+    .material-symbols-outlined { font-size: 15px; }
+
+    &.active { color: v.$primary; }
+  }
+}
+
+// ── Sección ──
+.landing-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+// ── Logo ──
+.landing-logo {
+  position: relative;
+  width: 140px; height: 140px;
+  margin: 0 auto 1.5rem;
+
+  &__border {
+    position: absolute; inset: -6px;
+    border: 1px solid rgba(133, 83, 36, 0.2);
+    border-radius: 6px;
+    transform: rotate(1.5deg);
+  }
+
+  &__wrap {
+    width: 100%; height: 100%;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(3, 25, 46, 0.14);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.4s ease;
+    padding: 8px;
+
+    &--dark {
+      background: linear-gradient(140deg, #03192e, #1a2e44);
+    }
+
+    &:hover { transform: rotate(0deg); }
+  }
+
+  &__icon {
+    font-size: 3.5rem;
+    color: v.$primary;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+
+    &--light {
+      color: rgba(255, 224, 136, 0.8);
+    }
+  }
+}
+
+// ── Título ──
+.landing-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+
+  &__main {
+    font-family: v.$font-display;
+    font-style: italic;
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: v.$primary;
+  }
+
+  &__sub {
+    font-family: v.$font-display;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #855324;
+    margin-top: 4px;
+  }
+
+  &__empresa {
+    font-family: v.$font-display;
+    font-style: italic;
+    font-size: 2rem;
+    font-weight: 700;
+    color: v.$primary;
+    line-height: 1.2;
+  }
+
+  &__empresa-sub {
+    font-size: 0.82rem;
+    color: #43474d;
+    margin-top: 6px;
+    line-height: 1.65;
+  }
+}
+
+// ── Palabra animada ──
+.landing-palabra {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(115, 92, 0, 0.3);
+  display: inline-block;
+
+  &--out { animation: thanos-out 0.7s ease forwards; }
+  &--in  { animation: thanos-in  0.7s ease forwards; }
+}
+
+// ── Formulario ──
+.landing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 1.5rem;
+}
+
+// ── Inputs ──
+.landing-field {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid rgba(3, 25, 46, 0.1);
+  background: transparent;
+  padding: 1rem 0.25rem;
+  font-family: v.$font-body;
+  font-size: 0.9rem;
+  color: v.$primary;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 0.5rem;
+
+  &:focus { border-color: #855324; }
+  &::placeholder { color: rgba(3, 25, 46, 0.35); }
+}
+
+// ── Botones ──
+.landing-btn {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 1rem;
+  font-family: v.$font-body;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+
+  .material-symbols-outlined { font-size: 16px; }
+
+  &--primary {
+    background: v.$primary;
+    color: white;
+    box-shadow: 0 6px 24px rgba(3, 25, 46, 0.2);
+
+    &:hover {
+      background: #1a2e44;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 32px rgba(3, 25, 46, 0.28);
+    }
+  }
+
+  &--empresa {
+    background: linear-gradient(135deg, #1a2e44 0%, #03192e 100%);
+    color: white;
+    box-shadow: 0 6px 24px rgba(3, 25, 46, 0.2);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 32px rgba(3, 25, 46, 0.28);
+    }
+  }
+
+  &--outline {
+    background: transparent;
+    color: v.$primary;
+    border: 2px solid rgba(3, 25, 46, 0.15);
+
+    &:hover {
+      background: v.$primary;
+      color: white;
+      border-color: v.$primary;
+    }
+  }
+}
+
+// ── Links recuperar ──
+.landing-recover {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.landing-footer-link {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(3, 25, 46, 0.4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: v.$font-body;
+  transition: color 0.2s;
+  padding: 0;
+
+  &:hover { color: #855324; }
+}
+
+// ── Divisor ──
+.landing-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(3, 25, 46, 0.3);
+  font-family: v.$font-body;
+  margin-bottom: 1.5rem;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(3, 25, 46, 0.1);
+  }
+}
+
+// ── Tags ──
+.landing-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.landing-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: v.$font-body;
+  background: #f5f3ef;
+  color: #43474d;
+
+  .material-symbols-outlined { font-size: 11px; }
+}
+
+// ── Badge empresas ──
+.landing-empresa-badge-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.landing-empresa-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #03192e, #1a2e44);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: v.$font-body;
+  box-shadow: 0 4px 16px rgba(3, 25, 46, 0.2);
+
+  .material-symbols-outlined {
+    font-size: 14px;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+// ── Planes ──
+.landing-planes {
+  background: linear-gradient(135deg, #f5f3ef, #efeeea);
+  border-radius: 1.25rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+
+  &__label {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #855324;
+    margin-bottom: 0.5rem;
+    font-family: v.$font-body;
+  }
+
+  &__grid {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+  }
+}
+
+.landing-plan {
+  flex: 1;
+  background: white;
+  border-radius: 0.875rem;
+  padding: 0.6rem 0.25rem;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.2s;
+
+  &:hover { transform: translateY(-2px); }
+
+  &--dark {
+    background: v.$primary;
+
+    .landing-plan__nombre { color: #ffe088; }
+    .landing-plan__precio { color: white; }
+    .landing-plan__periodo { color: rgba(130, 150, 176, 0.7); }
+  }
+
+  &__nombre {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #74777d;
+    font-family: v.$font-body;
+  }
+
+  &__precio {
+    font-family: v.$font-display;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: v.$primary;
+  }
+
+  &__periodo {
+    font-size: 8px;
+    color: #74777d;
+    font-family: v.$font-body;
+  }
+}
+
+// ── Switch ──
+.landing-switch {
+  text-align: center;
+  margin-top: 0.5rem;
+}

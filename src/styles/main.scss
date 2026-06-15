@@ -1,0 +1,11 @@
+// ============================================
+// LIFE'S — Main SCSS
+// ============================================
+
+// Abstracts
+@use 'abstracts/variables' as v;
+@use 'abstracts/mixins' as m;
+
+// Base global
+@use 'base/reset';
+@use 'base/typography';

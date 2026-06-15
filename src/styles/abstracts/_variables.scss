@@ -1,0 +1,104 @@
+// ============================================
+// LIFE'S — Variables globales
+// ============================================
+
+// --- Colores principales ---
+$primary:         #03192e;
+$primary-light:   #0a2d50;
+$primary-dark:    #010d19;
+
+$gold:            #C9A84C;
+$gold-light:      #e0c06e;
+$gold-dark:       #9e7d2f;
+
+$cream:           #fbf9f5;
+$cream-dark:      #efede9;
+
+$surface:         #ffffff;
+$surface-alt:     #f5f3ef;
+
+$text-dark:       #1b1c1a;
+$text-mid:        #3d3f3c;
+$mist:            #4a6070;
+$mist-light:      #7a909e;
+
+$error:           #c0392b;
+$success:         #27ae60;
+$warning:         #e67e22;
+
+// --- Niveles de membresía ---
+$bronze:          #cd7f32;
+$silver:          #a8a9ad;
+$gold-level:      #C9A84C;
+$gold2:           #e0c06e;
+$diamond:         #b9f2ff;
+$triple-diamond:  #7fffff;
+
+// --- Tipografía ---
+$font-display:    'Newsreader', serif;
+$font-body:       'Manrope', sans-serif;
+
+$size-xs:         0.75rem;   // 12px
+$size-sm:         0.875rem;  // 14px
+$size-base:       1rem;      // 16px
+$size-md:         1.125rem;  // 18px
+$size-lg:         1.25rem;   // 20px
+$size-xl:         1.5rem;    // 24px
+$size-2xl:        2rem;      // 32px
+$size-3xl:        2.5rem;    // 40px
+$size-4xl:        3.5rem;    // 56px
+$size-5xl:        5rem;      // 80px
+
+$weight-light:    300;
+$weight-regular:  400;
+$weight-medium:   500;
+$weight-semibold: 600;
+$weight-bold:     700;
+$weight-extrabold:800;
+
+// --- Espaciado ---
+$space-1:   0.25rem;
+$space-2:   0.5rem;
+$space-3:   0.75rem;
+$space-4:   1rem;
+$space-5:   1.25rem;
+$space-6:   1.5rem;
+$space-8:   2rem;
+$space-10:  2.5rem;
+$space-12:  3rem;
+$space-16:  4rem;
+$space-20:  5rem;
+$space-24:  6rem;
+$space-32:  8rem;
+
+// --- Bordes ---
+$radius-sm:   4px;
+$radius-md:   8px;
+$radius-lg:   16px;
+$radius-xl:   24px;
+$radius-full: 9999px;
+
+// --- Sombras ---
+$shadow-sm:   0 1px 3px rgba(0,0,0,0.08);
+$shadow-md:   0 4px 16px rgba(0,0,0,0.12);
+$shadow-lg:   0 8px 32px rgba(0,0,0,0.18);
+$shadow-gold: 0 4px 24px rgba(201,168,76,0.25);
+
+// --- Transiciones ---
+$transition-fast:   150ms ease;
+$transition-base:   300ms ease;
+$transition-slow:   500ms ease;
+
+// --- Breakpoints ---
+$bp-sm:   576px;
+$bp-md:   768px;
+$bp-lg:   992px;
+$bp-xl:   1200px;
+$bp-2xl:  1400px;
+
+// --- Z-index ---
+$z-base:    1;
+$z-above:   10;
+$z-nav:     100;
+$z-modal:   200;
+$z-toast:   300;

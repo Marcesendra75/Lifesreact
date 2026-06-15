@@ -1,0 +1,443 @@
+// ============================================
+// LIFE'S — Crear Cuenta SCSS
+// ============================================
+@use '../../styles/abstracts/variables' as v;
+@use '../../styles/abstracts/mixins' as m;
+
+// ── Root ──
+.cc-root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #fbf9f5;
+  font-family: v.$font-body;
+  color: v.$text-dark;
+}
+
+// ── Header ──
+.cc-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  background: rgba(251, 249, 245, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(196, 198, 205, 0.2);
+
+  &__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  &__img {
+    height: 36px;
+    width: 36px;
+    object-fit: contain;
+  }
+
+  &__name {
+    font-family: v.$font-display;
+    font-style: italic;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: v.$primary;
+    letter-spacing: -0.02em;
+  }
+}
+
+// ── Main ──
+.cc-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7rem 1.5rem 3rem;
+}
+
+// ── Grid 2 columnas ──
+.cc-grid {
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+
+  @include m.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Columna izquierda ──
+.cc-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  @include m.tablet { display: none; }
+
+  &__text { display: flex; flex-direction: column; gap: 1rem; }
+
+  &__title {
+    font-family: v.$font-display;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: v.$primary;
+    line-height: 1.15;
+  }
+
+  &__italic {
+    font-style: italic;
+  }
+
+  &__divider {
+    width: 6rem;
+    height: 1px;
+    background: #855324;
+    opacity: 0.4;
+  }
+
+  &__desc {
+    font-size: 1rem;
+    color: #43474d;
+    line-height: 1.75;
+    max-width: 400px;
+  }
+
+  &__image-wrap {
+    position: relative;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    aspect-ratio: 4/5;
+    background: #f5f3ef;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: multiply;
+    opacity: 0.85;
+  }
+
+  &__image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(3,25,46,0.4), transparent);
+  }
+}
+
+// ── Columna derecha ──
+.cc-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// ── Card formulario ──
+.cc-form-card {
+  background: #f5f3ef;
+  border-radius: 0.75rem;
+  padding: 2.5rem;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(196,198,205,0.1);
+
+  @include m.mobile { padding: 1.5rem; }
+
+  &__header {
+    margin-bottom: 1.75rem;
+  }
+
+  &__title {
+    font-family: v.$font-display;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: v.$primary;
+    margin-bottom: 0.25rem;
+  }
+
+  &__subtitle {
+    font-size: 0.7rem;
+    color: #43474d;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+  }
+}
+
+// ── Error general ──
+.cc-error {
+  background: #ffdad6;
+  color: #ba1a1a;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+// ── Formulario ──
+.cc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// ── Fila de campos ──
+.cc-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @include m.mobile { grid-template-columns: 1fr; }
+}
+
+// ── Campo individual ──
+.cc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &__label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #43474d;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #e4e2de;
+    border: none;
+    border-radius: 0.5rem;
+    font-family: v.$font-body;
+    font-size: 0.9rem;
+    color: v.$text-dark;
+    outline: none;
+    transition: box-shadow 0.2s;
+
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(133, 83, 36, 0.4);
+    }
+
+    &--error {
+      box-shadow: 0 0 0 2px rgba(186, 26, 26, 0.4);
+    }
+
+    &[type="date"] { cursor: pointer; }
+  }
+
+  &__error-msg {
+    font-size: 0.72rem;
+    color: #ba1a1a;
+    font-weight: 500;
+  }
+}
+
+// ── Indicador de fuerza ──
+.cc-strength {
+  margin-top: 0.5rem;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.35rem;
+  }
+
+  &__text {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #43474d;
+  }
+
+  &__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &__bars {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  &__bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 999px;
+    transition: background 0.3s ease;
+  }
+}
+
+// ── Botón submit ──
+.cc-btn-submit {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: v.$primary;
+  color: white;
+  font-family: v.$font-display;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(3,25,46,0.2);
+  margin-top: 0.5rem;
+
+  &:hover:not(:disabled) {
+    background: #1a2e44;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(3,25,46,0.28);
+  }
+
+  &:active:not(:disabled) { transform: scale(0.98); }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+// ── Quote ──
+.cc-quote {
+  text-align: center;
+  font-size: 0.82rem;
+  color: #43474d;
+  font-style: italic;
+  line-height: 1.5;
+  padding-top: 0.5rem;
+}
+
+// ── Link login ──
+.cc-login-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #43474d;
+
+  &__btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: v.$font-body;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #855324;
+    padding: 0;
+    transition: text-decoration 0.2s;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+// ── Sellos de confianza ──
+.cc-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  opacity: 0.55;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    color: #855324;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  &__label {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    text-align: center;
+    color: v.$text-dark;
+  }
+}
+
+// ── Footer ──
+.cc-footer {
+  background: #f5f3ef;
+  padding: 2.5rem 1.5rem;
+  border-top: 1px solid rgba(196,198,205,0.2);
+
+  &__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    @include m.mobile { flex-direction: column; text-align: center; }
+  }
+
+  &__brand { display: flex; flex-direction: column; gap: 0.25rem; }
+
+  &__name {
+    font-family: v.$font-display;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #855324;
+    font-weight: 600;
+  }
+
+  &__copy {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: v.$primary;
+    opacity: 0.7;
+  }
+
+  &__links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  &__link {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: v.$font-body;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: v.$primary;
+    opacity: 0.6;
+    transition: color 0.2s, opacity 0.2s;
+    padding: 0;
+
+    &:hover { color: #855324; opacity: 1; }
+  }
+}

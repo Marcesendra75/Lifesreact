@@ -1,0 +1,84 @@
+// ============================================
+// LIFE'S — Reset global
+// ============================================
+@use '../abstracts/variables' as v;
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: v.$font-body;
+  font-size: v.$size-base;
+  font-weight: v.$weight-regular;
+  color: v.$text-dark;
+  background: v.$cream;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img, video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: v.$font-display;
+  line-height: 1.2;
+  font-weight: v.$weight-bold;
+  color: v.$text-dark;
+}
+
+p {
+  line-height: 1.7;
+}
+
+:focus-visible {
+  outline: 2px solid v.$gold;
+  outline-offset: 3px;
+  border-radius: v.$radius-sm;
+}
+
+::selection {
+  background: rgba(201,168,76,0.25);
+  color: v.$primary;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
