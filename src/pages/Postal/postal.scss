@@ -1,0 +1,980 @@
+// ============================================================
+// LIFE'S — Postal.scss
+// Paleta: azul noche #03192E · crema #F5F0E8 · ámbar #C9932A
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400;1,6..72,600&family=Manrope:wght@300;400;500;600;700&display=swap');
+
+// ── Tokens ────────────────────────────────────────────────
+$noche:     #03192E;
+$crema:     #F5F0E8;
+$crema-med: #EDE8DF;
+$ambar:     #C9932A;
+$ambar-light: #E8B84B;
+$piedra:    #8A8279;
+$piedra-light: #C4BFB8;
+$error:     #C0392B;
+
+$radius-sm: 8px;
+$radius-md: 14px;
+$radius-lg: 22px;
+$radius-xl: 32px;
+
+$shadow-card: 0 4px 24px rgba(3, 25, 46, 0.10);
+$shadow-paper: 
+  0 1px 1px rgba(0,0,0,.10),
+  0 2px 2px rgba(0,0,0,.09),
+  0 4px 4px rgba(0,0,0,.08),
+  0 8px 8px rgba(0,0,0,.06),
+  0 20px 40px rgba(0,0,0,.08);
+
+// ── Base ──────────────────────────────────────────────────
+.postal-page {
+  min-height: 100dvh;
+  background: $crema;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Header ────────────────────────────────────────────────
+.postal-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba($crema, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba($noche, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+
+  &__title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    h1 {
+      font-family: 'Newsreader', serif;
+      font-style: italic;
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: $noche;
+      margin: 0;
+      line-height: 1.2;
+    }
+  }
+
+  &__eyebrow {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $ambar;
+    margin-bottom: 2px;
+  }
+
+  &__recuerdo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba($noche, 0.05);
+    border-radius: $radius-md;
+    padding: 6px 12px 6px 6px;
+    max-width: 200px;
+
+    img {
+      width: 36px;
+      height: 36px;
+      border-radius: $radius-sm;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      span {
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      small {
+        font-size: 0.68rem;
+        color: $piedra;
+      }
+    }
+  }
+}
+
+.postal-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $noche;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s;
+
+  &:hover { background: rgba($noche, 0.06); }
+}
+
+// ── Wizard steps ──────────────────────────────────────────
+.postal-wizard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 20px 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    padding: 0 16px;
+    min-width: 72px;
+
+    // Línea conectora
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: -1px;
+      top: 16px;
+      width: 32px;
+      height: 1px;
+      background: $piedra-light;
+    }
+
+    &.done::after { background: $ambar; }
+
+    &.active .postal-wizard__num,
+    &.done .postal-wizard__num {
+      background: $ambar;
+      color: white;
+      border-color: $ambar;
+    }
+  }
+
+  &__num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid $piedra-light;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: $piedra;
+    background: white;
+    transition: all 0.25s;
+  }
+
+  &__label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $piedra;
+    white-space: nowrap;
+
+    .postal-wizard__step.active & { color: $ambar; }
+    .postal-wizard__step.done & { color: $noche; }
+  }
+}
+
+// ── Layout principal ──────────────────────────────────────
+.postal-layout {
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  gap: 40px;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 32px 24px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Preview (hoja de papel) ───────────────────────────────
+.postal-preview {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+
+  @media (max-width: 900px) {
+    position: static;
+    order: -1;
+  }
+
+  &__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: $piedra;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  &__paper {
+    background: white;
+    border-radius: $radius-lg;
+    padding: 28px;
+    box-shadow: $shadow-paper;
+    transform: rotate(1.2deg);
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+
+    &:hover { transform: rotate(0deg) scale(1.01); }
+  }
+
+  &__frame {
+    border-radius: $radius-md;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(.34,1.56,.64,1);
+    position: relative;
+
+    &--madera {
+      // La sombra se aplica via style inline con el color real
+    }
+
+    &--digital {
+      // idem
+    }
+  }
+
+  &__photo-wrap {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+  }
+
+  &__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: filter 0.4s ease;
+  }
+
+  &__polaroid-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 248, 220, 0.15),
+      rgba(200, 160, 80, 0.1)
+    );
+    pointer-events: none;
+  }
+
+  &__digital-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba($noche, 0.85);
+    color: $ambar-light;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba($ambar, 0.4);
+  }
+
+  &__dedicatoria {
+    padding: 16px 20px 12px;
+    background: white;
+    border-top: 1px solid rgba($noche, 0.06);
+
+    .postal-preview__frame--madera & {
+      background: transparent;
+    }
+  }
+
+  &__frase {
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: $noche;
+    margin: 0 0 6px;
+    font-style: italic;
+  }
+
+  &__firma {
+    font-size: 0.85rem;
+    color: $piedra;
+    margin: 0;
+    text-align: right;
+  }
+
+  &__pie {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px;
+  }
+
+  &__metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    span {
+      font-size: 0.68rem;
+      color: $piedra;
+    }
+  }
+
+  &__tamano-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: white;
+    background: $noche;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  &__precio {
+    margin-top: 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__precio-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $piedra;
+  }
+
+  &__precio-valor {
+    font-family: 'Newsreader', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: $ambar;
+    line-height: 1;
+  }
+
+  &__precio-cant {
+    font-size: 0.72rem;
+    color: $piedra;
+    background: rgba($noche, 0.06);
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+}
+
+// ── Controles ─────────────────────────────────────────────
+.postal-controles {
+  min-width: 0;
+}
+
+.postal-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid rgba($noche, 0.08);
+    padding-bottom: 12px;
+
+    h2 {
+      font-family: 'Newsreader', serif;
+      font-style: italic;
+      font-size: 1.6rem;
+      font-weight: 400;
+      margin: 0;
+    }
+  }
+
+  &__paso {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: $ambar;
+  }
+}
+
+.postal-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.postal-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $piedra;
+}
+
+// ── Filtros de foto ───────────────────────────────────────
+.postal-filtros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.postal-filtro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: $radius-md;
+  padding: 8px 8px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: $shadow-card;
+
+  &:hover { border-color: rgba($ambar, 0.4); }
+  &.active {
+    border-color: $ambar;
+    background: rgba($ambar, 0.04);
+  }
+
+  &__thumb {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 6px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: filter 0.3s;
+    }
+  }
+
+  span {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: $noche;
+  }
+}
+
+// ── Opciones genéricas (soporte, marco) ───────────────────
+.postal-opciones {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.postal-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: $radius-md;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  box-shadow: $shadow-card;
+  position: relative;
+
+  &:hover { border-color: rgba($ambar, 0.4); }
+  &.active {
+    border-color: $ambar;
+    background: rgba($ambar, 0.04);
+  }
+
+  &--premium {
+    &.active { border-color: $ambar; background: rgba($ambar, 0.06); }
+  }
+
+  &__nombre {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: $noche;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__desc {
+    font-size: 0.72rem;
+    color: $piedra;
+    line-height: 1.4;
+  }
+
+  &__extra {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: $ambar;
+    margin-top: 2px;
+  }
+}
+
+.postal-badge-premium {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, $ambar, $ambar-light);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+// ── Tamaños ───────────────────────────────────────────────
+.postal-tamanos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.postal-tamano {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: $radius-md;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  box-shadow: $shadow-card;
+
+  &:hover { border-color: rgba($ambar, 0.4); }
+  &.active {
+    border-color: $ambar;
+    background: rgba($ambar, 0.04);
+  }
+
+  &__emoji { font-size: 1.3rem; margin-bottom: 4px; }
+  &__nombre { font-size: 0.85rem; font-weight: 700; color: $noche; }
+  &__medida { font-size: 0.7rem; color: $piedra; }
+  &__extra { font-size: 0.68rem; font-weight: 700; color: $ambar; margin-top: 2px; }
+}
+
+// ── Colores de marco ──────────────────────────────────────
+.postal-colores {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.postal-color {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: $radius-md;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: $shadow-card;
+
+  &.active {
+    border-color: $ambar;
+    background: rgba($ambar, 0.04);
+  }
+
+  &__chip {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba($noche, 0.12);
+    display: block;
+  }
+
+  span:last-child {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: $piedra;
+  }
+}
+
+// ── Cantidad ──────────────────────────────────────────────
+.postal-cantidad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &__btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid rgba($noche, 0.15);
+    background: white;
+    font-size: 1.2rem;
+    font-weight: 300;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: $noche;
+
+    &:hover { border-color: $ambar; color: $ambar; }
+  }
+
+  &__num {
+    font-family: 'Newsreader', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: $noche;
+    min-width: 36px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  &__hint {
+    font-size: 0.72rem;
+    color: $ambar;
+    font-weight: 600;
+    background: rgba($ambar, 0.08);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+}
+
+// ── Fuentes ───────────────────────────────────────────────
+.postal-fuentes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.postal-fuente {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: $radius-md;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  box-shadow: $shadow-card;
+
+  &:hover { border-color: rgba($ambar, 0.4); }
+  &.active {
+    border-color: $ambar;
+    background: rgba($ambar, 0.04);
+  }
+
+  &__preview {
+    font-size: 1rem;
+    color: $noche;
+    line-height: 1.4;
+  }
+
+  &__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $piedra;
+  }
+}
+
+// ── Inputs ────────────────────────────────────────────────
+.postal-input {
+  width: 100%;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: $radius-sm;
+  padding: 14px 16px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.9rem;
+  color: $noche;
+  box-shadow: $shadow-card;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+
+  &::placeholder { color: $piedra-light; }
+  &:focus { border-color: $ambar; }
+}
+
+.postal-textarea {
+  @extend .postal-input;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.postal-contador {
+  font-size: 0.65rem;
+  color: $piedra;
+  text-align: right;
+  margin-top: -6px;
+}
+
+.postal-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+// ── Sobre (resumen) ───────────────────────────────────────
+.postal-sobre {
+  background: $noche;
+  color: rgba(white, 0.85);
+  border-radius: $radius-xl;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+
+  // Textura de sobre
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: linear-gradient(135deg, rgba(white, 0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  &__sello {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border: 2px dashed rgba($ambar, 0.5);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__sello-inner {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba($ambar, 0.6);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    span {
+      font-family: 'Newsreader', serif;
+      font-size: 0.55rem;
+      font-style: italic;
+      color: $ambar;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  &__para {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: $ambar;
+    margin-bottom: 8px;
+  }
+
+  &__destinatario {
+    margin-bottom: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-right: 60px;
+
+    strong {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    span {
+      font-size: 0.82rem;
+      color: rgba(white, 0.6);
+    }
+  }
+
+  &__detalle {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid rgba(white, 0.1);
+    padding-top: 20px;
+  }
+
+  &__linea {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: rgba(white, 0.7);
+  }
+
+  &__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba($ambar, 0.3);
+    padding-top: 14px;
+    margin-top: 6px;
+
+    span:first-child {
+      font-size: 0.82rem;
+      color: rgba(white, 0.7);
+    }
+
+    span:last-child {
+      font-family: 'Newsreader', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: $ambar-light;
+    }
+  }
+
+  &__garantia {
+    margin-top: 18px;
+    font-size: 0.68rem;
+    color: rgba(white, 0.4);
+    text-align: center;
+    line-height: 1.5;
+    border-top: 1px solid rgba(white, 0.06);
+    padding-top: 14px;
+  }
+}
+
+// ── Pagos ─────────────────────────────────────────────────
+.postal-pagos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.postal-pago {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  border-radius: $radius-md;
+  border: none;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &--mp {
+    background: #009EE3;
+    color: white;
+    &:hover { background: darken(#009EE3, 8%); }
+  }
+
+  &--card {
+    background: white;
+    color: $noche;
+    box-shadow: $shadow-card;
+    border: 2px solid transparent;
+    &:hover { border-color: rgba($noche, 0.15); }
+  }
+}
+
+// ── Navegación entre pasos ────────────────────────────────
+.postal-nav {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+.postal-btn-sig {
+  background: $noche;
+  color: white;
+  border: none;
+  border-radius: $radius-md;
+  padding: 14px 24px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+
+  &:hover { background: lighten($noche, 8%); transform: translateY(-1px); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+}
+
+.postal-btn-back {
+  background: none;
+  color: $piedra;
+  border: 2px solid rgba($noche, 0.12);
+  border-radius: $radius-md;
+  padding: 12px 20px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { border-color: $noche; color: $noche; }
+}
+
+// ── Responsive mobile ────────────────────────────────────
+@media (max-width: 600px) {
+  .postal-header {
+    padding: 12px 16px;
+
+    &__recuerdo { display: none; }
+  }
+
+  .postal-layout { padding: 20px 16px; }
+
+  .postal-filtros { grid-template-columns: repeat(3, 1fr); }
+
+  .postal-opciones,
+  .postal-tamanos,
+  .postal-fuentes { grid-template-columns: 1fr; }
+
+  .postal-grid-2 { grid-template-columns: 1fr; }
+
+  .postal-wizard { padding: 16px 12px; gap: 0; }
+
+  .postal-preview__paper { transform: rotate(0deg); }
+}
