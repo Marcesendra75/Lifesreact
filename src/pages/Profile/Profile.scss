@@ -1,0 +1,1000 @@
+// ============================================================
+// LIFE'S — Profile.scss
+// Paleta: azul noche #03192E · crema #F5F0E8 · ámbar #C9932A
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400;1,6..72,600&family=Manrope:wght@300;400;500;600;700&display=swap');
+
+// ── Tokens ─────────────────────────────────────────────────
+$noche:      #03192E;
+$noche-med:  #052240;
+$crema:      #F5F0E8;
+$crema-med:  #EDE8DF;
+$ambar:      #C9932A;
+$ambar-light:#E8B84B;
+$piedra:     #8A8279;
+$piedra-light:#C4BFB8;
+$blanco:     #ffffff;
+
+$radius-sm:  8px;
+$radius-md:  14px;
+$radius-lg:  22px;
+$radius-xl:  32px;
+
+$shadow-card: 0 4px 24px rgba(3,25,46,0.08);
+$shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
+
+// ── Base ───────────────────────────────────────────────────
+.profile-page {
+  min-height: 100dvh;
+  background: $crema;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Helpers compartidos ────────────────────────────────────
+.profile-seccion-eyebrow {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $ambar;
+  margin-bottom: 4px;
+}
+
+.profile-seccion-titulo {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: $noche;
+  margin: 0;
+}
+
+.profile-barra-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.profile-btn-editar-sec {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px solid rgba($noche, 0.15);
+  border-radius: $radius-sm;
+  padding: 7px 14px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $piedra;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: $ambar;
+    color: $ambar;
+  }
+}
+
+.profile-btn-ver {
+  background: none;
+  border: none;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: $ambar;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.7; }
+}
+
+// ════════════════════════════════════════════════════════════
+// ① HERO
+// ════════════════════════════════════════════════════════════
+.profile-hero {
+  position: relative;
+  height: 380px;
+
+  @media (max-width: 600px) { height: 320px; }
+
+  &__portada {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+
+  &__portada-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba($noche, 0.1) 0%,
+      rgba($noche, 0.75) 100%
+    );
+  }
+
+  &__contenido {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 40px 32px;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+
+    @media (max-width: 600px) {
+      padding: 0 20px 24px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+  }
+
+  &__avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  &__nivel-ring {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    padding: 3px;
+    background: conic-gradient(
+      var(--nivel-color) 0%,
+      transparent 70%,
+      var(--nivel-color) 100%
+    );
+
+    @media (max-width: 600px) { width: 72px; height: 72px; }
+  }
+
+  &__avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid $crema;
+    display: block;
+  }
+
+  &__nivel-badge {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    border: 1px solid currentColor;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__nombre {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: white;
+    margin: 0 0 4px;
+    line-height: 1.1;
+
+    @media (max-width: 600px) { font-size: 1.6rem; }
+  }
+
+  &__frase {
+    font-size: 0.82rem;
+    color: rgba(white, 0.7);
+    font-style: italic;
+    margin: 0 0 10px;
+    line-height: 1.5;
+    max-width: 480px;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      color: rgba(white, 0.65);
+    }
+  }
+
+  &__editar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(white, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(white, 0.25);
+    border-radius: $radius-md;
+    padding: 10px 18px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    align-self: flex-end;
+
+    &:hover {
+      background: rgba(white, 0.22);
+    }
+
+    @media (max-width: 600px) {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      align-self: auto;
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ② BARRA DE VIDA
+// ════════════════════════════════════════════════════════════
+.profile-barra-wrap {
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 600px) { padding: 0 20px; }
+}
+
+.profile-barra-anos {
+  display: flex;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.profile-barra-ano {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: $piedra;
+  letter-spacing: 0.04em;
+  text-align: left;
+
+  &--ultimo {
+    position: absolute;
+    right: 0;
+    width: auto !important;
+  }
+}
+
+.profile-barra {
+  height: 28px;
+  display: flex;
+  border-radius: 20px;
+  overflow: visible;
+  position: relative;
+  gap: 2px;
+
+  &__cap {
+    height: 100%;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.15s;
+    position: relative;
+
+    &:hover {
+      filter: brightness(1.15);
+      transform: scaleY(1.08);
+    }
+  }
+
+  &__tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    transform: translateX(-50%);
+    background: $noche;
+    color: white;
+    border-radius: $radius-md;
+    padding: 10px 14px;
+    pointer-events: none;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    white-space: nowrap;
+    box-shadow: $shadow-lg;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: $noche;
+    }
+
+    strong {
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    span {
+      font-size: 0.72rem;
+      color: rgba(white, 0.65);
+    }
+  }
+
+  &__tooltip-dur {
+    color: $ambar-light !important;
+    font-weight: 600 !important;
+  }
+}
+
+.profile-barra-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 14px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: $piedra;
+    font-weight: 500;
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ③ NÚMEROS CON ALMA
+// ════════════════════════════════════════════════════════════
+.profile-numeros {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  max-width: 900px;
+  margin: 32px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 900px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 500px) { grid-template-columns: repeat(2, 1fr); padding: 0 20px; }
+}
+
+.profile-metrica {
+  background: white;
+  border-radius: $radius-md;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: $shadow-card;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s;
+
+  &--link {
+    cursor: pointer;
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+  }
+
+  &__icono {
+    font-size: 1.3rem;
+    margin-bottom: 4px;
+  }
+
+  &__valor {
+    font-family: 'Newsreader', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    color: $noche;
+    line-height: 1;
+  }
+
+  &__label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $piedra;
+  }
+
+  &__arrow {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 0.75rem;
+    color: $ambar;
+    font-weight: 700;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ④ VÍNCULOS
+// ════════════════════════════════════════════════════════════
+.profile-vinculos-sec {
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 600px) { padding: 0 20px; }
+}
+
+.profile-vinculos-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 12px;
+
+  @media (max-width: 700px) { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 400px) { grid-template-columns: repeat(3, 1fr); }
+}
+
+.profile-vinculo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover { transform: translateY(-3px); }
+
+  &__avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: $shadow-card;
+
+    @media (max-width: 600px) { width: 50px; height: 50px; }
+  }
+
+  &__nombre {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: $noche;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  &__tipo {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $ambar;
+    text-align: center;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ⑤ RECUERDOS DESTACADOS
+// ════════════════════════════════════════════════════════════
+.profile-recuerdos-sec {
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 600px) { padding: 0 20px; }
+}
+
+.profile-recuerdos-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: repeat(2, 160px);
+  gap: 10px;
+
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+}
+
+.profile-recuerdo {
+  border-radius: $radius-md;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+
+  &--grande {
+    grid-row: 1 / 3;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  &:hover img { transform: scale(1.05); }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba($noche, 0.75) 0%, transparent 50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  &:hover &__overlay { opacity: 1; }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: white;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+
+  &__meta {
+    font-size: 0.65rem;
+    color: rgba(white, 0.7);
+    margin-top: 3px;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ⑥ SOBRE MÍ
+// ════════════════════════════════════════════════════════════
+.profile-sobre {
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 600px) { padding: 0 20px; }
+
+  &__bio {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: #4A4540;
+    margin: 0 0 24px;
+    color: #4A4540;
+  }
+
+  &__datos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+
+    @media (max-width: 500px) { grid-template-columns: 1fr; }
+  }
+
+  &__dato {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: white;
+    border-radius: $radius-md;
+    padding: 14px 16px;
+    box-shadow: $shadow-card;
+  }
+
+  &__dato-icono {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  &__dato-label {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $piedra;
+    margin-bottom: 3px;
+  }
+
+  &__dato-valor {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: $noche;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ⑦ FRASE DE LEGADO
+// ════════════════════════════════════════════════════════════
+.profile-legado {
+  max-width: 900px;
+  margin: 48px auto 0;
+  padding: 0 40px;
+  background: $noche;
+  border-radius: $radius-xl;
+  padding: 56px 60px;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  margin-left: 40px;
+  margin-right: 40px;
+  max-width: calc(900px - 80px);
+
+  @media (min-width: 980px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (max-width: 600px) {
+    margin: 40px 20px 0;
+    padding: 40px 28px;
+  }
+
+  &__comillas {
+    font-family: 'Newsreader', serif;
+    font-size: 8rem;
+    line-height: 0.6;
+    color: rgba($ambar, 0.15);
+    position: absolute;
+    top: 28px;
+    left: 28px;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  &__frase {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: rgba(white, 0.9);
+    line-height: 1.65;
+    margin: 0 0 20px;
+    position: relative;
+
+    @media (max-width: 600px) { font-size: 1.15rem; }
+  }
+
+  &__firma {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: $ambar;
+    text-transform: uppercase;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// DRAWER DE EDICIÓN
+// ════════════════════════════════════════════════════════════
+.profile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba($noche, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.profile-drawer {
+  width: 420px;
+  max-width: 100vw;
+  height: 100%;
+  background: $crema;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 40px rgba($noche, 0.2);
+  animation: drawerIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @keyframes drawerIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+
+  // ── Header ──
+  &__header {
+    padding: 20px 20px 0;
+    border-bottom: 1px solid rgba($noche, 0.08);
+    background: white;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 0;
+  }
+
+  &__tab {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 10px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: $piedra;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+
+    &.active {
+      color: $ambar;
+      border-bottom-color: $ambar;
+    }
+  }
+
+  &__cerrar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $piedra;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    transition: background 0.2s;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+
+    &:hover { background: rgba($noche, 0.06); color: $noche; }
+  }
+
+  // ── Body ──
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__hint {
+    font-size: 0.78rem;
+    color: $piedra;
+    line-height: 1.5;
+    margin: 0;
+    padding: 10px 14px;
+    background: rgba($ambar, 0.06);
+    border-radius: $radius-sm;
+    border-left: 3px solid $ambar;
+  }
+
+  &__grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: $piedra;
+    }
+
+    input, textarea, select {
+      background: white;
+      border: 2px solid transparent;
+      border-radius: $radius-sm;
+      padding: 10px 14px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.85rem;
+      color: $noche;
+      outline: none;
+      transition: border-color 0.2s;
+      box-shadow: 0 2px 8px rgba($noche, 0.06);
+      width: 100%;
+      box-sizing: border-box;
+
+      &:focus { border-color: $ambar; }
+      &::placeholder { color: $piedra-light; }
+    }
+
+    textarea { resize: vertical; line-height: 1.5; }
+    select   { cursor: pointer; }
+  }
+
+  &__grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  // ── Capítulos ──
+  &__capitulo {
+    background: white;
+    border-radius: $radius-md;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba($noche, 0.06);
+  }
+
+  &__capitulo-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__capitulo-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__capitulo-num {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $piedra;
+    flex: 1;
+  }
+
+  &__capitulo-del {
+    background: none;
+    border: none;
+    color: $piedra-light;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    &:hover { background: rgba(red, 0.08); color: #c0392b; }
+  }
+
+  &__colores {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__color-chip {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+
+    &.active {
+      border-color: $noche;
+      transform: scale(1.2);
+    }
+  }
+
+  &__add {
+    background: none;
+    border: 2px dashed rgba($noche, 0.15);
+    border-radius: $radius-md;
+    padding: 12px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $piedra;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+
+    &:hover {
+      border-color: $ambar;
+      color: $ambar;
+    }
+  }
+
+  // ── Vínculos ──
+  &__vinculo {
+    background: white;
+    border-radius: $radius-md;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba($noche, 0.06);
+  }
+
+  &__vinculo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__vinculo-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  // ── Footer ──
+  &__footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba($noche, 0.08);
+    background: white;
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  &__cancelar {
+    flex: 1;
+    background: none;
+    border: 2px solid rgba($noche, 0.12);
+    border-radius: $radius-md;
+    padding: 12px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: $piedra;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { border-color: $noche; color: $noche; }
+  }
+
+  &__guardar {
+    flex: 2;
+    background: $noche;
+    border: none;
+    border-radius: $radius-md;
+    padding: 12px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { background: #0a3a5c; }
+  }
+}
+
+// ── Responsive mobile ──────────────────────────────────────
+@media (max-width: 768px) {
+  .profile-barra-wrap,
+  .profile-numeros,
+  .profile-vinculos-sec,
+  .profile-recuerdos-sec,
+  .profile-sobre {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}

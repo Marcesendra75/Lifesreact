@@ -1,0 +1,902 @@
+// ============================================================
+// LIFE'S — Settings.scss
+// Centro de control de identidad y legado
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600;700&display=swap');
+
+// ── Tokens ─────────────────────────────────────────────────
+$noche:       #03192E;
+$crema:       #F5F0E8;
+$crema-med:   #EDE8DF;
+$ambar:       #C9932A;
+$ambar-light: #E8B84B;
+$piedra:      #8A8279;
+$piedra-light:#C4BFB8;
+$fondo:       #F7F5F1;
+$blanco:      #ffffff;
+$peligro:     #ba1a1a;
+
+$radius-sm:  8px;
+$radius-md:  14px;
+$radius-lg:  20px;
+$radius-xl:  28px;
+
+$shadow-sm:   0 2px 8px rgba(3,25,46,0.06);
+$shadow-md:   0 4px 20px rgba(3,25,46,0.09);
+$shadow-lg:   0 8px 40px rgba(3,25,46,0.13);
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Base ───────────────────────────────────────────────────
+.settings-page {
+  min-height: 100dvh;
+  background: $fondo;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Header ─────────────────────────────────────────────────
+.settings-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba($fondo, 0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba($noche, 0.06);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &__back {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $noche;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: $noche;
+    margin: 0;
+  }
+}
+
+// ── Main container ─────────────────────────────────────────
+.settings-main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: slideIn 0.3s ease both;
+}
+
+// ── Hero personal ──────────────────────────────────────────
+.settings-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: $blanco;
+  border-radius: $radius-lg;
+  padding: 20px;
+  box-shadow: $shadow-sm;
+
+  &__avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba($ambar, 0.3);
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  &__nombre {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: $noche;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__plan {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  &__email {
+    font-size: 0.75rem;
+    color: $piedra;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ── Completitud del Legado ⭐ ──────────────────────────────
+.settings-completitud {
+  background: $blanco;
+  border-radius: $radius-lg;
+  padding: 20px;
+  box-shadow: $shadow-sm;
+  border: 1px solid rgba($ambar, 0.12);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  &__eyebrow {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: $ambar;
+    margin-bottom: 3px;
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: $noche;
+    margin: 0;
+  }
+
+  &__pct-ring {
+    flex-shrink: 0;
+  }
+
+  &__barra-wrap {
+    margin-bottom: 16px;
+  }
+
+  &__barra {
+    height: 6px;
+    background: rgba($ambar, 0.12);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  &__barra-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $ambar, $ambar-light);
+    border-radius: 20px;
+    transition: width 1s ease;
+  }
+
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    border-radius: $radius-sm;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: background 0.18s;
+    text-align: left;
+
+    &:hover:not(.hecho) { background: rgba($ambar, 0.06); }
+
+    &.hecho {
+      cursor: default;
+      opacity: 0.6;
+    }
+  }
+
+  &__item-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba($ambar, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: $ambar;
+
+    .hecho & {
+      background: rgba(74, 122, 78, 0.15);
+      color: #4a7a4e;
+    }
+  }
+
+  &__item-pts {
+    font-size: 0.55rem;
+    font-weight: 800;
+    color: $ambar;
+  }
+
+  &__item-label {
+    flex: 1;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: $noche;
+  }
+
+  &__motivacion {
+    font-size: 0.72rem;
+    color: $piedra;
+    line-height: 1.5;
+    margin: 14px 0 0;
+    padding: 10px 14px;
+    background: rgba($ambar, 0.06);
+    border-radius: $radius-sm;
+    border-left: 3px solid $ambar;
+  }
+}
+
+// ── Menú de secciones ──────────────────────────────────────
+.settings-menu {
+  background: $blanco;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba($noche, 0.05);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.18s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba($noche, 0.03); }
+
+  &--peligro {
+    &:hover { background: rgba($peligro, 0.04); }
+
+    .settings-menu-item__label { color: $peligro; }
+    .settings-menu-item__icono { background: rgba($peligro, 0.08) !important; color: $peligro !important; }
+  }
+
+  &__icono {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+
+    .settings-menu-item:hover & { transform: scale(1.05); }
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: $noche;
+  }
+
+  &__sub {
+    font-size: 0.7rem;
+    color: $piedra;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__arrow {
+    color: $piedra-light;
+    flex-shrink: 0;
+  }
+}
+
+// ── Logout ─────────────────────────────────────────────────
+.settings-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  background: $blanco;
+  border: 1.5px solid rgba($noche, 0.1);
+  border-radius: $radius-lg;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: $piedra;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: $peligro;
+    color: $peligro;
+    background: rgba($peligro, 0.03);
+  }
+}
+
+.settings-version {
+  text-align: center;
+  font-size: 0.62rem;
+  color: $piedra-light;
+  margin: 0;
+  padding-bottom: 8px;
+}
+
+// ── Panel de detalle ───────────────────────────────────────
+.settings-detalle {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  animation: slideIn 0.25s ease both;
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+// ── Helpers compartidos ────────────────────────────────────
+.settings-hint {
+  font-size: 0.78rem;
+  color: $piedra;
+  line-height: 1.55;
+  margin: 0;
+  padding: 10px 14px;
+  background: rgba($noche, 0.03);
+  border-radius: $radius-sm;
+}
+
+.settings-divider {
+  height: 1px;
+  background: rgba($noche, 0.07);
+  margin: 4px 0;
+}
+
+.settings-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $piedra;
+  }
+}
+
+// ── Toggle ─────────────────────────────────────────────────
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: $blanco;
+  border-radius: $radius-md;
+  padding: 14px 16px;
+  box-shadow: $shadow-sm;
+
+  &--highlight {
+    border: 1.5px solid rgba($ambar, 0.2);
+    background: rgba($ambar, 0.03);
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+  }
+
+  &__label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $noche;
+  }
+
+  &__sub {
+    font-size: 0.7rem;
+    color: $piedra;
+    line-height: 1.4;
+  }
+}
+
+.settings-toggle {
+  width: 46px;
+  height: 26px;
+  background: $piedra-light;
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+  flex-shrink: 0;
+
+  &.on { background: $noche; }
+
+  &__thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+
+    .settings-toggle.on & { transform: translateX(20px); }
+  }
+}
+
+// ── Item row ───────────────────────────────────────────────
+.settings-item-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: $blanco;
+  border: none;
+  border-radius: $radius-md;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-shadow: $shadow-sm;
+  transition: all 0.18s;
+
+  &:hover { background: rgba($noche, 0.02); transform: translateX(2px); }
+
+  &__icono {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $noche;
+  }
+
+  &__sub {
+    font-size: 0.7rem;
+    color: $piedra;
+  }
+
+  &__arrow {
+    color: $piedra-light;
+    flex-shrink: 0;
+  }
+}
+
+// ── Field editable ─────────────────────────────────────────
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $piedra;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: $blanco;
+    border-radius: $radius-md;
+    padding: 12px 14px;
+    box-shadow: $shadow-sm;
+  }
+
+  &__icono {
+    color: $piedra;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  &__valor {
+    flex: 1;
+    font-size: 0.85rem;
+    color: $noche;
+    font-weight: 500;
+  }
+
+  &__edit {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $piedra;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    transition: all 0.2s;
+
+    &:hover { color: $ambar; background: rgba($ambar, 0.08); }
+  }
+}
+
+// ── Avatar edit ────────────────────────────────────────────
+.settings-avatar-edit {
+  position: relative;
+  width: 80px;
+  margin: 0 auto 8px;
+
+  img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba($ambar, 0.3);
+    display: block;
+  }
+
+  &__btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $noche;
+    border: 2px solid white;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+
+    &:hover { background: $ambar; }
+  }
+}
+
+// ── Botón primario ─────────────────────────────────────────
+.settings-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: $noche;
+  border: none;
+  border-radius: $radius-md;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+
+  &:hover { background: #0a3a5c; transform: translateY(-1px); }
+}
+
+// ── Plan cards ─────────────────────────────────────────────
+.settings-plan-actual {
+  background: $blanco;
+  border-radius: $radius-md;
+  padding: 18px;
+  box-shadow: $shadow-sm;
+  border: 1.5px solid rgba($ambar, 0.2);
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba($ambar, 0.1);
+    color: $ambar;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  &__desc {
+    font-size: 0.8rem;
+    color: $piedra;
+    line-height: 1.5;
+    margin: 0 0 12px;
+  }
+
+  &__features {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__feature {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: $noche;
+    font-weight: 500;
+
+    svg { color: #4a7a4e; flex-shrink: 0; }
+  }
+}
+
+.settings-plan-card {
+  background: $blanco;
+  border-radius: $radius-md;
+  padding: 18px;
+  box-shadow: $shadow-sm;
+  border: 1.5px solid rgba(var(--plan-color), 0.2);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+
+  &__nombre {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    font-weight: 400;
+  }
+
+  &__precio {
+    font-family: 'Newsreader', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: $noche;
+
+    small {
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.7rem;
+      color: $piedra;
+    }
+  }
+
+  &__features {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  &__feature {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: $noche;
+    font-weight: 500;
+  }
+
+  &__btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: $radius-sm;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+
+    &:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  }
+}
+
+// ── Apariencia ─────────────────────────────────────────────
+.settings-font-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.settings-font-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: $blanco;
+  border: 2px solid transparent;
+  border-radius: $radius-md;
+  padding: 14px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: $shadow-sm;
+
+  &.active {
+    border-color: $ambar;
+    background: rgba($ambar, 0.04);
+  }
+
+  span:first-child {
+    color: $noche;
+    font-weight: 700;
+  }
+
+  span:last-child {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $piedra;
+  }
+}
+
+// ── Zona de peligro ────────────────────────────────────────
+.settings-peligro-aviso {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba($peligro, 0.06);
+  border-radius: $radius-md;
+  padding: 14px 16px;
+  border-left: 3px solid rgba($peligro, 0.4);
+
+  svg { color: $peligro; flex-shrink: 0; margin-top: 1px; }
+
+  p {
+    font-size: 0.78rem;
+    color: $noche;
+    line-height: 1.55;
+    margin: 0;
+
+    strong { color: $peligro; }
+  }
+}
+
+.settings-peligro-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  background: $blanco;
+  border-radius: $radius-md;
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: $shadow-sm;
+  transition: all 0.2s;
+
+  svg { flex-shrink: 0; margin-top: 1px; }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    span {
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    small {
+      font-size: 0.7rem;
+      color: $piedra;
+      line-height: 1.4;
+    }
+  }
+
+  &--suave {
+    border: 1.5px solid rgba($noche, 0.1);
+    svg, span { color: $noche; }
+    &:hover { border-color: rgba($noche, 0.25); background: rgba($noche, 0.02); }
+  }
+
+  &--medio {
+    border: 1.5px solid rgba(58, 90, 138, 0.2);
+    svg, span { color: #3a5a8a; }
+    &:hover { border-color: #3a5a8a; background: rgba(58, 90, 138, 0.03); }
+  }
+
+  &--extremo {
+    border: 1.5px solid rgba($peligro, 0.2);
+    svg, span { color: $peligro; }
+    &:hover { border-color: $peligro; background: rgba($peligro, 0.03); }
+  }
+}
+
+// ── Toast ──────────────────────────────────────────────────
+.settings-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: $noche;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  box-shadow: $shadow-lg;
+  z-index: 400;
+  animation: toastIn 0.3s ease both;
+}
+
+// ── Responsive ─────────────────────────────────────────────
+@media (max-width: 600px) {
+  .settings-main,
+  .settings-detalle { padding: 16px; }
+
+  .settings-completitud__titulo { font-size: 1.2rem; }
+}

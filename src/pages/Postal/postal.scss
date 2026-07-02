@@ -904,7 +904,7 @@ $shadow-paper:
   &--mp {
     background: #009EE3;
     color: white;
-    &:hover { background: darken(#009EE3, 8%); }
+    &:hover { background: #007ab8; }
   }
 
   &--card {
@@ -937,7 +937,7 @@ $shadow-paper:
   transition: all 0.2s;
   letter-spacing: 0.02em;
 
-  &:hover { background: lighten($noche, 8%); transform: translateY(-1px); }
+  &:hover { background: #0a3a5c; transform: translateY(-1px); }
   &:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 }
 

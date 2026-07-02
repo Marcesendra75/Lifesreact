@@ -54,7 +54,7 @@
     background: rgba(3,25,46,0.06); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     color: v.$primary; transition: background 0.2s;
-    .material-symbols-outlined { font-size: 20px; }
+    svg { width: 20px; height: 20px; }
     &:hover { background: rgba(3,25,46,0.1); }
   }
 
@@ -118,7 +118,7 @@
   cursor: pointer; box-shadow: 0 2px 12px rgba(3,25,46,0.12);
   transition: all 0.2s ease;
 
-  .material-symbols-outlined { font-size: 18px; color: v.$primary; }
+  svg { width: 18px; height: 18px; color: v.$primary; }
   &:hover { background: #e4e2de; transform: translateY(-50%) scale(1.05); }
 
   &--left  { left: 10px; }
@@ -214,7 +214,7 @@
     width: 36px; height: 36px; border-radius: 0.875rem;
     background: rgba(255,255,255,0.1); display: flex;
     align-items: center; justify-content: center;
-    .material-symbols-outlined { font-size: 18px; color: #ffe088; }
+    svg { width: 18px; height: 18px; color: #ffe088; }
   }
 
   &__title {
@@ -246,7 +246,7 @@
     color: v.$primary; margin-bottom: 0.9rem;
     display: flex; align-items: center; gap: 0.5rem;
 
-    .material-symbols-outlined { font-size: 18px; color: #855324; }
+    svg { width: 18px; height: 18px; color: #855324; }
   }
 
   &__hint {
@@ -288,9 +288,9 @@
 
 .tl-field-icon-wrap {
   position: relative;
-  .material-symbols-outlined {
+  svg {
     position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
-    font-size: 16px; color: #74777d; pointer-events: none;
+    width: 16px; height: 16px; color: #74777d; pointer-events: none;
   }
   input { padding-left: 2.4rem !important; }
 }
@@ -337,7 +337,7 @@
   font-family: v.$font-body; font-size: 10px; font-weight: 700;
   letter-spacing: 0.06em; text-transform: uppercase; color: #43474d;
 
-  .material-symbols-outlined { font-size: 22px; }
+  svg { width: 22px; height: 22px; }
   &:hover { background: #e4e2de; }
   &.active { background: v.$primary; color: white; }
 }
@@ -351,7 +351,7 @@
   align-items: center; gap: 0.4rem; cursor: pointer;
   background: #f5f3ef; transition: all 0.2s;
 
-  .material-symbols-outlined { font-size: 26px; color: #855324; }
+  svg { width: 26px; height: 26px; color: #855324; }
   span { font-size: 11px; font-weight: 700; color: #43474d; text-transform: uppercase; letter-spacing: 0.07em; }
   small { font-size: 10px; color: #74777d; }
   &:hover { border-color: #855324; background: #efe9e0; }
@@ -365,7 +365,7 @@
   background: #f5f3ef; cursor: pointer;
   font-family: v.$font-body; font-size: 11px; font-weight: 700;
   color: #43474d; text-transform: uppercase; letter-spacing: 0.07em; transition: background 0.2s;
-  .material-symbols-outlined { font-size: 16px; }
+  svg { width: 16px; height: 16px; }
   &:hover { background: #e4e2de; }
 }
 
@@ -392,7 +392,7 @@
   &--add {
     background: rgba(133,83,36,0.1); color: #855324;
     border: 1.5px dashed rgba(133,83,36,0.35);
-    .material-symbols-outlined { font-size: 14px; }
+    svg { width: 14px; height: 14px; }
     &:hover { background: rgba(133,83,36,0.15); }
   }
 }
@@ -401,7 +401,7 @@
   background: rgba(133,83,36,0.07); border-radius: 0.875rem;
   padding: 0.75rem 1rem; display: flex; gap: 0.65rem; align-items: flex-start;
 
-  .material-symbols-outlined { font-size: 18px; color: #855324; flex-shrink: 0; margin-top: 1px; }
+  svg { width: 18px; height: 18px; color: #855324; flex-shrink: 0; margin-top: 1px; }
   p { font-size: 11px; color: #43474d; line-height: 1.6; strong { color: v.$primary; } }
 }
 
@@ -448,7 +448,7 @@
     font-size: 11px; font-weight: 700; color: #855324;
     background: none; border: none; cursor: pointer;
     font-family: v.$font-body;
-    .material-symbols-outlined { font-size: 14px; }
+    svg { width: 14px; height: 14px; }
     &:hover { text-decoration: underline; }
   }
 }
@@ -465,7 +465,7 @@
   box-shadow: 0 6px 24px rgba(3,25,46,0.2);
   transition: all 0.3s;
 
-  .material-symbols-outlined { font-size: 18px; }
+  svg { width: 18px; height: 18px; }
   &:hover { background: #1a2e44; transform: translateY(-1px); }
 }
 
@@ -477,7 +477,7 @@
   letter-spacing: 0.06em; text-transform: uppercase; color: v.$primary;
   transition: all 0.2s;
 
-  .material-symbols-outlined { font-size: 16px; }
+  svg { width: 16px; height: 16px; }
   &:hover { background: #f5f3ef; border-color: #855324; color: #855324; }
 }
 
@@ -488,7 +488,7 @@
   font-family: v.$font-body; font-size: 0.82rem; font-weight: 700;
   letter-spacing: 0.06em; text-transform: uppercase; color: #43474d;
   transition: background 0.2s;
-  .material-symbols-outlined { font-size: 16px; }
+  svg { width: 16px; height: 16px; }
   &:hover { background: #f5f3ef; }
 }
 
@@ -539,7 +539,7 @@
     width: 100%; height: 100%; min-height: 300px;
     background: linear-gradient(135deg, #03192e, #1a2e44);
     display: flex; align-items: center; justify-content: center;
-    .material-symbols-outlined { font-size: 4rem; color: rgba(201,168,76,0.5); }
+    svg { width: 64px; height: 64px; color: rgba(201,168,76,0.5); }
   }
 
   &__img-overlay {
@@ -580,7 +580,7 @@
     background: rgba(3,25,46,0.06); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     color: v.$primary; transition: background 0.2s;
-    .material-symbols-outlined { font-size: 16px; }
+    svg { width: 16px; height: 16px; }
     &:hover { background: rgba(3,25,46,0.1); }
   }
 
@@ -605,7 +605,7 @@
     display: flex; align-items: center; gap: 0.35rem;
     font-size: 11px; font-weight: 700; color: #74777d;
     text-transform: uppercase; letter-spacing: 0.06em;
-    .material-symbols-outlined { font-size: 14px; color: #855324; }
+    svg { width: 14px; height: 14px; color: #855324; }
   }
 
   &__desc-wrap {
@@ -650,7 +650,7 @@
     letter-spacing: 0.08em; text-transform: uppercase;
     transition: all 0.2s;
 
-    .material-symbols-outlined { font-size: 16px; color: #855324; }
+    svg { width: 16px; height: 16px; color: #855324; }
     &:hover { background: rgba(3,25,46,0.1); }
   }
 
@@ -664,7 +664,7 @@
     box-shadow: 0 4px 16px rgba(133,83,36,0.25);
     transition: all 0.3s;
 
-    .material-symbols-outlined { font-size: 16px; }
+    svg { width: 16px; height: 16px; }
     &:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(133,83,36,0.35); }
   }
 
@@ -680,7 +680,7 @@
     color: v.$primary; cursor: pointer; text-transform: uppercase; letter-spacing: 0.07em;
     display: flex; align-items: center; justify-content: center; gap: 4px;
     transition: background 0.2s;
-    .material-symbols-outlined { font-size: 14px; }
+    svg { width: 14px; height: 14px; }
     &:hover { background: #f5f3ef; }
 
     &--primary {
@@ -693,7 +693,7 @@
     width: 40px; height: 40px; border-radius: 0.875rem; flex-shrink: 0;
     background: #f5f3ef; border: none; cursor: pointer; color: v.$primary;
     display: flex; align-items: center; justify-content: center; transition: background 0.2s;
-    .material-symbols-outlined { font-size: 18px; }
+    svg { width: 18px; height: 18px; }
     &:hover { background: #e4e2de; }
   }
 }
@@ -729,7 +729,7 @@
 
     button {
       background: none; border: none; cursor: pointer; color: #43474d;
-      .material-symbols-outlined { font-size: 18px; }
+      svg { width: 18px; height: 18px; }
     }
   }
 
@@ -781,7 +781,7 @@
     font-size: 9px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
     transition: all 0.2s;
 
-    .material-symbols-outlined { font-size: 22px; }
+    svg { width: 22px; height: 22px; }
     &:hover { color: #855324; }
     &.active { color: #855324; background: rgba(133,83,36,0.08); }
   }
