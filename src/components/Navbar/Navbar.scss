@@ -1,0 +1,271 @@
+// ============================================================
+// LIFE'S — Navbar.scss
+// Rail desktop (68px colapsado → 220px expandido) + bottom mobile
+// ============================================================
+
+$noche:        #03192E;
+$noche-medio:  #052240;
+$crema:        #F5F0E8;
+$ambar:        #C9932A;
+$ambar-light:  #E8B84B;
+$piedra:       #8A8279;
+$blanco-suave: rgba(255, 255, 255, 0.06);
+
+$rail-width-col:  68px;
+$rail-width-exp: 220px;
+$bottom-h:        64px;
+$transition:      0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ════════════════════════════════════════════════════════════
+// DESKTOP — Rail sidebar
+// ════════════════════════════════════════════════════════════
+.navbar-rail {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: $rail-width-col;
+  background: $noche;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  z-index: 100;
+  overflow: hidden;
+  transition: width $transition;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+
+  &:hover {
+    width: $rail-width-exp;
+
+    .navbar-rail__logo-text,
+    .navbar-rail__label,
+    .navbar-rail__boveda span {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 0 24px 22px;
+    overflow: hidden;
+    border-bottom: 1px solid $blanco-suave;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+
+  &__logo-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, $ambar, $ambar-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba($ambar, 0.35);
+  }
+
+  &__logo-text {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: $crema;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity $transition, transform $transition;
+  }
+
+  &__items {
+    list-style: none;
+    margin: 0;
+    padding: 0 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: rgba($crema, 0.5);
+    transition: background $transition, color $transition;
+    overflow: hidden;
+    white-space: nowrap;
+
+    &:hover {
+      background: $blanco-suave;
+      color: $crema;
+    }
+
+    &.active {
+      background: rgba($ambar, 0.14);
+      color: $ambar-light;
+
+      svg { stroke: $ambar-light; }
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__label {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity $transition, transform $transition;
+  }
+
+  &__boveda {
+    padding: 10px;
+    border-top: 1px solid $blanco-suave;
+    margin-top: auto;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  &__boveda-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: rgba($ambar, 0.6);
+    transition: background $transition, color $transition;
+    white-space: nowrap;
+    overflow: hidden;
+
+    &:hover {
+      background: rgba($ambar, 0.1);
+      color: $ambar;
+    }
+
+    svg { flex-shrink: 0; }
+
+    span {
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity $transition, transform $transition;
+    }
+  }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// MOBILE — Bottom bar
+// ════════════════════════════════════════════════════════════
+.navbar-bottom {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: $bottom-h;
+    background: rgba($noche, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    z-index: 100;
+    align-items: stretch;
+    justify-content: space-around;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: 1;
+    text-decoration: none;
+    color: rgba($crema, 0.4);
+    transition: color 0.2s;
+    padding: 8px 4px;
+    position: relative;
+
+    &.active {
+      color: $ambar-light;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 28px;
+        height: 2px;
+        background: $ambar-light;
+        border-radius: 0 0 2px 2px;
+      }
+    }
+
+    &:active { transform: scale(0.92); }
+  }
+
+  &__icon {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__label {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// AJUSTE DE CONTENIDO — clase with-navbar
+// ════════════════════════════════════════════════════════════
+.with-navbar {
+  @media (min-width: 769px) {
+    margin-left: $rail-width-col;
+    transition: margin-left $transition;
+  }
+
+  @media (max-width: 768px) {
+    padding-bottom: calc(#{$bottom-h} + env(safe-area-inset-bottom));
+  }
+}

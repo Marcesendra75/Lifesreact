@@ -4,11 +4,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './styles/main.scss';
 
-
 // ── Contexto ──
 import { AuthProvider }  from './context/AuthContext';
 import PrivateRoute      from './components/PrivateRoute/PrivateRoute';
 import VaultRoute        from './components/VaultRoute/VaultRoute';
+
+// ── Navbar compartida ──
+import Navbar            from './components/Navbar/Navbar';
 
 // ── Páginas públicas ──
 import Landing           from './pages/Landing/Landing';
@@ -23,7 +25,7 @@ import TarjetaLegado     from './pages/Auth/TarjetaLegado';
 import EmpresasLanding   from './pages/Empresas/EmpresasLanding';
 import PlanesEmpresa     from './pages/Empresas/PlanesEmpresa';
 
-// ── Páginas en desarrollo ──
+// ── Páginas principales ──
 import Feed              from './pages/Feed/Feed';
 import MuroBiografico    from './pages/MuroBiografico/MuroBiografico';
 import Profile           from './pages/Profile/Profile';
@@ -51,6 +53,9 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+
+        <Navbar />
+
         <Routes>
 
           {/* ══ RUTAS PÚBLICAS ══ */}
@@ -65,28 +70,36 @@ function App() {
           <Route path="/empresas/planes"   element={<PlanesEmpresa />} />
 
           {/* ══ PÁGINAS EN DESARROLLO — sin auth temporalmente ══ */}
-          <Route path="/feed"                            element={<Feed />} />
-          <Route path="/muro-biografico"                 element={<MuroBiografico />} />
-          <Route path="/muro-biografico/:userId"         element={<MuroBiografico />} />
-          <Route path="/perfil"                          element={<Profile />} />
-          <Route path="/perfil/:userId"                  element={<Profile />} />
-          <Route path="/linea-de-vida"                   element={<Timeline />} />
-          <Route path="/linea-de-vida/:userId"           element={<Timeline />} />
-          <Route path="/arbol-genealogico"               element={<FamilyTree />} />
-          <Route path="/arbol-genealogico/:userId"       element={<FamilyTree />} />
-          <Route path="/ecos/:userId"                    element={<DigitalEcho />} />
-          <Route path="/configuracion"                   element={<Settings />} />
-          <Route path="/capsula-del-tiempo"              element={<TimeCapsule />} />
-          <Route path="/postal"                          element={<Postal />} />
-          <Route path="/vinculos"                        element={<Feed />} />
-          <Route path="/mapa-linaje"                     element={<Feed />} />
-          <Route path="/empresas/perfil"                 element={<PerfilEmpresa />} />
-          <Route path="/empresas/perfil/:empresaId"      element={<PerfilEmpresa />} />
-          <Route path="/empresas/linea-de-vida"          element={<LineaVidaEmpresa />} />
-          <Route path="/empresas/linea-de-vida/:empresaId" element={<LineaVidaEmpresa />} />
+          <Route path="/feed"                               element={<Feed />} />
+          <Route path="/muro-biografico"                    element={<MuroBiografico />} />
+          <Route path="/muro-biografico/:userId"            element={<MuroBiografico />} />
+          <Route path="/perfil"                             element={<Profile />} />
+          <Route path="/perfil/:userId"                     element={<Profile />} />
+          <Route path="/linea-de-vida"                      element={<Timeline />} />
+          <Route path="/linea-de-vida/:userId"              element={<Timeline />} />
+          <Route path="/arbol-genealogico"                  element={<FamilyTree />} />
+          <Route path="/arbol-genealogico/:userId"          element={<FamilyTree />} />
+          <Route path="/ecos/:userId"                       element={<DigitalEcho />} />
+          <Route path="/configuracion"                      element={<Settings />} />
+          <Route path="/capsula-del-tiempo"                 element={<TimeCapsule />} />
+          <Route path="/postal"                             element={<Postal />} />
+          <Route path="/vinculos"                           element={<Feed />} />
+          <Route path="/mapa-linaje"                        element={<Feed />} />
+          <Route path="/empresas/perfil"                    element={<PerfilEmpresa />} />
+          <Route path="/empresas/perfil/:empresaId"         element={<PerfilEmpresa />} />
+          <Route path="/empresas/linea-de-vida"             element={<LineaVidaEmpresa />} />
+          <Route path="/empresas/linea-de-vida/:empresaId"  element={<LineaVidaEmpresa />} />
 
-          {/* ══ RUTAS BÓVEDA — TRIPLE SEGURIDAD OBLIGATORIA ══ */}
-          <Route element={<PrivateRoute />}>
+          {/* ══ BÓVEDA — sin auth temporalmente para desarrollo ══ */}
+          <Route path="/caja-fuerte"      element={<SafeBox />} />
+          <Route path="/caja-de-valores"  element={<CajaDeValores />} />
+          <Route path="/testamento"       element={<Testamento />} />
+          <Route path="/herederos"        element={<Herederos />} />
+          <Route path="/ahorro"           element={<Savings />} />
+          <Route path="/ultimo-tributo"   element={<FarewellVideo />} />
+
+          {/* ══ RUTAS BÓVEDA — TRIPLE SEGURIDAD (activar en producción) ══ */}
+          {/* <Route element={<PrivateRoute />}>
             <Route element={<VaultRoute />}>
               <Route path="/caja-fuerte"      element={<SafeBox />} />
               <Route path="/caja-de-valores"  element={<CajaDeValores />} />
@@ -95,7 +108,7 @@ function App() {
               <Route path="/ahorro"           element={<Savings />} />
               <Route path="/ultimo-tributo"   element={<FarewellVideo />} />
             </Route>
-          </Route>
+          </Route> */}
 
           {/* ══ 404 ══ */}
           <Route path="/404" element={<NotFound />} />

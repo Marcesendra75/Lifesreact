@@ -1,0 +1,1134 @@
+// ============================================================
+// LIFE'S — CajaDeValores.scss
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+// ── Tokens ─────────────────────────────────────────────────
+$noche:       #03192E;
+$noche-med:   #1a2e44;
+$crema:       #F5F0E8;
+$fondo:       #fbf9f5;
+$fondo-low:   #f5f3ef;
+$fondo-med:   #efeeea;
+$fondo-high:  #eae8e4;
+$ambar:       #C9932A;
+$ambar-oro:   #735c00;
+$ambar-light: #ffe088;
+$cobre:       #855324;
+$piedra:      #8A8279;
+$piedra-light:#c4c6cd;
+$verde:       #4a7a4e;
+$azul:        #3a5a8a;
+$rojo:        #ba1a1a;
+$blanco:      #ffffff;
+
+$radius-sm:  8px;
+$radius-md:  14px;
+$radius-lg:  20px;
+$radius-xl:  28px;
+
+$shadow-sm:  0 2px 8px rgba(3,25,46,0.06);
+$shadow-md:  0 4px 20px rgba(3,25,46,0.09);
+$shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
+$shadow-hero:0 20px 60px rgba(3,25,46,0.25);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.45s ease both; }
+
+// ── Base ───────────────────────────────────────────────────
+.cdv-page {
+  min-height: 100dvh;
+  background: $fondo;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Header ─────────────────────────────────────────────────
+.cdv-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba($fondo, 0.94);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba($piedra-light, 0.22);
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__back {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $noche;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    transition: background 0.2s;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__title {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: $noche;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  &__sub {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $piedra;
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $noche;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    transition: background 0.2s;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba($cobre, 0.3);
+    margin-left: 4px;
+
+    img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  }
+}
+
+// ── Main ───────────────────────────────────────────────────
+.cdv-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// ════════════════════════════════════════════════════════════
+// BALANCE HERO CARD
+// ════════════════════════════════════════════════════════════
+.cdv-balance-card {
+  background: linear-gradient(140deg, $noche 0%, $noche-med 60%, #0d2a42 100%);
+  border-radius: $radius-xl;
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: $shadow-hero;
+
+  &__bg1 {
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba($ambar-oro, 0.12);
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  &__bg2 {
+    position: absolute;
+    bottom: -40px; left: -20px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba($cobre, 0.1);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+
+  &__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__estado {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(130, 150, 176, 0.7);
+  }
+
+  &__balance-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(130, 150, 176, 0.65);
+  }
+
+  &__balance {
+    font-family: 'Newsreader', serif;
+    font-size: 3rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+  }
+
+  &__rendimiento {
+    font-size: 0.68rem;
+    color: rgba(130, 150, 176, 0.7);
+  }
+
+  &__intereses { color: $ambar-light; font-weight: 700; }
+  &__tasa      { color: $ambar-light; font-weight: 700; }
+
+  &__proyeccion {
+    background: rgba(255,255,255,0.06);
+    border-radius: $radius-md;
+    padding: 12px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__proy-label {
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba($ambar-light, 0.7);
+  }
+
+  &__proy-valor {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+
+    span:first-child {
+      font-family: 'Newsreader', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: $ambar-light;
+    }
+  }
+
+  &__proy-sub {
+    font-size: 0.62rem;
+    color: rgba($ambar-light, 0.6);
+  }
+
+  &__prog-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    color: rgba(130, 150, 176, 0.65);
+    margin-bottom: 6px;
+  }
+
+  &__prog-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.58rem;
+    color: rgba(130, 150, 176, 0.5);
+    margin-top: 4px;
+  }
+
+  &__btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+}
+
+.cdv-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  &--oro {
+    background: rgba($ambar-oro, 0.3);
+    color: $ambar-light;
+  }
+}
+
+.cdv-prog-track {
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.cdv-prog-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, $cobre, $ambar-light);
+  transition: width 1.2s cubic-bezier(0.34,1.1,0.64,1);
+}
+
+.cdv-btn-deposito {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: white;
+  color: $noche;
+  border: none;
+  border-radius: 999px;
+  padding: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.25s;
+  &:hover { background: $crema; transform: translateY(-1px); }
+}
+
+.cdv-btn-retiro {
+  @extend .cdv-btn-deposito;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  &:hover { background: rgba(255,255,255,0.18); }
+}
+
+// ── Stats rápidos ──────────────────────────────────────────
+.cdv-stats {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
+}
+
+.cdv-stat {
+  background: white;
+  border-radius: $radius-md;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: $shadow-sm;
+  text-align: center;
+
+  &__icono { display: flex; margin-bottom: 2px; }
+  &__valor { font-family: 'Newsreader', serif; font-size: 1rem; font-weight: 400; color: $noche; }
+  &__label { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: $piedra; }
+}
+
+// ── Card genérica ──────────────────────────────────────────
+.cdv-card {
+  background: $fondo-low;
+  border-radius: $radius-xl;
+  padding: 18px;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: $noche;
+    margin-bottom: 8px;
+
+    svg { color: $cobre; }
+  }
+
+  &__desc {
+    font-size: 0.72rem;
+    color: $piedra;
+    line-height: 1.6;
+    margin: 0 0 14px;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  &__ver-todos {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: $ambar;
+    cursor: pointer;
+    &:hover { opacity: 0.7; }
+  }
+}
+
+// ── Slider ─────────────────────────────────────────────────
+.cdv-slider-wrap {
+  margin-bottom: 14px;
+}
+
+.cdv-slider-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: $piedra;
+  margin-bottom: 10px;
+}
+
+.cdv-slider-val {
+  color: $noche;
+  font-weight: 700;
+}
+
+.cdv-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, $cobre var(--pct, 50%), $fondo-high var(--pct, 50%));
+  outline: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: $noche;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba($noche, 0.25);
+    cursor: pointer;
+    transition: transform 0.2s;
+    &:hover { transform: scale(1.2); }
+  }
+}
+
+// ── Barras proyección ──────────────────────────────────────
+.cdv-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 88px;
+  padding-top: 8px;
+  margin-bottom: 14px;
+}
+
+.cdv-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.cdv-bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: height 0.8s cubic-bezier(0.34,1.1,0.64,1);
+  cursor: pointer;
+
+  &__tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: $noche;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    white-space: nowrap;
+    z-index: 10;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent;
+      border-top-color: $noche;
+    }
+  }
+}
+
+.cdv-bar-label {
+  font-size: 0.55rem;
+  color: $piedra;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cdv-proj-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cdv-proj-item {
+  background: $fondo-med;
+  border-radius: $radius-md;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &--highlight {
+    background: $noche;
+    .cdv-proj-item__label { color: rgba(130,150,176,0.7); }
+    .cdv-proj-item__valor { color: $ambar-light; }
+    .cdv-proj-item__sub   { color: rgba($ambar-light, 0.6); }
+  }
+
+  &__label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $piedra;
+  }
+
+  &__valor {
+    font-family: 'Newsreader', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: $noche;
+  }
+
+  &__sub {
+    font-size: 0.6rem;
+    color: $ambar-oro;
+    font-weight: 600;
+  }
+}
+
+// ── Tiers ──────────────────────────────────────────────────
+.cdv-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cdv-tier {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: $fondo-med;
+  border-radius: $radius-md;
+  padding: 12px 14px;
+  transition: background 0.2s;
+
+  &--activo {
+    background: $noche;
+
+    .cdv-tier__nombre { color: white; }
+    .cdv-tier__desc   { color: rgba(130,150,176,0.7); }
+  }
+
+  &__emoji { font-size: 1.3rem; flex-shrink: 0; }
+
+  &__info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__nombre {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: $noche;
+  }
+
+  &__tasa {
+    font-family: 'Newsreader', serif;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  &__desc {
+    font-size: 0.65rem;
+    color: $piedra;
+  }
+}
+
+// ── Penalización ───────────────────────────────────────────
+.cdv-penalizacion {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba($rojo, 0.06);
+  border: 1px solid rgba($rojo, 0.12);
+  border-radius: $radius-xl;
+  padding: 16px;
+
+  &__icono {
+    color: $rojo;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &__titulo {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: $rojo;
+    margin-bottom: 6px;
+  }
+
+  &__texto {
+    font-size: 0.72rem;
+    color: #43474d;
+    line-height: 1.65;
+    margin: 0 0 10px;
+    strong { color: $noche; }
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+.cdv-pen-tag {
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+
+  &--rojo  { background: rgba($rojo, 0.1);    color: $rojo; }
+  &--ambar { background: rgba($cobre, 0.1);   color: $cobre; }
+  &--verde { background: rgba($ambar-oro, 0.1); color: $ambar-oro; }
+}
+
+// ── Monedas ────────────────────────────────────────────────
+.cdv-monedas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cdv-moneda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: $fondo-med;
+  border-radius: $radius-md;
+  padding: 12px;
+
+  &__flag   { font-size: 1.3rem; flex-shrink: 0; }
+  &__nombre { font-size: 0.78rem; font-weight: 800; color: $noche; }
+  &__sub    { font-size: 0.62rem; color: $piedra; }
+}
+
+// ── Toggle ─────────────────────────────────────────────────
+.cdv-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cdv-toggle {
+  width: 44px;
+  height: 24px;
+  background: $piedra-light;
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+  flex-shrink: 0;
+
+  &.on { background: $noche; }
+
+  &__thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+
+    .cdv-toggle.on & { transform: translateX(20px); }
+  }
+}
+
+.cdv-auto-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: $piedra;
+  background: rgba($verde, 0.08);
+  border-radius: $radius-sm;
+  padding: 10px 12px;
+  margin-top: 10px;
+  border-left: 3px solid $verde;
+
+  svg { color: $verde; flex-shrink: 0; }
+  strong { color: $noche; }
+}
+
+// ── Movimientos ────────────────────────────────────────────
+.cdv-movimientos {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.cdv-movimiento {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba($noche, 0.05);
+
+  &:last-child { border-bottom: none; }
+
+  &__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__desc  { font-size: 0.78rem; font-weight: 500; color: $noche; }
+  &__fecha { font-size: 0.65rem; color: $piedra; }
+
+  &__monto {
+    font-family: 'Newsreader', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+}
+
+// ── Herederos card ─────────────────────────────────────────
+.cdv-herederos-card {
+  background: $noche;
+  border-radius: $radius-xl;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: rgba(130,150,176,0.8);
+
+    svg { flex-shrink: 0; color: $ambar-light; }
+  }
+
+  &__titulo { font-size: 0.88rem; font-weight: 700; color: white; }
+  &__sub    { font-size: 0.65rem; color: rgba(130,150,176,0.7); margin-top: 2px; }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(white, 0.1);
+    border: 1px solid rgba(white, 0.15);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    &:hover { background: rgba(white, 0.18); }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// MODALES
+// ════════════════════════════════════════════════════════════
+.cdv-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba($noche, 0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.cdv-modal {
+  background: $fondo;
+  border-radius: $radius-xl $radius-xl 0 0;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  animation: slideUp 0.45s cubic-bezier(0.34,1.05,0.64,1);
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  &__handle {
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  &__bar {
+    width: 36px; height: 4px;
+    background: $piedra-light;
+    border-radius: 2px;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 14px;
+    border-bottom: 1px solid rgba($noche, 0.06);
+
+    h3 {
+      font-family: 'Newsreader', serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: $noche;
+      margin: 0;
+    }
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: $piedra;
+      padding: 6px;
+      border-radius: 50%;
+      display: flex;
+      &:hover { background: rgba($noche, 0.06); }
+    }
+  }
+
+  &__body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  &__btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+}
+
+// ── Campos ─────────────────────────────────────────────────
+.cdv-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #43474d;
+  }
+}
+
+.cdv-input {
+  width: 100%;
+  background: $fondo-high;
+  border: none;
+  border-radius: $radius-sm;
+  padding: 12px 14px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.88rem;
+  color: $noche;
+  outline: none;
+  box-sizing: border-box;
+  transition: background 0.2s, box-shadow 0.2s;
+
+  &:focus {
+    background: #dbdad6;
+    box-shadow: 0 0 0 2px rgba($cobre, 0.28);
+  }
+
+  &::placeholder { color: $piedra; }
+}
+
+select.cdv-input {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2374777d' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+// ── Moneda tabs ────────────────────────────────────────────
+.cdv-cur-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cdv-cur-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: $radius-md;
+  border: none;
+  cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: $fondo-high;
+  color: #43474d;
+  transition: all 0.25s;
+  flex-shrink: 0;
+
+  &.active { background: $noche; color: white; svg { color: $ambar-light; } }
+  &:hover:not(.active) { background: #dbdad6; }
+}
+
+// ── Preview depósito ───────────────────────────────────────
+.cdv-deposit-preview {
+  background: $fondo-low;
+  border-radius: $radius-md;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: $noche;
+  }
+
+  &__green { color: $verde; font-weight: 700; }
+}
+
+// ── Aviso retiro ───────────────────────────────────────────
+.cdv-retiro-aviso {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba($rojo, 0.06);
+  border-radius: $radius-md;
+  padding: 12px 14px;
+  border-left: 3px solid rgba($rojo, 0.4);
+
+  svg { color: $rojo; flex-shrink: 0; margin-top: 1px; }
+
+  p {
+    font-size: 0.75rem;
+    color: $noche;
+    line-height: 1.55;
+    margin: 0;
+    strong { color: $rojo; }
+  }
+}
+
+// ── Resumen retiro ─────────────────────────────────────────
+.cdv-retiro-resumen {
+  background: $fondo-low;
+  border-radius: $radius-md;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: $noche;
+  }
+
+  &__neg { color: $rojo; font-weight: 700; }
+
+  &__divider {
+    height: 1px;
+    background: rgba($noche, 0.08);
+    margin: 4px 0;
+  }
+
+  &__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+
+    span:first-child {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: $noche;
+    }
+
+    span:last-child {
+      font-family: 'Newsreader', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: $noche;
+    }
+  }
+}
+
+.cdv-retiro-nota {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  color: $piedra;
+  line-height: 1.5;
+
+  svg { flex-shrink: 0; color: $piedra; }
+}
+
+// ── Botones modal ──────────────────────────────────────────
+.cdv-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: $noche;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.25s;
+  &:hover { background: $noche-med; transform: translateY(-1px); }
+}
+
+.cdv-btn-danger {
+  @extend .cdv-btn-primary;
+  background: $rojo;
+  &:hover { background: #93000a; }
+}
+
+.cdv-btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: $noche;
+  border: 1.5px solid rgba($piedra-light, 0.5);
+  border-radius: 999px;
+  padding: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  &:hover { background: $fondo-low; border-color: $cobre; color: $cobre; }
+}
+
+// ── Toast ──────────────────────────────────────────────────
+.cdv-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: $noche;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  box-shadow: $shadow-lg;
+  z-index: 400;
+  animation: toastIn 0.3s ease both;
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+}
+
+// ── Responsive ─────────────────────────────────────────────
+@media (max-width: 480px) {
+  .cdv-balance-card__balance { font-size: 2.2rem; }
+  .cdv-tiers .cdv-tier { padding: 10px 12px; }
+  .cdv-monedas { grid-template-columns: 1fr 1fr; }
+}

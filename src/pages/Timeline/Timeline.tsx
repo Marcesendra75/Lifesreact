@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Calendar,
+  Group,
   MapPin, Edit3, Edit2, Share2, Bell, Mail, X, Check,
   Camera, Mic, Paperclip, Video, UserPlus, Lock, Settings2,
   Hourglass, GitBranch, Users, Send, Save, Tag, Layers,
@@ -117,6 +118,22 @@ const INITIAL_MEMORIES: Memory[] = [
   },
 ];
 
+
+// ── Grupos de recuerdos ──
+interface Grupo {
+  id: string;
+  nombre: string;
+  emoji: string;
+  miembros: string[];
+}
+
+const GRUPOS_INICIALES: Grupo[] = [
+  { id: 'g1', nombre: 'Familia',            emoji: '👨\u200d👩\u200d👧\u200d👦', miembros: ['Elena', 'Lucía', 'Martín'] },
+  { id: 'g2', nombre: 'Viaje a París 2023', emoji: '✈️',  miembros: ['Ricardo', 'Valentina'] },
+  { id: 'g3', nombre: 'Amigos del alma',    emoji: '🤝',  miembros: ['Ricardo', 'Martín', 'Lucía'] },
+  { id: 'g4', nombre: 'Compañeros deporte', emoji: '⚽',  miembros: ['Martín', 'Ricardo'] },
+];
+
 interface WaveNode {
   mem: Memory;
   x: number;
@@ -152,6 +169,10 @@ export default function Timeline() {
   const [fCapsula, setFCapsula]       = useState(false);
   const [fCapsulaDate, setFCapsulaDate] = useState('');
   const [fColaborativo, setFColaborativo] = useState(false);
+  const [fGrupo, setFGrupo]               = useState<string>('');
+  const [grupos]                           = useState<Grupo[]>(GRUPOS_INICIALES);
+  const [mailPreviewOpen, setMailPreviewOpen] = useState(false);
+  const [mailPreviewData, setMailPreviewData] = useState<{titulo:string;desc:string;emotion:string;tagged:string[]} | null>(null);
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const scrollRef  = useRef<HTMLDivElement>(null);
@@ -234,9 +255,27 @@ export default function Timeline() {
       img: undefined, tagged: fTagged,
     };
     setMemories(prev => [...prev, newMem]);
-    showToast('✓ Recuerdo publicado y agregado a tu Línea de Vida');
+
+    // ── Simular envío de mail si hay contactos etiquetados ──
+    const grupoSeleccionado = grupos.find(g => g.id === fGrupo);
+    const destinatarios = fGrupo && grupoSeleccionado
+      ? [...new Set([...fTagged, ...grupoSeleccionado.miembros])]
+      : fTagged;
+
+    if (destinatarios.length > 0) {
+      setMailPreviewData({
+        titulo:  fTitle.trim(),
+        desc:    fDesc.trim() || '—',
+        emotion: fEmotion,
+        tagged:  destinatarios,
+      });
+      setTimeout(() => setMailPreviewOpen(true), 600);
+    } else {
+      showToast('✓ Recuerdo publicado en tu Línea de Vida');
+    }
+
     setFTitle(''); setFDesc(''); setFPlace('');
-    setFTagged([]); setFCat('Biografía'); setFEmotion('😊');
+    setFTagged([]); setFCat('Biografía'); setFEmotion('😊'); setFGrupo('');
     setTimeout(() => {
       scrollRef.current?.scrollTo({ left: scrollRef.current.scrollWidth, behavior: 'smooth' });
     }, 500);
@@ -518,6 +557,40 @@ export default function Timeline() {
           <div className="tl-contacts-notice">
             <Megaphone size={16} strokeWidth={1.8} />
             <p>Las personas etiquetadas recibirán una notificación. <strong>Si no tienen cuenta en Life's</strong>, les enviamos un correo con tu recuerdo y una invitación.</p>
+          </div>
+
+          {/* ── Selector de grupos ── */}
+          <div className="tl-grupos-wrap">
+            <div className="tl-form-card__title" style={{ marginBottom: '10px' }}>
+              <Group size={17} strokeWidth={1.8} />
+              Avisar a un grupo
+              <span className="tl-form-card__hint">Opcional</span>
+            </div>
+            <div className="tl-grupos">
+              <button
+                className={`tl-grupo-chip${fGrupo === '' ? ' active' : ''}`}
+                onClick={() => setFGrupo('')}
+              >
+                Ninguno
+              </button>
+              {grupos.map(g => (
+                <button
+                  key={g.id}
+                  className={`tl-grupo-chip${fGrupo === g.id ? ' active' : ''}`}
+                  onClick={() => setFGrupo(fGrupo === g.id ? '' : g.id)}
+                >
+                  <span>{g.emoji}</span>
+                  {g.nombre}
+                  <span className="tl-grupo-chip__count">{g.miembros.length}</span>
+                </button>
+              ))}
+            </div>
+            {fGrupo && (
+              <div className="tl-grupo-preview">
+                <Mail size={13} strokeWidth={1.8} />
+                Se enviará un mail a: <strong>{grupos.find(g => g.id === fGrupo)?.miembros.join(', ')}</strong>
+              </div>
+            )}
           </div>
         </div>
 
@@ -802,6 +875,76 @@ export default function Timeline() {
             </div>
           </div>
         </>
+      )}
+
+      {/* ══ MODAL — Preview del mail enviado ══ */}
+      {mailPreviewOpen && mailPreviewData && (
+        <div className="tl-mail-overlay" onClick={() => setMailPreviewOpen(false)}>
+          <div className="tl-mail-modal" onClick={e => e.stopPropagation()}>
+            {/* Header del mail */}
+            <div className="tl-mail-modal__header">
+              <div className="tl-mail-modal__logo">Life's</div>
+              <button className="tl-mail-modal__close" onClick={() => setMailPreviewOpen(false)}>
+                <X size={16} strokeWidth={1.8} />
+              </button>
+            </div>
+
+            {/* Cuerpo del mail */}
+            <div className="tl-mail-modal__body">
+              <div className="tl-mail-modal__enviado">
+                <CheckCircle size={20} strokeWidth={2} />
+                Mail enviado con éxito
+              </div>
+
+              <p className="tl-mail-modal__desc-top">
+                Las siguientes personas recibieron tu recuerdo en su correo:
+              </p>
+
+              <div className="tl-mail-modal__destinatarios">
+                {mailPreviewData.tagged.map(t => {
+                  const contacto = CONTACTOS.find(c => c.nombre === t);
+                  return (
+                    <div key={t} className="tl-mail-modal__dest">
+                      {contacto && <img src={contacto.avatar} alt={t} />}
+                      <span>{t}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Preview del mail */}
+              <div className="tl-mail-preview">
+                <div className="tl-mail-preview__desde">
+                  De: Life's &lt;recuerdos@lifes.app&gt;
+                </div>
+                <div className="tl-mail-preview__asunto">
+                  {mailPreviewData.emotion} {mailPreviewData.tagged[0]} te compartió un recuerdo en Life's
+                </div>
+                <div className="tl-mail-preview__contenido">
+                  <p className="tl-mail-preview__hola">Hola {mailPreviewData.tagged[0]},</p>
+                  <p className="tl-mail-preview__texto">
+                    Alguien especial quiso compartir este momento con vos:
+                  </p>
+                  <div className="tl-mail-preview__recuerdo">
+                    <div className="tl-mail-preview__recuerdo-emoji">{mailPreviewData.emotion}</div>
+                    <div className="tl-mail-preview__recuerdo-titulo">{mailPreviewData.titulo}</div>
+                    <div className="tl-mail-preview__recuerdo-desc">{mailPreviewData.desc}</div>
+                  </div>
+                  <div className="tl-mail-preview__cta">
+                    <span>Ver recuerdo completo en Life's →</span>
+                  </div>
+                  <p className="tl-mail-preview__footer">
+                    ¿Todavía no tenés cuenta en Life's? <strong>Unite gratis</strong> y preservá tus propios recuerdos para siempre.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button className="tl-mail-modal__btn" onClick={() => setMailPreviewOpen(false)}>
+              ¡Perfecto!
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Toast */}
