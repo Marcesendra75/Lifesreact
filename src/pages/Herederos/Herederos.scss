@@ -1,0 +1,787 @@
+// ============================================================
+// LIFE'S — Herederos.scss
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+$noche:       #03192E;
+$noche-med:   #1a2e44;
+$crema:       #F5F0E8;
+$fondo:       #fbf9f5;
+$fondo-low:   #f5f3ef;
+$fondo-med:   #efeeea;
+$fondo-high:  #eae8e4;
+$ambar:       #C9932A;
+$ambar-oro:   #735c00;
+$ambar-light: #ffe088;
+$cobre:       #855324;
+$piedra:      #8A8279;
+$piedra-light:#c4c6cd;
+$verde:       #4a7a4e;
+$azul:        #3a5a8a;
+$rojo:        #ba1a1a;
+
+$radius-md:  14px;
+$radius-lg:  20px;
+$radius-xl:  28px;
+
+$shadow-sm:  0 2px 8px rgba(3,25,46,0.06);
+$shadow-md:  0 4px 20px rgba(3,25,46,0.09);
+$shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.4s ease both; }
+
+// ── Base ───────────────────────────────────────────────────
+.her-page {
+  min-height: 100dvh;
+  background: $fondo;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Header ─────────────────────────────────────────────────
+.her-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba($fondo, 0.94);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba($piedra-light, 0.2);
+
+  &__left { display: flex; align-items: center; gap: 12px; }
+
+  &__back {
+    background: none; border: none; cursor: pointer;
+    color: $noche; padding: 8px; border-radius: 50%; display: flex;
+    transition: background 0.2s;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__title {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.2rem;
+    font-weight: 400; color: $noche; margin: 0;
+  }
+
+  &__sub {
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: $piedra; margin: 0;
+  }
+
+  &__add {
+    display: flex; align-items: center; gap: 6px;
+    background: $noche; color: white; border: none;
+    border-radius: 999px; padding: 9px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $noche-med; }
+  }
+}
+
+// ── Main ───────────────────────────────────────────────────
+.her-main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// ── Hero ───────────────────────────────────────────────────
+.her-hero {
+  background: linear-gradient(140deg, $noche 0%, $noche-med 100%);
+  border-radius: $radius-xl;
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: $shadow-lg;
+
+  &__bg {
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba($cobre, 0.12);
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  &__inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; }
+
+  &__top { display: flex; align-items: flex-start; gap: 14px; }
+
+  &__icono {
+    width: 52px; height: 52px;
+    border-radius: $radius-md;
+    background: rgba(white, 0.08);
+    color: $ambar-light;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__eyebrow {
+    font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(130,150,176,0.7);
+    margin: 0 0 4px; display: block;
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.6rem;
+    font-weight: 400; color: white; margin: 0;
+  }
+
+  &__prog-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+  &__prog-header {
+    display: flex; justify-content: space-between;
+    font-size: 0.62rem; color: rgba(130,150,176,0.65);
+  }
+
+  &__prog-pct { color: $ambar-light; font-weight: 700; }
+
+  &__prog-hint {
+    font-size: 0.6rem; color: rgba(130,150,176,0.5); margin: 0;
+  }
+
+  &__dist {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(white, 0.05);
+    border-radius: $radius-md; padding: 10px 14px;
+  }
+
+  &__dist-label {
+    font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(130,150,176,0.65);
+  }
+
+  &__dist-total {
+    display: flex; align-items: center; gap: 5px;
+    font-family: 'Newsreader', serif;
+    font-size: 1.2rem; font-weight: 700; color: $piedra-light;
+
+    &.ok    { color: #86efac; }
+    &.error { color: #fca5a5; }
+  }
+}
+
+.her-prog-track {
+  height: 5px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px; overflow: hidden;
+}
+
+.her-prog-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, $cobre, $ambar-light);
+  transition: width 1s ease;
+}
+
+// ── Empty state ────────────────────────────────────────────
+.her-empty {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 12px;
+  padding: 48px 20px;
+  text-align: center;
+  color: $piedra;
+
+  svg { opacity: 0.3; }
+
+  h3 {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.3rem;
+    font-weight: 400; color: $noche; margin: 0;
+  }
+
+  p { font-size: 0.82rem; line-height: 1.6; margin: 0; max-width: 300px; }
+
+  &__btn {
+    display: flex; align-items: center; gap: 8px;
+    background: $noche; color: white; border: none;
+    border-radius: 999px; padding: 12px 24px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    margin-top: 8px; transition: all 0.2s;
+    &:hover { background: $noche-med; }
+  }
+}
+
+// ── Cards de herederos ─────────────────────────────────────
+.her-cards { display: flex; flex-direction: column; gap: 12px; }
+
+.her-card {
+  background: white;
+  border-radius: $radius-xl;
+  padding: 20px;
+  box-shadow: $shadow-sm;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: $shadow-md; }
+
+  &__header {
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+
+  &__avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba($ambar, 0.2);
+    flex-shrink: 0;
+  }
+
+  &__info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+  &__nombre {
+    font-size: 0.95rem; font-weight: 700; color: $noche; margin: 0;
+  }
+
+  &__relacion {
+    font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: $ambar;
+  }
+
+  &__email {
+    font-size: 0.72rem; color: $piedra;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  &__acciones { display: flex; gap: 4px; flex-shrink: 0; }
+
+  &__toggle, &__eliminar {
+    background: none; border: none; cursor: pointer;
+    padding: 6px; border-radius: $radius-md;
+    display: flex; color: $piedra; transition: all 0.2s;
+  }
+
+  &__toggle:hover  { background: rgba($noche, 0.06); color: $noche; }
+  &__eliminar:hover { background: rgba($rojo, 0.08); color: $rojo; }
+
+  // Porcentaje
+  &__pct-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+  &__pct-header {
+    display: flex; justify-content: space-between;
+    font-size: 0.65rem; color: $piedra;
+
+    strong { color: $noche; font-weight: 700; }
+  }
+
+  &__pct-track {
+    height: 6px;
+    background: rgba($noche, 0.06);
+    border-radius: 999px; overflow: hidden;
+  }
+
+  &__pct-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, $ambar, $ambar-light);
+    transition: width 0.4s ease;
+  }
+
+  &__pct-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px; border-radius: 999px;
+    background: linear-gradient(90deg, $cobre var(--pct, 50%), $fondo-high var(--pct, 50%));
+    outline: none; cursor: pointer; margin-top: -2px;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: $noche; border: 2px solid white;
+      box-shadow: 0 2px 6px rgba($noche, 0.2); cursor: pointer;
+    }
+  }
+
+  // Condición
+  &__condicion-wrap { display: flex; flex-direction: column; gap: 8px; }
+
+  &__condicion-label {
+    font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: $piedra;
+  }
+
+  &__condiciones { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  // Expandido
+  &__expandido {
+    display: flex; flex-direction: column; gap: 16px;
+    border-top: 1px solid rgba($noche, 0.06);
+    padding-top: 14px;
+    animation: fadeUp 0.25s ease both;
+  }
+
+  &__seccion-titulo {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: $piedra; margin: 0 0 10px;
+
+    svg { color: $ambar; }
+  }
+
+  // Accesos
+  &__accesos { }
+
+  &__accesos-grid { display: flex; flex-direction: column; gap: 8px; }
+
+  // Carta
+  &__carta { }
+
+  &__carta-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+
+  &__carta-toggle {
+    display: flex; align-items: center; gap: 4px;
+    background: none; border: none; cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem; font-weight: 700; color: $ambar;
+    transition: opacity 0.2s;
+    &:hover { opacity: 0.7; }
+  }
+}
+
+// Condición btn
+.her-condicion-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: $fondo-low; border: 1.5px solid transparent;
+  border-radius: 999px; padding: 5px 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.65rem; font-weight: 700; cursor: pointer;
+  color: $piedra; transition: all 0.2s;
+
+  &:hover:not(.active) { border-color: rgba($noche, 0.15); }
+}
+
+// Acceso item
+.her-acceso-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  background: $fondo-low; border-radius: $radius-md;
+
+  &__left { display: flex; align-items: center; gap: 10px; }
+
+  &__icono {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: rgba($noche, 0.06);
+    color: $piedra;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+
+    &.on {
+      background: rgba($ambar, 0.1);
+      color: $ambar;
+    }
+  }
+
+  &__label { font-size: 0.78rem; font-weight: 600; color: $noche; }
+}
+
+// Toggle
+.her-toggle {
+  width: 42px; height: 23px;
+  background: $piedra-light; border-radius: 999px;
+  position: relative; cursor: pointer;
+  transition: background 0.3s; flex-shrink: 0;
+
+  &.on { background: $noche; }
+
+  &__thumb {
+    position: absolute; top: 2px; left: 2px;
+    width: 19px; height: 19px;
+    background: white; border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+
+    .her-toggle.on & { transform: translateX(19px); }
+  }
+}
+
+// Carta editor
+.her-carta-editor {
+  display: flex; flex-direction: column; gap: 10px;
+  animation: fadeUp 0.2s ease both;
+}
+
+.her-carta-guias {
+  display: flex; flex-direction: column; gap: 8px;
+
+  &__label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: $ambar;
+
+    svg { flex-shrink: 0; }
+  }
+
+  &__btns { display: flex; flex-wrap: wrap; gap: 6px; }
+}
+
+.her-carta-guia-btn {
+  background: rgba($ambar, 0.06);
+  border: 1px solid rgba($ambar, 0.15);
+  border-radius: 999px; padding: 4px 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.65rem; font-weight: 600;
+  color: $ambar-oro; cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: rgba($ambar, 0.12); }
+}
+
+.her-carta-textarea {
+  width: 100%; min-height: 160px;
+  background: $fondo-low; border: 2px solid transparent;
+  border-radius: $radius-md; padding: 14px 16px;
+  font-family: 'Newsreader', serif;
+  font-style: italic; font-size: 1rem;
+  color: $noche; line-height: 1.7;
+  resize: vertical; outline: none;
+  box-sizing: border-box; transition: border-color 0.2s;
+
+  &:focus { border-color: $ambar; }
+  &::placeholder { color: $piedra-light; font-style: italic; }
+}
+
+.her-carta-footer {
+  display: flex; justify-content: space-between; align-items: center;
+
+  &__count { font-size: 0.62rem; color: $piedra; }
+
+  &__guardar {
+    display: flex; align-items: center; gap: 6px;
+    background: $noche; color: white; border: none;
+    border-radius: 999px; padding: 8px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $noche-med; }
+  }
+}
+
+.her-carta-preview {
+  font-family: 'Newsreader', serif;
+  font-style: italic; font-size: 0.88rem;
+  color: $piedra; line-height: 1.6;
+  margin: 0; padding: 10px 14px;
+  background: $fondo-low; border-radius: $radius-md;
+  border-left: 3px solid $ambar;
+}
+
+.her-carta-vacia {
+  font-size: 0.72rem; color: $piedra;
+  line-height: 1.6; margin: 0;
+  font-style: italic;
+}
+
+// ── Carta de instrucciones ─────────────────────────────────
+.her-instrucciones {
+  background: $noche;
+  border-radius: $radius-xl;
+  padding: 20px;
+  color: white;
+
+  &__header {
+    display: flex; align-items: flex-start;
+    gap: 14px; margin-bottom: 16px;
+  }
+
+  &__icono {
+    width: 48px; height: 48px;
+    border-radius: $radius-md;
+    background: rgba($ambar, 0.15);
+    color: $ambar-light;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.2rem;
+    font-weight: 400; color: white; margin: 0 0 4px;
+  }
+
+  &__sub {
+    font-size: 0.7rem; color: rgba(130,150,176,0.7);
+    line-height: 1.5; margin: 0; flex: 1;
+  }
+
+  &__btn {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(white, 0.1);
+    border: 1px solid rgba(white, 0.15);
+    border-radius: 999px; padding: 7px 14px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.7rem; font-weight: 700;
+    color: white; cursor: pointer; white-space: nowrap;
+    transition: background 0.2s; flex-shrink: 0;
+    &:hover { background: rgba(white, 0.18); }
+  }
+
+  &__preview {
+    display: flex; flex-direction: column; gap: 8px;
+    border-top: 1px solid rgba(white, 0.08);
+    padding-top: 14px;
+  }
+
+  &__item {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.75rem; color: rgba(130,150,176,0.8);
+
+    svg { color: $ambar; flex-shrink: 0; }
+  }
+}
+
+// ── Botón agregar ──────────────────────────────────────────
+.her-btn-agregar {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; width: 100%;
+  background: $fondo-low; border: 2px dashed rgba($noche, 0.12);
+  border-radius: $radius-xl; padding: 16px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.82rem; font-weight: 700;
+  color: $piedra; cursor: pointer; transition: all 0.2s;
+
+  &:hover { border-color: $ambar; color: $ambar; background: rgba($ambar, 0.03); }
+}
+
+// ── Drawer ─────────────────────────────────────────────────
+.her-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba($noche, 0.5);
+  backdrop-filter: blur(6px);
+  display: flex; justify-content: flex-end;
+}
+
+.her-drawer {
+  width: 400px; max-width: 100vw; height: 100%;
+  background: $fondo; display: flex; flex-direction: column;
+  box-shadow: -8px 0 40px rgba($noche, 0.2);
+  animation: drawerIn 0.3s cubic-bezier(0.4,0,0.2,1);
+
+  @keyframes drawerIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+
+  &__header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px; border-bottom: 1px solid rgba($noche, 0.08);
+    background: white; flex-shrink: 0;
+
+    h3 {
+      font-family: 'Newsreader', serif;
+      font-style: italic; font-size: 1.2rem;
+      font-weight: 400; color: $noche; margin: 0;
+    }
+
+    button {
+      background: none; border: none; cursor: pointer;
+      color: $piedra; padding: 6px; border-radius: 50%; display: flex;
+      &:hover { background: rgba($noche, 0.06); }
+    }
+  }
+
+  &__body {
+    flex: 1; overflow-y: auto; padding: 20px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  &__grupo {
+    display: flex; flex-direction: column; gap: 6px;
+
+    label {
+      font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: $piedra;
+    }
+
+    input, select {
+      background: white; border: 2px solid transparent;
+      border-radius: $radius-md; padding: 11px 14px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.85rem; color: $noche;
+      outline: none; box-shadow: $shadow-sm;
+      transition: border-color 0.2s; width: 100%; box-sizing: border-box;
+
+      &:focus { border-color: $ambar; }
+      &::placeholder { color: $piedra-light; }
+    }
+
+    select { cursor: pointer; appearance: none; }
+  }
+
+  &__aviso {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.68rem; color: $rojo; margin-top: 4px;
+    svg { flex-shrink: 0; }
+  }
+
+  &__footer {
+    padding: 16px 20px; border-top: 1px solid rgba($noche, 0.08);
+    background: white; display: flex; gap: 10px; flex-shrink: 0;
+  }
+
+  &__cancelar {
+    flex: 1; background: none;
+    border: 2px solid rgba($noche, 0.1); border-radius: $radius-md;
+    padding: 12px; font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 600; color: $piedra; cursor: pointer;
+    transition: all 0.2s;
+    &:hover { border-color: $noche; color: $noche; }
+  }
+
+  &__guardar {
+    flex: 2; display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: $noche; border: none; border-radius: $radius-md;
+    padding: 12px; font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 700; color: white; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $noche-med; }
+  }
+}
+
+// ── Modal carta de instrucciones ───────────────────────────
+.her-carta-modal {
+  background: $fondo; border-radius: $radius-xl $radius-xl 0 0;
+  width: 100%; max-width: 580px; max-height: 92dvh;
+  overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 -8px 40px rgba($noche, 0.2);
+  align-self: flex-end;
+  animation: slideUp 0.35s cubic-bezier(0.34,1.05,0.64,1);
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .her-overlay & { justify-content: flex-end; align-items: center; }
+
+  &__header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid rgba($noche, 0.08);
+    background: white; flex-shrink: 0;
+
+    h3 {
+      font-family: 'Newsreader', serif;
+      font-style: italic; font-size: 1.3rem;
+      font-weight: 400; color: $noche; margin: 0;
+    }
+
+    button {
+      background: none; border: none; cursor: pointer;
+      color: $piedra; padding: 6px; border-radius: 50%; display: flex;
+      flex-shrink: 0; margin-top: 2px;
+    }
+  }
+
+  &__eyebrow {
+    display: block; font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: $ambar; margin-bottom: 4px;
+  }
+
+  &__body {
+    flex: 1; overflow-y: auto; padding: 20px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  &__intro {
+    background: rgba($ambar, 0.06); border-radius: $radius-md;
+    padding: 14px; border-left: 3px solid $ambar;
+
+    p { font-size: 0.78rem; color: $noche; line-height: 1.6; margin: 0; }
+    strong { color: $ambar-oro; }
+  }
+
+  &__seccion {
+    background: white; border-radius: $radius-md;
+    padding: 16px; box-shadow: $shadow-sm;
+  }
+
+  &__sec-titulo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.78rem; font-weight: 700; color: $noche;
+    margin: 0 0 10px;
+    svg { color: $ambar; flex-shrink: 0; }
+  }
+
+  &__sec-contenido {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 0.82rem;
+    color: $piedra; line-height: 1.7;
+    margin: 0; white-space: pre-wrap;
+    font-feature-settings: normal;
+  }
+
+  &__footer {
+    padding: 14px 20px; border-top: 1px solid rgba($noche, 0.08);
+    background: white; display: flex; gap: 10px; flex-shrink: 0;
+  }
+
+  &__imprimir {
+    display: flex; align-items: center; gap: 6px;
+    background: $noche; color: white; border: none;
+    border-radius: $radius-md; padding: 12px 20px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $noche-med; }
+  }
+
+  &__cerrar {
+    flex: 1; background: none;
+    border: 2px solid rgba($noche, 0.1); border-radius: $radius-md;
+    padding: 12px; font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem; font-weight: 600; color: $piedra; cursor: pointer;
+    transition: all 0.2s;
+    &:hover { border-color: $noche; color: $noche; }
+  }
+}
+
+// ── Toast ──────────────────────────────────────────────────
+.her-toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%);
+  background: $noche; color: white;
+  padding: 10px 20px; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; box-shadow: $shadow-lg;
+  z-index: 400;
+  animation: toastIn 0.3s ease both;
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .her-hero__titulo { font-size: 1.3rem; }
+  .her-drawer { width: 100%; }
+}

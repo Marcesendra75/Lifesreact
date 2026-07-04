@@ -62,7 +62,7 @@
     display: flex; align-items: center; justify-content: center;
     color: v.$primary; transition: background 0.2s;
 
-    .material-symbols-outlined { font-size: 22px; }
+    svg { width: 22px; height: 22px; }
     &:hover { background: rgba(3,25,46,0.06); }
   }
 }
@@ -117,7 +117,7 @@
     background: white; display: flex; align-items: center; justify-content: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 
-    .material-symbols-outlined { font-size: 14px; }
+    svg { width: 14px; height: 14px; }
   }
 
   &__text { flex: 1; min-width: 0; }
@@ -141,7 +141,7 @@
     letter-spacing: 0.06em; text-transform: uppercase;
     transition: all 0.2s; white-space: nowrap;
 
-    .material-symbols-outlined { font-size: 16px; }
+    svg { width: 16px; height: 16px; }
     &:hover { background: #1a2e44; transform: translateY(-1px); }
   }
 }
@@ -201,7 +201,7 @@
     margin-bottom: 0.75rem;
     display: flex; align-items: center; gap: 0.4rem;
 
-    .material-symbols-outlined { font-size: 16px; }
+    svg { width: 16px; height: 16px; }
 
     &--light { color: rgba(255,255,255,0.8); }
   }
@@ -225,9 +225,8 @@
   }
 
   &__vault-badge {
-    .material-symbols-outlined {
-      font-size: 14px; color: #C9A84C;
-      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    svg {
+      width: 14px; height: 14px; color: #C9A84C;
     }
   }
 
@@ -241,7 +240,7 @@
     font-family: v.$font-body; font-size: 0.75rem; font-weight: 700;
     color: #855324; letter-spacing: 0.06em; text-transform: uppercase;
 
-    .material-symbols-outlined { font-size: 14px; }
+    svg { width: 14px; height: 14px; }
     &:hover { text-decoration: underline; }
   }
 
@@ -252,7 +251,7 @@
     letter-spacing: 0.08em; text-transform: uppercase;
     color: rgba(201,168,76,0.7); margin-top: 0.75rem;
 
-    .material-symbols-outlined { font-size: 14px; }
+    svg { width: 14px; height: 14px; }
     &:hover { color: #C9A84C; }
   }
 }
@@ -315,7 +314,7 @@
     font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
     text-transform: uppercase; color: #855324; margin-bottom: 0.3rem;
 
-    .material-symbols-outlined { font-size: 13px; }
+    svg { width: 13px; height: 13px; }
   }
 
   &__titulo {
@@ -360,7 +359,7 @@
   display: flex; align-items: center; justify-content: center;
   color: #43474d; transition: all 0.2s;
 
-  .material-symbols-outlined { font-size: 18px; }
+  svg { width: 18px; height: 18px; }
   &.active { background: white; color: v.$primary; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 }
 
@@ -398,7 +397,7 @@
     display: flex; align-items: center; justify-content: center;
     color: #855324; transition: background 0.2s;
 
-    .material-symbols-outlined { font-size: 20px; }
+    svg { width: 20px; height: 20px; }
     &:hover { background: rgba(133,83,36,0.1); }
   }
 }
@@ -449,7 +448,7 @@
     color: #43474d; border-radius: 9999px; padding: 0.25rem;
     transition: background 0.2s;
 
-    .material-symbols-outlined { font-size: 20px; }
+    svg { width: 20px; height: 20px; }
     &:hover { background: #efeeea; }
   }
 
@@ -506,7 +505,7 @@
     font-size: 0.75rem; font-weight: 700; color: #43474d;
     transition: all 0.2s;
 
-    .material-symbols-outlined { font-size: 16px; }
+    svg { width: 16px; height: 16px; }
     &:hover { border-color: #855324; color: #855324; }
   }
 
@@ -528,7 +527,7 @@
     color: #43474d; font-family: v.$font-body;
     font-size: 0.78rem; font-weight: 600; transition: all 0.2s;
 
-    .material-symbols-outlined { font-size: 18px; }
+    svg { width: 18px; height: 18px; }
     &:hover { background: #efeeea; color: #855324; }
   }
 }
@@ -550,7 +549,7 @@
     letter-spacing: 0.06em; text-transform: uppercase; color: #43474d;
     white-space: nowrap; transition: background 0.15s;
 
-    .material-symbols-outlined { font-size: 22px; }
+    svg { width: 22px; height: 22px; }
     &:hover { background: #f5f3ef; }
   }
 }
@@ -594,7 +593,7 @@
       display: flex; align-items: center; gap: 3px;
       font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 600;
 
-      .material-symbols-outlined { font-size: 14px; }
+      svg { width: 14px; height: 14px; }
     }
   }
 }
@@ -614,7 +613,7 @@
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; position: relative; z-index: 1;
 
-    .material-symbols-outlined { font-size: 18px; color: #855324; }
+    svg { width: 18px; height: 18px; color: #855324; }
   }
 
   &__line {
@@ -654,7 +653,7 @@
   letter-spacing: 0.08em; text-transform: uppercase; color: #855324;
   transition: all 0.2s;
 
-  .material-symbols-outlined { font-size: 16px; }
+  svg { width: 16px; height: 16px; }
   &:hover { background: rgba(133,83,36,0.06); }
 }
 
@@ -678,7 +677,7 @@
     font-size: 9px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
     transition: all 0.2s;
 
-    .material-symbols-outlined { font-size: 22px; }
+    svg { width: 22px; height: 22px; }
 
     &:hover { color: #855324; }
 
@@ -688,4 +687,191 @@
       box-shadow: 0 4px 16px rgba(133,83,36,0.3);
     }
   }
+}// ============================================================
+// LIFE'S — Feed.scss PARCHE
+// Agregar al final del Feed.scss existente
+// Nuevas clases: links a perfiles, nav botones del post
+// ============================================================
+
+// ── Avatar y nombre del autor clickeables ──────────────────
+.feed-post__avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: opacity 0.2s, transform 0.2s;
+
+  &:hover { opacity: 0.85; transform: scale(1.05); }
+}
+
+.feed-post__autor-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #03192e;
+  text-align: left;
+  transition: color 0.2s;
+
+  &:hover { color: #855324; }
+}
+
+// ── Menú rápido de navegación al perfil ───────────────────
+.feed-post__nav-perfil {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.feed-post__nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8A8279;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(133, 83, 36, 0.08);
+    color: #855324;
+  }
+}
+
+// ── Link ver perfil completo al pie del post ──────────────
+.feed-post__ver-perfil {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(3,25,46,0.06);
+  width: 100%;
+  padding: 8px 0 0;
+  margin-top: 8px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #8A8279;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s;
+
+  &:hover { color: #855324; }
+}
+
+// ── Galería — autor clickeable ────────────────────────────
+.feed-galeria__autor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 6px;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.8; }
+
+  img {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.4);
+  }
+}
+
+// ── Cronología — header con autor ────────────────────────
+.feed-crono-item__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.feed-crono-item__autor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #03192e;
+  padding: 0;
+  transition: color 0.2s;
+
+  &:hover { color: #855324; }
+
+  img {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+// ── Mini árbol — items clickeables ───────────────────────
+.feed-mini-tree__item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+
+  &.activo { cursor: default; }
+}
+
+// ── Avatar del perfil clickeable ─────────────────────────
+.feed-profile__avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  display: block;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.9; }
+
+  img {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    display: block;
+  }
+}
+
+.feed-profile__name-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #03192e;
+  padding: 0;
+  text-align: left;
+  transition: color 0.2s;
+
+  &:hover { color: #855324; }
 }

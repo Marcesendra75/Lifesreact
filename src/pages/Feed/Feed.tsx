@@ -1,44 +1,56 @@
 // ============================================
 // LIFE'S — Feed Principal
+// Lucide React | Links a perfiles | with-navbar
 // ============================================
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Settings, User, Plus, History, ArrowRight,
+  LayoutList, Grid, GitBranch, Camera, Video, Mic,
+  Heart, Leaf, BookOpen, Frown, MoreHorizontal,
+  MessageCircle, Share2, Bookmark, Lock, Timeline,
+  Activity, Trees, Shield, Clock, Film, CreditCard,
+  Hourglass, Mail, Zap, ChevronRight, Edit2,
+} from 'lucide-react';
 import './Feed.scss';
-
 
 // ── Tipos ──
 type Vista = 'feed' | 'galeria' | 'cronologia';
 type Epoca = 'todas' | 'infancia' | 'juventud' | 'familia' | 'logros' | 'hoy';
 
-// ── Reacciones de legado ──
+// ── Mock usuarios (userId para navegación) ──
+const USUARIOS: Record<string, { userId: string; nombre: string; avatar: string }> = {
+  'Julian Valenzuela': { userId: '1', nombre: 'Julian Valenzuela', avatar: 'https://i.pravatar.cc/40?img=11' },
+  'María Valenzuela':  { userId: '2', nombre: 'María Valenzuela',  avatar: 'https://i.pravatar.cc/40?img=5'  },
+};
+
+// ── Reacciones ──
 const REACCIONES = [
-  { icon: 'favorite',       label: 'Emocionante',  color: '#e74c3c' },
-  { icon: 'eco',            label: 'Inspirador',   color: '#27ae60' },
-  { icon: 'menu_book',      label: 'Lo recordaré', color: '#855324' },
-  { icon: 'sentiment_sad',  label: 'Me conmueve',  color: '#735c00' },
+  { icon: <Heart   size={18} strokeWidth={1.8} />, label: 'Emocionante',  color: '#e74c3c', key: 'favorite'      },
+  { icon: <Leaf    size={18} strokeWidth={1.8} />, label: 'Inspirador',   color: '#27ae60', key: 'eco'           },
+  { icon: <BookOpen size={18} strokeWidth={1.8}/>, label: 'Lo recordaré', color: '#855324', key: 'menu_book'     },
+  { icon: <Frown   size={18} strokeWidth={1.8} />, label: 'Me conmueve',  color: '#735c00', key: 'sentiment_sad' },
 ];
 
 // ── Épocas ──
 const EPOCAS = [
-  { id: 'todas',    icon: 'all_inclusive', label: 'Todas' },
-  { id: 'infancia', icon: 'child_care',    label: '👶 Infancia' },
-  { id: 'juventud', icon: 'school',        label: '🎓 Juventud' },
-  { id: 'familia',  icon: 'family_restroom',label: '❤️ Familia' },
-  { id: 'logros',   icon: 'emoji_events',  label: '🏆 Logros' },
-  { id: 'hoy',      icon: 'today',         label: '🌿 Hoy' },
+  { id: 'todas',    label: 'Todas'       },
+  { id: 'infancia', label: '👶 Infancia' },
+  { id: 'juventud', label: '🎓 Juventud' },
+  { id: 'familia',  label: '❤️ Familia'  },
+  { id: 'logros',   label: '🏆 Logros'   },
+  { id: 'hoy',      label: '🌿 Hoy'      },
 ];
 
 // ── Navegación sidebar ──
 const NAV_ITEMS = [
-  { icon: 'timeline',       label: 'Línea de Vida',    path: '/linea-de-vida',    vault: false },
-  { icon: 'account_tree',   label: 'Árbol Genealógico',path: '/arbol-genealogico',vault: false },
-  { icon: 'inventory_2',    label: 'Caja Fuerte',      path: '/caja-fuerte',      vault: true  },
-  { icon: 'savings',        label: 'Caja de Valores',  path: '/caja-de-valores',  vault: true  },
-  { icon: 'movie',          label: 'Último Tributo',   path: '/ultimo-tributo',   vault: true  },
-  { icon: 'psychology',     label: 'Ecos IA',          path: '/ecos/1',           vault: false },
-  { icon: 'credit_card',    label: 'Mi Tarjeta',       path: '/tarjeta-legado',   vault: false },
-  { icon: 'hourglass_top',  label: 'Cápsula del Tiempo',path:'/capsula-del-tiempo',vault: false },
-  { icon: 'local_post_office',label:'Postal Digital',  path: '/postal',           vault: false },
+  { icono: <Activity  size={18} strokeWidth={1.8} />, label: 'Línea de Vida',    path: '/linea-de-vida',    vault: false },
+  { icono: <GitBranch size={18} strokeWidth={1.8} />, label: 'Árbol Genealógico',path: '/arbol-genealogico',vault: false },
+  { icono: <Shield    size={18} strokeWidth={1.8} />, label: 'Caja Fuerte',      path: '/caja-fuerte',      vault: true  },
+  { icono: <Zap       size={18} strokeWidth={1.8} />, label: 'Ecos IA',          path: '/ecos/1',           vault: false },
+  { icono: <CreditCard size={18} strokeWidth={1.8}/>, label: 'Mi Tarjeta',       path: '/tarjeta-legado',   vault: false },
+  { icono: <Hourglass size={18} strokeWidth={1.8} />, label: 'Cápsula del Tiempo',path:'/capsula-del-tiempo',vault: false },
+  { icono: <Mail      size={18} strokeWidth={1.8} />, label: 'Postal Digital',   path: '/postal',           vault: false },
 ];
 
 // ── Mock Posts ──
@@ -46,12 +58,13 @@ const MOCK_POSTS = [
   {
     id: 1,
     autor: 'Julian Valenzuela',
+    userId: '1',
     avatar: 'https://i.pravatar.cc/40?img=11',
     tiempo: 'hace 4 horas',
     tipo: 'Recuerdo Destacado',
     epoca: 'familia',
     titulo: 'La vieja casa de campo en Segovia',
-    texto: 'Recuerdo perfectamente el olor a pino y tierra mojada. Fue el último verano que pasamos todos juntos antes de que la ciudad nos absorbiera. Estas paredes guardan risas que aún puedo escuchar si cierro los ojos con suficiente fuerza.',
+    texto: 'Recuerdo perfectamente el olor a pino y tierra mojada. Fue el último verano que pasamos todos juntos antes de que la ciudad nos absorbiera.',
     imagen: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80',
     reacciones: { favorite: 12, eco: 5, menu_book: 8, sentiment_sad: 3 },
     comentarios: 4,
@@ -60,6 +73,7 @@ const MOCK_POSTS = [
   {
     id: 2,
     autor: 'Julian Valenzuela',
+    userId: '1',
     avatar: 'https://i.pravatar.cc/40?img=11',
     tiempo: 'ayer a las 18:30',
     tipo: 'Reflexión',
@@ -75,6 +89,7 @@ const MOCK_POSTS = [
   {
     id: 3,
     autor: 'María Valenzuela',
+    userId: '2',
     avatar: 'https://i.pravatar.cc/40?img=5',
     tiempo: 'hace 2 días',
     tipo: 'Recuerdo Familiar',
@@ -89,6 +104,7 @@ const MOCK_POSTS = [
   {
     id: 4,
     autor: 'Julian Valenzuela',
+    userId: '1',
     avatar: 'https://i.pravatar.cc/40?img=11',
     tiempo: 'hace 5 días',
     tipo: 'Hito de Vida',
@@ -102,7 +118,6 @@ const MOCK_POSTS = [
   },
 ];
 
-// ── Hoy hace X años (mock) ──
 const HOY_HACE = {
   años: 15,
   titulo: 'Primer viaje a Patagonia',
@@ -110,41 +125,47 @@ const HOY_HACE = {
 };
 
 export default function Feed() {
-  const navigate  = useNavigate();
-  const [vista, setVista]         = useState<Vista>('feed');
-  const [epoca, setEpoca]         = useState<Epoca>('todas');
+  const navigate = useNavigate();
+  const [vista, setVista]   = useState<Vista>('feed');
+  const [epoca, setEpoca]   = useState<Epoca>('todas');
   const [reaccionesAbiertas, setReaccionesAbiertas] = useState<number | null>(null);
 
   const postsFiltrados = epoca === 'todas'
     ? MOCK_POSTS
     : MOCK_POSTS.filter(p => p.epoca === epoca);
 
-  const handleNavVault = (path: string, vault: boolean) => {
-    if (vault) {
-      navigate(`/acceso-seguro?acceso=${encodeURIComponent(path)}&redirect=${encodeURIComponent(path)}`);
-    } else {
-      navigate(path);
-    }
+  const handleNavVault = (path: string) => {
+    navigate(path);
   };
 
+  // Navegar al perfil de un usuario
+  const irAPerfil    = (userId: string) => navigate(`/perfil/${userId}`);
+  const irALinea     = (userId: string) => navigate(`/linea-de-vida/${userId}`);
+  const irAArbol     = (userId: string) => navigate(`/arbol-genealogico/${userId}`);
+  const irAMuro      = (userId: string) => navigate(`/muro-biografico/${userId}`);
+
   return (
-    <div className="feed-root">
+    <div className="feed-root with-navbar">
 
       {/* ── HEADER ── */}
       <header className="feed-header">
         <div className="feed-header__inner">
           <div className="feed-header__left">
-            <div className="feed-header__avatar">
+            <button
+              className="feed-header__avatar"
+              onClick={() => irAPerfil('1')}
+              title="Mi perfil"
+            >
               <img src="https://i.pravatar.cc/40?img=11" alt="Mi perfil" />
-            </div>
+            </button>
             <h1 className="feed-header__title">El Legado</h1>
           </div>
           <div className="feed-header__actions">
             <button className="feed-header__btn" onClick={() => navigate('/configuracion')}>
-              <span className="material-symbols-outlined">settings</span>
+              <Settings size={20} strokeWidth={1.8} />
             </button>
-            <button className="feed-header__btn" onClick={() => navigate('/perfil')}>
-              <span className="material-symbols-outlined">person</span>
+            <button className="feed-header__btn" onClick={() => irAPerfil('1')}>
+              <User size={20} strokeWidth={1.8} />
             </button>
           </div>
         </div>
@@ -155,28 +176,27 @@ export default function Feed() {
         {/* ── COVER + PERFIL ── */}
         <section className="feed-profile">
           <div className="feed-profile__cover">
-            <img
-              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80"
-              alt="Portada"
-            />
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80" alt="Portada" />
             <div className="feed-profile__cover-overlay" />
           </div>
           <div className="feed-profile__info">
             <div className="feed-profile__avatar-wrap">
-              <img src="https://i.pravatar.cc/160?img=11" alt="Perfil" />
-              <div className="feed-profile__nivel-badge">
-                <span className="material-symbols-outlined"
-                  style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24", color: '#C9A84C' }}>
-                  workspace_premium
-                </span>
-              </div>
+              <button onClick={() => irAPerfil('1')} className="feed-profile__avatar-btn">
+                <img src="https://i.pravatar.cc/160?img=11" alt="Perfil" />
+              </button>
+              <div className="feed-profile__nivel-badge">⭐</div>
             </div>
             <div className="feed-profile__text">
-              <h2 className="feed-profile__name">Julian Valenzuela</h2>
+              <button
+                className="feed-profile__name-btn"
+                onClick={() => irAPerfil('1')}
+              >
+                Julian Valenzuela
+              </button>
               <p className="feed-profile__rol">Archivista de Recuerdos Familiares</p>
             </div>
             <button className="feed-profile__btn" onClick={() => navigate('/linea-de-vida')}>
-              <span className="material-symbols-outlined">add</span>
+              <Plus size={16} strokeWidth={2} />
               Añadir Recuerdo
             </button>
           </div>
@@ -185,11 +205,11 @@ export default function Feed() {
         {/* ── STATS ── */}
         <div className="feed-stats">
           {[
-            { valor: '124',  label: 'Seguidores',    path: '/perfil' },
-            { valor: '482',  label: 'Recuerdos',     path: '/muro-biografico' },
-            { valor: '3',    label: 'Generaciones',  path: '/arbol-genealogico' },
+            { valor: '124', label: 'Seguidores',   onClick: () => irAPerfil('1')          },
+            { valor: '482', label: 'Recuerdos',    onClick: () => irALinea('1')           },
+            { valor: '3',   label: 'Generaciones', onClick: () => irAArbol('1')           },
           ].map(s => (
-            <button key={s.label} className="feed-stats__item" onClick={() => navigate(s.path)}>
+            <button key={s.label} className="feed-stats__item" onClick={s.onClick}>
               <span className="feed-stats__val">{s.valor}</span>
               <span className="feed-stats__label">{s.label}</span>
             </button>
@@ -209,13 +229,13 @@ export default function Feed() {
                 <button
                   key={n.path}
                   className="feed-sidebar__link"
-                  onClick={() => handleNavVault(n.path, n.vault)}
+                  onClick={() => handleNavVault(n.path)}
                 >
-                  <span className="material-symbols-outlined feed-sidebar__link-icon">{n.icon}</span>
+                  <span className="feed-sidebar__link-icon">{n.icono}</span>
                   <span className="feed-sidebar__link-label">{n.label}</span>
                   {n.vault && (
                     <span className="feed-sidebar__vault-badge">
-                      <span className="material-symbols-outlined">lock</span>
+                      <Lock size={12} strokeWidth={2} />
                     </span>
                   )}
                 </button>
@@ -230,7 +250,7 @@ export default function Feed() {
                 dejamos atrás, sino lo que vive en los demás.
               </p>
               <button className="feed-sidebar__edit" onClick={() => navigate('/perfil')}>
-                <span className="material-symbols-outlined">edit</span>
+                <Edit2 size={14} strokeWidth={1.8} />
                 Editar perfil
               </button>
             </div>
@@ -238,27 +258,31 @@ export default function Feed() {
             {/* Mini árbol */}
             <div className="feed-sidebar__card feed-sidebar__card--dark">
               <h3 className="feed-sidebar__title feed-sidebar__title--light">
-                <span className="material-symbols-outlined">account_tree</span>
+                <GitBranch size={16} strokeWidth={1.8} />
                 Tu árbol vivo
               </h3>
               <div className="feed-mini-tree">
                 {[
-                  { nombre: 'Abuelo Pedro',  avatar: 'https://i.pravatar.cc/32?img=70', nivel: 0 },
-                  { nombre: 'Papá Carlos',   avatar: 'https://i.pravatar.cc/32?img=60', nivel: 1 },
-                  { nombre: 'Tú',            avatar: 'https://i.pravatar.cc/32?img=11', nivel: 2, activo: true },
-                  { nombre: 'Hija Sofía',    avatar: 'https://i.pravatar.cc/32?img=20', nivel: 3 },
+                  { nombre: 'Abuelo Pedro', avatar: 'https://i.pravatar.cc/32?img=70', nivel: 0, userId: '5' },
+                  { nombre: 'Papá Carlos',  avatar: 'https://i.pravatar.cc/32?img=60', nivel: 1, userId: '3' },
+                  { nombre: 'Tú',           avatar: 'https://i.pravatar.cc/32?img=11', nivel: 2, userId: '1', activo: true },
+                  { nombre: 'Hija Sofía',   avatar: 'https://i.pravatar.cc/32?img=20', nivel: 3, userId: '4' },
                 ].map((m, i) => (
-                  <div key={i} className={`feed-mini-tree__item ${m.activo ? 'activo' : ''}`}
-                    style={{ marginLeft: `${m.nivel * 16}px` }}>
+                  <button
+                    key={i}
+                    className={`feed-mini-tree__item ${m.activo ? 'activo' : ''}`}
+                    style={{ marginLeft: `${m.nivel * 16}px` }}
+                    onClick={() => !m.activo && irAPerfil(m.userId)}
+                  >
                     <img src={m.avatar} alt={m.nombre} />
                     <span>{m.nombre}</span>
                     {m.activo && <span className="feed-mini-tree__you">Tú</span>}
-                  </div>
+                  </button>
                 ))}
               </div>
               <button className="feed-sidebar__link-btn" onClick={() => navigate('/arbol-genealogico')}>
                 Ver árbol completo
-                <span className="material-symbols-outlined">arrow_forward</span>
+                <ChevronRight size={15} strokeWidth={1.8} />
               </button>
             </div>
 
@@ -275,12 +299,12 @@ export default function Feed() {
               </div>
               <div className="feed-hoy-hace__text">
                 <div className="feed-hoy-hace__badge">
-                  <span className="material-symbols-outlined">history</span>
+                  <History size={14} strokeWidth={1.8} />
                   Hoy hace {HOY_HACE.años} años
                 </div>
                 <p className="feed-hoy-hace__titulo">{HOY_HACE.titulo}</p>
               </div>
-              <span className="material-symbols-outlined feed-hoy-hace__arrow">arrow_forward</span>
+              <ArrowRight size={18} strokeWidth={1.8} className="feed-hoy-hace__arrow" />
             </div>
 
             {/* ── FILTROS ÉPOCA ── */}
@@ -299,16 +323,16 @@ export default function Feed() {
             {/* ── SELECTOR DE VISTA ── */}
             <div className="feed-vista-selector">
               {([
-                { id: 'feed',       icon: 'view_agenda'  },
-                { id: 'galeria',    icon: 'grid_view'    },
-                { id: 'cronologia', icon: 'timeline'     },
-              ] as { id: Vista; icon: string }[]).map(v => (
+                { id: 'feed',       icono: <LayoutList size={18} strokeWidth={1.8} /> },
+                { id: 'galeria',    icono: <Grid       size={18} strokeWidth={1.8} /> },
+                { id: 'cronologia', icono: <Activity   size={18} strokeWidth={1.8} /> },
+              ] as { id: Vista; icono: React.ReactNode }[]).map(v => (
                 <button
                   key={v.id}
                   className={`feed-vista-btn ${vista === v.id ? 'active' : ''}`}
                   onClick={() => setVista(v.id)}
                 >
-                  <span className="material-symbols-outlined">{v.icon}</span>
+                  {v.icono}
                 </button>
               ))}
               <span className="feed-vista-label">
@@ -318,22 +342,21 @@ export default function Feed() {
 
             {/* ── QUICK CREATE ── */}
             <div className="feed-create">
-              <img src="https://i.pravatar.cc/48?img=11" alt="Yo" className="feed-create__avatar" />
-              <button
-                className="feed-create__input"
-                onClick={() => navigate('/linea-de-vida')}
-              >
+              <button onClick={() => irAPerfil('1')}>
+                <img src="https://i.pravatar.cc/48?img=11" alt="Yo" className="feed-create__avatar" />
+              </button>
+              <button className="feed-create__input" onClick={() => navigate('/linea-de-vida')}>
                 ¿Qué momento deseas preservar hoy?
               </button>
               <div className="feed-create__actions">
                 <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}>
-                  <span className="material-symbols-outlined">photo_camera</span>
+                  <Camera size={18} strokeWidth={1.8} />
                 </button>
                 <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}>
-                  <span className="material-symbols-outlined">videocam</span>
+                  <Video size={18} strokeWidth={1.8} />
                 </button>
                 <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}>
-                  <span className="material-symbols-outlined">mic</span>
+                  <Mic size={18} strokeWidth={1.8} />
                 </button>
               </div>
             </div>
@@ -350,26 +373,60 @@ export default function Feed() {
                     {/* Barra de peso emocional */}
                     <div className="feed-post__peso" style={{ width: `${post.pesoEmocional}%` }} />
 
-                    {/* Header del post */}
+                    {/* Header del post — avatar y nombre clickeables */}
                     <div className="feed-post__header">
-                      <img src={post.avatar} alt={post.autor} className="feed-post__avatar" />
+                      <button
+                        className="feed-post__avatar-btn"
+                        onClick={() => irAPerfil(post.userId)}
+                        title={`Ver perfil de ${post.autor}`}
+                      >
+                        <img src={post.avatar} alt={post.autor} className="feed-post__avatar" />
+                      </button>
                       <div className="feed-post__meta">
-                        <span className="feed-post__autor">{post.autor}</span>
+                        <button
+                          className="feed-post__autor-btn"
+                          onClick={() => irAPerfil(post.userId)}
+                        >
+                          {post.autor}
+                        </button>
                         <span className="feed-post__tiempo">
                           {post.tiempo} · {post.tipo}
                         </span>
                       </div>
-                      <button className="feed-post__more">
-                        <span className="material-symbols-outlined">more_horiz</span>
-                      </button>
+
+                      {/* Menú rápido de navegación al perfil */}
+                      <div className="feed-post__nav-perfil">
+                        <button
+                          className="feed-post__nav-btn"
+                          onClick={() => irALinea(post.userId)}
+                          title="Ver línea de vida"
+                        >
+                          <Activity size={14} strokeWidth={1.8} />
+                        </button>
+                        <button
+                          className="feed-post__nav-btn"
+                          onClick={() => irAArbol(post.userId)}
+                          title="Ver árbol genealógico"
+                        >
+                          <GitBranch size={14} strokeWidth={1.8} />
+                        </button>
+                        <button
+                          className="feed-post__nav-btn"
+                          onClick={() => irAMuro(post.userId)}
+                          title="Ver muro biográfico"
+                        >
+                          <BookOpen size={14} strokeWidth={1.8} />
+                        </button>
+                        <button className="feed-post__more">
+                          <MoreHorizontal size={18} strokeWidth={1.8} />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Contenido */}
                     <div className="feed-post__body">
-                      {post.titulo && (
-                        <h4 className="feed-post__titulo">{post.titulo}</h4>
-                      )}
-                      {post.esCita ? (
+                      {post.titulo && <h4 className="feed-post__titulo">{post.titulo}</h4>}
+                      {(post as any).esCita ? (
                         <blockquote className="feed-post__cita">{post.texto}</blockquote>
                       ) : (
                         <p className="feed-post__texto">{post.texto}</p>
@@ -378,7 +435,11 @@ export default function Feed() {
 
                     {/* Imagen */}
                     {post.imagen && (
-                      <div className="feed-post__img-wrap">
+                      <div
+                        className="feed-post__img-wrap"
+                        onClick={() => irALinea(post.userId)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <img src={post.imagen} alt={post.titulo || 'Recuerdo'} />
                         <div className="feed-post__img-overlay">
                           <span className="feed-post__epoca-badge">
@@ -398,21 +459,20 @@ export default function Feed() {
                               reaccionesAbiertas === post.id ? null : post.id
                             )}
                           >
-                            <span className="material-symbols-outlined">add_reaction</span>
+                            <Heart size={16} strokeWidth={1.8} />
                             <span>Reaccionar</span>
                           </button>
 
-                          {/* Panel de reacciones */}
                           {reaccionesAbiertas === post.id && (
                             <div className="feed-reacciones-panel">
                               {REACCIONES.map(r => (
-                                <button key={r.icon} className="feed-reacciones-panel__item"
-                                  onClick={() => setReaccionesAbiertas(null)}>
-                                  <span className="material-symbols-outlined"
-                                    style={{ color: r.color,
-                                      fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
-                                    {r.icon}
-                                  </span>
+                                <button
+                                  key={r.key}
+                                  className="feed-reacciones-panel__item"
+                                  onClick={() => setReaccionesAbiertas(null)}
+                                  style={{ color: r.color }}
+                                >
+                                  {r.icon}
                                   <span>{r.label}</span>
                                 </button>
                               ))}
@@ -420,17 +480,12 @@ export default function Feed() {
                           )}
                         </div>
 
-                        {/* Conteo de reacciones */}
                         <div className="feed-post__react-counts">
-                          {Object.entries(post.reacciones).map(([icon, count]) => {
-                            const r = REACCIONES.find(x => x.icon === icon);
+                          {REACCIONES.map(r => {
+                            const count = (post.reacciones as any)[r.key];
                             return (
-                              <span key={icon} className="feed-post__react-count">
-                                <span className="material-symbols-outlined"
-                                  style={{ color: r?.color, fontSize: '14px',
-                                    fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
-                                  {icon}
-                                </span>
+                              <span key={r.key} className="feed-post__react-count" style={{ color: r.color }}>
+                                {r.icon}
                                 {count}
                               </span>
                             );
@@ -440,17 +495,27 @@ export default function Feed() {
 
                       <div className="feed-post__acciones">
                         <button className="feed-post__accion">
-                          <span className="material-symbols-outlined">chat_bubble</span>
+                          <MessageCircle size={16} strokeWidth={1.8} />
                           {post.comentarios}
                         </button>
                         <button className="feed-post__accion">
-                          <span className="material-symbols-outlined">share</span>
+                          <Share2 size={16} strokeWidth={1.8} />
                         </button>
-                        <button className="feed-post__accion" onClick={() => navigate('/tarjeta-legado')}>
-                          <span className="material-symbols-outlined">bookmark</span>
+                        <button className="feed-post__accion" onClick={() => navigate('/postal')}>
+                          <Bookmark size={16} strokeWidth={1.8} />
                         </button>
                       </div>
                     </div>
+
+                    {/* Link discreto al perfil completo */}
+                    <button
+                      className="feed-post__ver-perfil"
+                      onClick={() => irAPerfil(post.userId)}
+                    >
+                      Ver perfil completo de {post.autor.split(' ')[0]}
+                      <ChevronRight size={13} strokeWidth={1.8} />
+                    </button>
+
                   </article>
                 ))}
               </div>
@@ -460,19 +525,26 @@ export default function Feed() {
             {vista === 'galeria' && (
               <div className="feed-galeria">
                 {postsFiltrados.filter(p => p.imagen).map(post => (
-                  <div key={post.id} className="feed-galeria__item">
+                  <div
+                    key={post.id}
+                    className="feed-galeria__item"
+                    onClick={() => irALinea(post.userId)}
+                  >
                     <img src={post.imagen!} alt={post.titulo || 'Recuerdo'} />
                     <div className="feed-galeria__overlay">
-                      <p className="feed-galeria__titulo">{post.titulo || post.texto.slice(0, 40) + '...'}</p>
+                      <button
+                        className="feed-galeria__autor"
+                        onClick={e => { e.stopPropagation(); irAPerfil(post.userId); }}
+                      >
+                        <img src={post.avatar} alt={post.autor} />
+                        {post.autor.split(' ')[0]}
+                      </button>
+                      <p className="feed-galeria__titulo">
+                        {post.titulo || post.texto.slice(0, 40) + '...'}
+                      </p>
                       <div className="feed-galeria__stats">
-                        <span>
-                          <span className="material-symbols-outlined">favorite</span>
-                          {post.reacciones.favorite}
-                        </span>
-                        <span>
-                          <span className="material-symbols-outlined">chat_bubble</span>
-                          {post.comentarios}
-                        </span>
+                        <span><Heart size={12} strokeWidth={1.8} />{post.reacciones.favorite}</span>
+                        <span><MessageCircle size={12} strokeWidth={1.8} />{post.comentarios}</span>
                       </div>
                     </div>
                   </div>
@@ -485,57 +557,80 @@ export default function Feed() {
               <div className="feed-cronologia">
                 {postsFiltrados.map((post, i) => (
                   <div key={post.id} className="feed-crono-item">
-                    <div className="feed-crono-item__dot">
-                      <span className="material-symbols-outlined"
-                        style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
-                        {post.esCita ? 'format_quote' : post.imagen ? 'photo_camera' : 'edit_note'}
-                      </span>
+                    <div
+                      className="feed-crono-item__dot"
+                      onClick={() => irAPerfil(post.userId)}
+                    >
+                      {(post as any).esCita
+                        ? <BookOpen size={16} strokeWidth={1.8} />
+                        : post.imagen
+                        ? <Camera size={16} strokeWidth={1.8} />
+                        : <Edit2 size={16} strokeWidth={1.8} />
+                      }
                     </div>
                     {i < postsFiltrados.length - 1 && <div className="feed-crono-item__line" />}
                     <div className="feed-crono-item__content">
-                      <span className="feed-crono-item__tiempo">{post.tiempo}</span>
-                      <h4 className="feed-crono-item__titulo">
+                      <div className="feed-crono-item__header">
+                        <button
+                          className="feed-crono-item__autor"
+                          onClick={() => irAPerfil(post.userId)}
+                        >
+                          <img src={post.avatar} alt={post.autor} />
+                          {post.autor.split(' ')[0]}
+                        </button>
+                        <span className="feed-crono-item__tiempo">{post.tiempo}</span>
+                      </div>
+                      <h4
+                        className="feed-crono-item__titulo"
+                        onClick={() => irALinea(post.userId)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         {post.titulo || post.texto.slice(0, 60) + '...'}
                       </h4>
                       {post.imagen && (
-                        <img src={post.imagen} alt="" className="feed-crono-item__img" />
+                        <img
+                          src={post.imagen}
+                          alt=""
+                          className="feed-crono-item__img"
+                          onClick={() => irALinea(post.userId)}
+                          style={{ cursor: 'pointer' }}
+                        />
                       )}
                     </div>
                   </div>
                 ))}
                 <button className="feed-crono-more" onClick={() => navigate('/linea-de-vida')}>
-                  <span className="material-symbols-outlined">timeline</span>
+                  <Activity size={16} strokeWidth={1.8} />
                   Ver línea de vida completa
                 </button>
               </div>
             )}
 
-          </div>{/* /feed-content */}
-        </div>{/* /feed-grid */}
+          </div>
+        </div>
       </main>
 
       {/* ── BOTTOM NAV ── */}
       <nav className="feed-bottom-nav">
         {[
-          { icon: 'timeline',    label: 'Línea',   path: '/linea-de-vida',    vault: false, active: false },
-          { icon: 'account_tree',label: 'Árbol',   path: '/arbol-genealogico',vault: false, active: false },
-          { icon: 'person',      label: 'Perfil',  path: '/feed',             vault: false, active: true  },
-          { icon: 'inventory_2', label: 'Bóveda',  path: '/caja-fuerte',      vault: true,  active: false },
-          { icon: 'psychology',  label: 'Ecos IA', path: '/ecos/1',           vault: false, active: false },
+          { icono: <Activity   size={22} strokeWidth={1.6} />, label: 'Línea',  path: '/linea-de-vida',    vault: false, active: false },
+          { icono: <GitBranch  size={22} strokeWidth={1.6} />, label: 'Árbol',  path: '/arbol-genealogico',vault: false, active: false },
+          { icono: <User       size={22} strokeWidth={1.6} />, label: 'Perfil', path: '/perfil',           vault: false, active: true  },
+          { icono: <Shield     size={22} strokeWidth={1.6} />, label: 'Bóveda', path: '/caja-fuerte',      vault: true,  active: false },
+          { icono: <Zap        size={22} strokeWidth={1.6} />, label: 'Ecos',   path: '/ecos/1',           vault: false, active: false },
         ].map(n => (
           <button
             key={n.path}
             className={`feed-bottom-nav__item ${n.active ? 'active' : ''}`}
-            onClick={() => handleNavVault(n.path, n.vault)}
+            onClick={() => handleNavVault(n.path)}
           >
-            <span className="material-symbols-outlined"
-              style={n.active ? { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" } : {}}>
-              {n.icon}
-            </span>
+            {n.icono}
             {n.label}
           </button>
         ))}
       </nav>
+
     </div>
   );
 }
+// FIN

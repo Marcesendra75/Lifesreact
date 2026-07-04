@@ -36,7 +36,7 @@
     background: rgba(3,25,46,0.06); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     color: v.$primary; transition: background 0.2s;
-    .material-symbols-outlined { font-size: 20px; }
+    svg { width: 20px; height: 20px; }
     &:hover { background: rgba(3,25,46,0.1); }
   }
 
@@ -53,7 +53,7 @@
     background: none; border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     color: v.$primary; transition: background 0.2s;
-    .material-symbols-outlined { font-size: 20px; }
+    svg { width: 20px; height: 20px; }
     &:hover { background: rgba(3,25,46,0.06); }
   }
 }
@@ -116,7 +116,7 @@
     width: 22px; height: 22px; border-radius: 9999px;
     background: white; display: flex; align-items: center; justify-content: center;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    .material-symbols-outlined { font-size: 13px; }
+    svg { width: 13px; height: 13px; }
   }
 
   &__texto { flex: 1; min-width: 0; padding-top: 2rem; }
@@ -133,7 +133,7 @@
   &__origen {
     display: flex; align-items: center; gap: 0.3rem;
     font-size: 0.72rem; color: #43474d;
-    .material-symbols-outlined { font-size: 14px; color: #855324; }
+    svg { width: 14px; height: 14px; color: #855324; }
   }
 
   &__edit {
@@ -143,7 +143,7 @@
     font-family: v.$font-body; font-size: 0.72rem; font-weight: 700;
     letter-spacing: 0.08em; text-transform: uppercase; color: v.$primary;
     transition: background 0.2s; white-space: nowrap;
-    .material-symbols-outlined { font-size: 14px; }
+    svg { width: 14px; height: 14px; }
     &:hover { background: rgba(3,25,46,0.1); }
   }
 }
@@ -191,7 +191,7 @@
   font-family: v.$font-display; font-style: italic;
   font-size: 1.15rem; font-weight: 700; color: v.$primary;
 
-  .material-symbols-outlined { font-size: 18px; color: #855324; }
+  svg { width: 18px; height: 18px; color: #855324; }
 }
 
 .mb-section-link {
@@ -201,7 +201,7 @@
   letter-spacing: 0.08em; text-transform: uppercase; color: #855324;
   padding: 0; transition: color 0.2s;
 
-  .material-symbols-outlined { font-size: 14px; }
+  svg { width: 14px; height: 14px; }
   &:hover { color: #03192e; }
 }
 
@@ -300,13 +300,13 @@
 
   &__icon-wrap {
     position: relative;
-    .material-symbols-outlined { font-size: 26px; }
+    svg { width: 26px; height: 26px; }
   }
 
   &__lock {
     position: absolute; top: -6px; right: -8px;
-    .material-symbols-outlined {
-      font-size: 11px; color: #C9A84C;
+    svg {
+      width: 11px; height: 11px; color: #C9A84C;
     }
   }
 
@@ -347,8 +347,8 @@
     display: flex; align-items: center; gap: 0.5rem;
     font-size: 0.82rem; color: #43474d;
 
-    .material-symbols-outlined {
-      font-size: 16px; color: #855324; flex-shrink: 0;
+    svg {
+      width: 16px; height: 16px; color: #855324; flex-shrink: 0;
     }
   }
 }
@@ -359,7 +359,7 @@
   padding: 0 1.25rem; margin-bottom: 0.75rem;
   color: #855324;
 
-  .material-symbols-outlined { font-size: 20px; }
+  svg { width: 20px; height: 20px; }
 
   &__linea {
     flex: 1; height: 1px;
@@ -393,7 +393,7 @@
     font-size: 9px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
     transition: all 0.2s;
 
-    .material-symbols-outlined { font-size: 22px; }
+    svg { width: 22px; height: 22px; }
     &:hover { color: #855324; }
 
     &.active {
