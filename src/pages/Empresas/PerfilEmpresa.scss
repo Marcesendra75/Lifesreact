@@ -1,0 +1,653 @@
+// ============================================================
+// LIFE'S — PerfilEmpresa.scss
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+$noche:       #03192E;
+$noche-med:   #1a2e44;
+$crema:       #F5F0E8;
+$fondo:       #fbf9f5;
+$fondo-low:   #f5f3ef;
+$fondo-med:   #efeeea;
+$fondo-high:  #eae8e4;
+$ambar:       #C9932A;
+$ambar-light: #ffe088;
+$ambar-oro:   #735c00;
+$cobre:       #855324;
+$piedra:      #8A8279;
+$piedra-light:#c4c6cd;
+$verde:       #4a7a4e;
+$azul:        #3a5a8a;
+$rojo:        #ba1a1a;
+
+$radius-md:  14px;
+$radius-lg:  20px;
+$radius-xl:  28px;
+$radius-2xl: 36px;
+
+$shadow-sm:  0 2px 8px rgba(3,25,46,0.06);
+$shadow-md:  0 4px 20px rgba(3,25,46,0.09);
+$shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.4s ease both; }
+
+// ── Base ───────────────────────────────────────────────────
+.pe-page {
+  min-height: 100dvh;
+  background: $fondo;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Header ─────────────────────────────────────────────────
+.pe-header {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px;
+  background: rgba($fondo, 0.94);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba($piedra-light, 0.2);
+
+  &__back {
+    background: none; border: none; cursor: pointer;
+    color: $noche; padding: 8px; border-radius: 50%; display: flex;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.1rem;
+    font-weight: 400; color: $noche; flex: 1;
+  }
+
+  &__acciones { display: flex; gap: 4px; }
+
+  &__btn {
+    background: none; border: none; cursor: pointer;
+    color: $noche; padding: 8px; border-radius: 50%; display: flex;
+    transition: background 0.2s;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+}
+
+// ── Portada ────────────────────────────────────────────────
+.pe-portada {
+  position: relative; height: 200px; overflow: hidden;
+
+  &__img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.85);
+  }
+
+  &__overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba($noche, 0.6) 100%);
+  }
+}
+
+// ── Main ───────────────────────────────────────────────────
+.pe-main {
+  max-width: 720px; margin: 0 auto;
+  padding: 0 16px 20px;
+  display: flex; flex-direction: column; gap: 16px;
+  margin-top: -40px; position: relative; z-index: 1;
+}
+
+// ── Hero info ──────────────────────────────────────────────
+.pe-hero-info {
+  background: white; border-radius: $radius-xl;
+  padding: 20px; box-shadow: $shadow-md;
+
+  &__top {
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+
+  &__datos { flex: 1; }
+
+  &__nombre-wrap {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap; margin-bottom: 4px;
+  }
+}
+
+.pe-logo-wrap {
+  position: relative; flex-shrink: 0;
+  width: 72px; height: 72px;
+}
+
+.pe-logo {
+  width: 72px; height: 72px; border-radius: $radius-md;
+  object-fit: cover; border: 3px solid white;
+  box-shadow: $shadow-md; display: block;
+}
+
+.pe-verificado-badge {
+  position: absolute; bottom: -4px; right: -4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: $azul; color: white;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid white;
+}
+
+.pe-nombre {
+  font-family: 'Newsreader', serif;
+  font-style: italic; font-size: 1.3rem;
+  font-weight: 400; color: $noche; margin: 0;
+}
+
+.pe-verificado-tag {
+  display: flex; align-items: center; gap: 3px;
+  background: rgba($azul, 0.1); color: $azul;
+  font-size: 0.6rem; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.pe-slogan {
+  font-size: 0.78rem; color: $cobre;
+  font-style: italic; margin: 0 0 8px; line-height: 1.4;
+}
+
+.pe-meta {
+  display: flex; flex-direction: column; gap: 4px;
+
+  span {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.7rem; color: $piedra;
+    svg { color: $ambar; flex-shrink: 0; }
+  }
+}
+
+// ── Stats ──────────────────────────────────────────────────
+.pe-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+
+  @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.pe-stat {
+  background: white; border-radius: $radius-lg;
+  padding: 14px 10px; box-shadow: $shadow-sm;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  text-align: center;
+
+  &__icono { color: $ambar; display: flex; }
+
+  &__val {
+    font-family: 'Newsreader', serif;
+    font-size: 1.4rem; font-weight: 700; color: $noche; line-height: 1;
+  }
+
+  &__label {
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: $piedra;
+  }
+}
+
+// ── Card genérica ──────────────────────────────────────────
+.pe-card {
+  background: white; border-radius: $radius-xl;
+  padding: 20px; box-shadow: $shadow-sm;
+
+  &__titulo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.82rem; font-weight: 700; color: $noche; margin: 0 0 12px;
+    svg { color: $ambar; }
+  }
+}
+
+.pe-descripcion {
+  font-size: 0.82rem; color: #43474d; line-height: 1.75; margin: 0 0 14px;
+}
+
+.pe-mision {
+  background: $fondo-low; border-radius: $radius-md;
+  padding: 12px 14px; border-left: 3px solid $ambar;
+
+  &__label {
+    display: block; font-size: 0.6rem; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: $ambar-oro; margin-bottom: 4px;
+  }
+
+  &__texto {
+    font-size: 0.78rem; color: $noche;
+    font-style: italic; line-height: 1.65; margin: 0;
+    font-family: 'Newsreader', serif;
+  }
+}
+
+// ── Accesos rápidos ────────────────────────────────────────
+.pe-accesos { display: flex; flex-direction: column; gap: 8px; }
+
+.pe-acceso-btn {
+  display: flex; align-items: center; gap: 14px;
+  background: white; border: none; border-radius: $radius-lg;
+  padding: 14px 16px; cursor: pointer; text-align: left;
+  box-shadow: $shadow-sm; transition: all 0.2s;
+
+  &:hover { box-shadow: $shadow-md; transform: translateX(3px); }
+
+  &__icono {
+    width: 44px; height: 44px; border-radius: $radius-md;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+
+    &--ambar { background: rgba($ambar, 0.1); color: $ambar-oro; }
+    &--verde  { background: rgba($verde, 0.1); color: $verde; }
+  }
+
+  span:nth-child(2) { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+
+  &__titulo { font-size: 0.85rem; font-weight: 700; color: $noche; }
+  &__sub    { font-size: 0.68rem; color: $piedra; }
+
+  &__arrow  { color: $piedra-light; transition: transform 0.2s;
+    .pe-acceso-btn:hover & { transform: translateX(3px); } }
+}
+
+// ── Tabs ───────────────────────────────────────────────────
+.pe-tabs {
+  display: flex; gap: 0;
+  background: white; border-radius: $radius-lg;
+  padding: 4px; box-shadow: $shadow-sm;
+}
+
+.pe-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: none; border: none; border-radius: $radius-md;
+  padding: 10px; cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.75rem; font-weight: 700; color: $piedra;
+  transition: all 0.2s;
+
+  &.active { background: $noche; color: white; }
+  &:hover:not(.active) { background: rgba($noche, 0.05); color: $noche; }
+}
+
+// ── Section helpers ────────────────────────────────────────
+.pe-section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+
+.pe-section-titulo {
+  font-family: 'Newsreader', serif;
+  font-style: italic; font-size: 1.2rem;
+  font-weight: 400; color: $noche; margin: 0;
+}
+
+.pe-section-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: $noche; color: white; border: none;
+  border-radius: 999px; padding: 7px 14px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.7rem; font-weight: 700; cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: $noche-med; }
+}
+
+// ── Hitos ──────────────────────────────────────────────────
+.pe-hitos { }
+
+.pe-hitos-lista { display: flex; flex-direction: column; }
+
+.pe-hito {
+  display: flex; gap: 16px;
+
+  &--importante {
+    .pe-hito__dot {
+      background: $ambar;
+      box-shadow: 0 0 0 4px rgba($ambar, 0.15);
+      width: 14px; height: 14px; margin-left: -2px;
+    }
+    .pe-hito__titulo { color: $ambar-oro; }
+  }
+
+  &__timeline {
+    display: flex; flex-direction: column; align-items: center;
+    flex-shrink: 0; padding-top: 4px;
+  }
+
+  &__dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: $piedra-light; flex-shrink: 0;
+  }
+
+  &__linea {
+    width: 2px; flex: 1; background: rgba($noche, 0.07);
+    margin: 6px 0; min-height: 24px;
+  }
+
+  &__contenido {
+    flex: 1; padding-bottom: 20px; display: flex; flex-direction: column; gap: 4px;
+  }
+
+  &__header { display: flex; align-items: center; gap: 8px; }
+
+  &__año {
+    font-family: 'Newsreader', serif;
+    font-size: 1rem; font-weight: 700; color: $noche;
+  }
+
+  &__badge {
+    font-size: 0.58rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: $ambar-oro; background: rgba($ambar, 0.1);
+    padding: 2px 8px; border-radius: 20px;
+  }
+
+  &__titulo {
+    font-size: 0.88rem; font-weight: 700; color: $noche; margin: 0;
+  }
+
+  &__desc {
+    font-size: 0.75rem; color: $piedra; line-height: 1.6; margin: 0;
+  }
+
+  &__img {
+    width: 100%; border-radius: $radius-md; margin-top: 8px;
+    object-fit: cover; height: 140px;
+    box-shadow: $shadow-sm;
+  }
+}
+
+// ── Equipo ─────────────────────────────────────────────────
+.pe-equipo { }
+
+.pe-equipo-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+
+  @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.pe-directivo-card {
+  background: white; border-radius: $radius-lg;
+  padding: 16px 12px; box-shadow: $shadow-sm;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center; transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: $shadow-md; }
+
+  &__avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    object-fit: cover; border: 2px solid rgba($ambar, 0.2);
+  }
+
+  &__nombre {
+    font-size: 0.78rem; font-weight: 700; color: $noche; margin: 0;
+  }
+
+  &__cargo {
+    font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; color: $ambar;
+  }
+
+  &__desde {
+    font-size: 0.6rem; color: $piedra;
+  }
+}
+
+.pe-directivo-nueva {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 6px;
+  background: none; border: 2px dashed rgba($noche, 0.1);
+  border-radius: $radius-lg; padding: 16px;
+  cursor: pointer; transition: all 0.2s;
+  color: $piedra; font-family: 'Manrope', sans-serif;
+  font-size: 0.72rem; font-weight: 700;
+  min-height: 120px;
+
+  svg { opacity: 0.4; }
+  &:hover { border-color: $ambar; color: $ambar; svg { opacity: 1; } }
+}
+
+// ── Productos ──────────────────────────────────────────────
+.pe-productos { }
+
+.pe-productos-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+
+.pe-producto-card {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: white; border-radius: $radius-lg;
+  padding: 14px; box-shadow: $shadow-sm;
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: $shadow-md; }
+
+  &--inactivo {
+    opacity: 0.55;
+    .pe-producto-card__estado { color: $piedra; background: rgba($piedra, 0.1); }
+  }
+
+  &__img {
+    width: 64px; height: 64px; border-radius: $radius-md;
+    object-fit: cover; flex-shrink: 0;
+  }
+
+  &__img-placeholder {
+    width: 64px; height: 64px; border-radius: $radius-md;
+    background: rgba($noche, 0.06); color: $piedra;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  &__info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+  &__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+
+  &__nombre { font-size: 0.85rem; font-weight: 700; color: $noche; margin: 0; flex: 1; }
+
+  &__estado {
+    font-size: 0.58rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+    color: $piedra; background: rgba($piedra, 0.1);
+
+    &.activo { color: $verde; background: rgba($verde, 0.1); }
+  }
+
+  &__año { font-size: 0.65rem; color: $ambar; font-weight: 700; }
+
+  &__desc { font-size: 0.72rem; color: $piedra; line-height: 1.5; margin: 0; }
+}
+
+.pe-ver-arbol {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, rgba($verde, 0.08), rgba($verde, 0.04));
+  border: 1.5px solid rgba($verde, 0.2); border-radius: $radius-lg;
+  padding: 12px 16px; cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem; font-weight: 700; color: $verde;
+  width: 100%; transition: all 0.2s;
+
+  ChevronRight { margin-left: auto; }
+  &:hover { background: rgba($verde, 0.12); }
+}
+
+// ── Contacto ───────────────────────────────────────────────
+.pe-contacto {
+  background: white; border-radius: $radius-xl;
+  padding: 20px; box-shadow: $shadow-sm;
+}
+
+.pe-contacto-links {
+  display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;
+}
+
+.pe-contacto-link {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.78rem; color: $azul; font-weight: 600;
+  text-decoration: none; transition: opacity 0.2s;
+
+  svg { color: $ambar; flex-shrink: 0; }
+  &:hover { opacity: 0.7; }
+}
+
+.pe-redes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.pe-red-btn {
+  display: flex; align-items: center; gap: 6px;
+  border: none; border-radius: 999px; padding: 7px 14px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.7rem; font-weight: 700; cursor: pointer;
+  transition: all 0.2s;
+
+  &--ig { background: rgba(193,53,132,0.08); color: #c13584;
+    &:hover { background: rgba(193,53,132,0.15); } }
+  &--tw { background: rgba(29,161,242,0.08); color: #1da1f2;
+    &:hover { background: rgba(29,161,242,0.15); } }
+  &--li { background: rgba(0,119,181,0.08); color: #0077b5;
+    &:hover { background: rgba(0,119,181,0.15); } }
+}
+
+// ════════════════════════════════════════════════════════════
+// MODAL
+// ════════════════════════════════════════════════════════════
+.pe-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba($noche, 0.55); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+
+.pe-modal {
+  background: $fondo; border-radius: $radius-2xl;
+  width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba($noche, 0.3);
+  animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  &__handle { padding: 12px; display: flex; justify-content: center; }
+  &__bar { width: 36px; height: 4px; background: $piedra-light; border-radius: 2px; }
+
+  &__header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 20px 14px; border-bottom: 1px solid rgba($noche, 0.08);
+    background: white;
+
+    h3 { font-family: 'Newsreader', serif; font-style: italic;
+      font-size: 1.1rem; font-weight: 400; color: $noche; margin: 0; }
+
+    button { background: none; border: none; cursor: pointer; color: $piedra;
+      padding: 6px; border-radius: 50%; display: flex;
+      &:hover { background: rgba($noche, 0.06); } }
+  }
+
+  &__body {
+    padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;
+  }
+
+  &__grupo {
+    display: flex; flex-direction: column; gap: 5px;
+
+    label { font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: $piedra; }
+  }
+
+  &__input {
+    background: $fondo-low; border: 2px solid transparent;
+    border-radius: $radius-md; padding: 11px 14px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.85rem; color: $noche; outline: none;
+    transition: border-color 0.2s; width: 100%; box-sizing: border-box;
+
+    &:focus { border-color: $ambar; }
+    &::placeholder { color: $piedra-light; }
+  }
+
+  &__textarea {
+    @extend .pe-modal__input;
+    resize: vertical; min-height: 80px; line-height: 1.6;
+  }
+
+  &__toggle-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 14px; background: $fondo-low; border-radius: $radius-md;
+
+    label { font-size: 0.78rem; font-weight: 700; color: $noche; display: block; margin-bottom: 2px; }
+  }
+
+  &__toggle-desc { font-size: 0.65rem; color: $piedra; margin: 0; line-height: 1.4; }
+
+  &__footer {
+    padding: 12px 20px; border-top: 1px solid rgba($noche, 0.08);
+    background: white; display: flex; gap: 10px;
+  }
+
+  &__cancelar {
+    flex: 1; background: none; border: 2px solid rgba($noche, 0.1);
+    border-radius: $radius-md; padding: 12px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 600; color: $piedra; cursor: pointer;
+    &:hover { border-color: $noche; color: $noche; }
+  }
+
+  &__guardar {
+    flex: 2; display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: $noche; border: none; border-radius: $radius-md;
+    padding: 12px; font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 700; color: white; cursor: pointer;
+    &:hover { background: $noche-med; }
+  }
+}
+
+.pe-toggle {
+  width: 44px; height: 24px; background: $piedra-light;
+  border-radius: 999px; position: relative; cursor: pointer;
+  transition: background 0.3s; flex-shrink: 0;
+
+  &.on { background: $noche; }
+
+  &__thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; background: white; border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+
+    .pe-toggle.on & { transform: translateX(20px); }
+  }
+}
+
+.pe-toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%);
+  background: $noche; color: white;
+  padding: 10px 20px; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; box-shadow: $shadow-lg; z-index: 400;
+  animation: toastIn 0.3s ease both;
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+}
+
+@media (max-width: 480px) {
+  .pe-stats { grid-template-columns: repeat(2, 1fr); }
+  .pe-equipo-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+// ── Ver árbol liderazgo ────────────────────────────────────
+.pe-ver-arbol-liderazgo {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, rgba(3,25,46,0.06), rgba(3,25,46,0.03));
+  border: 1.5px solid rgba(3,25,46,0.1); border-radius: 20px;
+  padding: 12px 16px; cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem; font-weight: 700; color: #03192e;
+  width: 100%; margin-top: 14px; transition: all 0.2s;
+
+  svg { flex-shrink: 0; color: #C9932A; }
+  span:last-child { margin-left: auto; }
+  &:hover { border-color: #03192e; background: rgba(3,25,46,0.08); }
+}

@@ -1,0 +1,567 @@
+// ============================================================
+// LIFE'S — Testamento.scss
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+$noche:       #03192E;
+$noche-med:   #1a2e44;
+$crema:       #F5F0E8;
+$fondo:       #fbf9f5;
+$fondo-low:   #f5f3ef;
+$fondo-med:   #efeeea;
+$fondo-high:  #eae8e4;
+$ambar:       #C9932A;
+$ambar-light: #ffe088;
+$ambar-oro:   #735c00;
+$cobre:       #855324;
+$piedra:      #8A8279;
+$piedra-light:#c4c6cd;
+$verde:       #4a7a4e;
+$rojo:        #ba1a1a;
+$azul:        #3a5a8a;
+
+$radius-md:  14px;
+$radius-lg:  20px;
+$radius-xl:  28px;
+
+$shadow-sm:  0 2px 8px rgba(3,25,46,0.06);
+$shadow-md:  0 4px 20px rgba(3,25,46,0.09);
+$shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.4s ease both; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── Base ───────────────────────────────────────────────────
+.test-page {
+  min-height: 100dvh;
+  background: $fondo;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Header ─────────────────────────────────────────────────
+.test-header {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba($fondo, 0.94);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba($piedra-light, 0.2);
+
+  &__left { display: flex; align-items: center; gap: 12px; }
+
+  &__back {
+    background: none; border: none; cursor: pointer;
+    color: $noche; padding: 8px; border-radius: 50%; display: flex;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__title {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.2rem;
+    font-weight: 400; color: $noche; margin: 0;
+  }
+
+  &__sub {
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: $piedra; margin: 0;
+  }
+
+  &__guardar {
+    display: flex; align-items: center; gap: 6px;
+    background: $noche; color: white; border: none;
+    border-radius: 999px; padding: 9px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $noche-med; }
+  }
+}
+
+// ── Main ───────────────────────────────────────────────────
+.test-main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// ════════════════════════════════════════════════════════════
+// HERO
+// ════════════════════════════════════════════════════════════
+.test-hero {
+  background: linear-gradient(140deg, $noche 0%, $noche-med 100%);
+  border-radius: $radius-xl;
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: $shadow-lg;
+
+  &__bg {
+    position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: rgba($ambar-oro, 0.1); filter: blur(60px);
+    pointer-events: none;
+  }
+
+  &__inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; }
+
+  &__top { display: flex; align-items: flex-start; gap: 14px; }
+
+  &__icono {
+    width: 52px; height: 52px; border-radius: $radius-md;
+    background: rgba(white, 0.08); color: $ambar-light;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  &__eyebrow {
+    display: block; font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(130,150,176,0.65); margin-bottom: 3px;
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.4rem;
+    font-weight: 400; color: white; margin: 0 0 3px;
+  }
+
+  &__fecha { font-size: 0.65rem; color: rgba(130,150,176,0.55); margin: 0; }
+
+  &__prog-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+  &__prog-header {
+    display: flex; justify-content: space-between;
+    font-size: 0.62rem; color: rgba(130,150,176,0.65);
+  }
+
+  &__prog-pct { color: $ambar-light; font-weight: 700; }
+
+  &__prog-hint {
+    font-size: 0.6rem; color: rgba(130,150,176,0.5); margin: 0;
+  }
+}
+
+.test-prog-track {
+  height: 5px; background: rgba(white,0.1); border-radius: 999px; overflow: hidden;
+}
+
+.test-prog-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, $cobre, $ambar-light);
+  transition: width 1s ease;
+}
+
+// ════════════════════════════════════════════════════════════
+// ACORDEÓN
+// ════════════════════════════════════════════════════════════
+.test-acordeon {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.test-seccion {
+  background: white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+
+  &--abierta { box-shadow: $shadow-md; }
+
+  &--hecha {
+    .test-seccion__icono-wrap {
+      background: rgba($verde, 0.12) !important;
+      color: $verde !important;
+    }
+  }
+
+  &__header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px; background: none; border: none;
+    cursor: pointer; width: 100%; text-align: left;
+    transition: background 0.18s;
+
+    &:hover { background: rgba($noche, 0.02); }
+  }
+
+  &__icono-wrap {
+    width: 40px; height: 40px; border-radius: $radius-md;
+    background: rgba($noche, 0.06); color: $noche;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: all 0.2s;
+
+    .test-seccion--abierta & {
+      background: rgba($ambar, 0.1);
+      color: $ambar-oro;
+    }
+  }
+
+  &__titulo {
+    flex: 1; font-size: 0.88rem; font-weight: 700; color: $noche;
+  }
+
+  &__header-right {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  &__hecha-badge {
+    font-size: 0.58rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: $verde; background: rgba($verde, 0.1);
+    padding: 2px 8px; border-radius: 20px;
+  }
+
+  &__chevron {
+    color: $piedra-light; flex-shrink: 0;
+    transition: transform 0.25s;
+  }
+
+  &__body {
+    padding: 0 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border-top: 1px solid rgba($noche, 0.06);
+    animation: fadeUp 0.2s ease both;
+  }
+
+  &__footer {
+    padding-top: 8px;
+    border-top: 1px solid rgba($noche, 0.06);
+  }
+
+  &__guardar {
+    display: flex; align-items: center; gap: 6px;
+    background: $noche; color: white; border: none;
+    border-radius: 999px; padding: 10px 20px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $noche-med; }
+  }
+}
+
+// ── Botón IA ───────────────────────────────────────────────
+.test-ia-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, rgba($ambar, 0.08), rgba($ambar-oro, 0.05));
+  border: 1px solid rgba($ambar, 0.2);
+  border-radius: $radius-md; padding: 10px 14px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.75rem; font-weight: 600; color: $ambar-oro;
+  cursor: pointer; transition: all 0.2s; text-align: left;
+  margin-top: 8px;
+
+  svg { color: $ambar; flex-shrink: 0; }
+
+  &:hover { background: rgba($ambar, 0.12); border-color: rgba($ambar, 0.35); }
+
+  &__badge {
+    margin-left: auto; background: $ambar; color: white;
+    font-size: 0.55rem; font-weight: 800; letter-spacing: 0.1em;
+    padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+  }
+}
+
+// ── Campos ─────────────────────────────────────────────────
+.test-campo-wrap { display: flex; flex-direction: column; gap: 12px; }
+
+.test-campo { display: flex; flex-direction: column; gap: 6px; }
+
+.test-label {
+  font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: $piedra;
+}
+
+.test-input {
+  background: $fondo-low; border: 2px solid transparent;
+  border-radius: $radius-md; padding: 11px 14px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem; color: $noche; outline: none;
+  transition: border-color 0.2s; width: 100%; box-sizing: border-box;
+
+  &:focus { border-color: $ambar; background: white; }
+  &::placeholder { color: $piedra-light; }
+}
+
+select.test-input { cursor: pointer; appearance: none; }
+
+.test-textarea {
+  @extend .test-input;
+  resize: vertical; min-height: 100px; line-height: 1.7;
+
+  &--serif {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1rem;
+  }
+}
+
+.test-contador {
+  font-size: 0.62rem; color: $piedra; text-align: right; margin-top: -6px;
+}
+
+.test-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.test-desc {
+  font-size: 0.78rem; color: $piedra; line-height: 1.6; margin: 0;
+}
+
+// Input con ícono
+.test-input-icon-wrap {
+  position: relative;
+
+  input { padding-right: 40px; }
+}
+
+.test-toggle-vis {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: $piedra; display: flex; padding: 4px;
+  &:hover { color: $noche; }
+}
+
+// Items (bienes, digitales, mensajes)
+.test-item-card {
+  background: $fondo-low; border-radius: $radius-md;
+  padding: 14px; display: flex; flex-direction: column; gap: 10px;
+
+  &--carta { border-left: 3px solid rgba($ambar, 0.3); }
+}
+
+.test-eliminar {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none; cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.65rem; font-weight: 700; color: $piedra-light;
+  padding: 0; align-self: flex-end;
+  transition: color 0.2s;
+
+  &:hover { color: $rojo; }
+}
+
+.test-agregar-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 2px dashed rgba($noche, 0.1);
+  border-radius: $radius-md; padding: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem; font-weight: 700; color: $piedra;
+  cursor: pointer; transition: all 0.2s; width: 100%;
+  justify-content: center;
+
+  svg { color: $ambar; }
+  &:hover { border-color: $ambar; color: $ambar; }
+}
+
+// Hint boxes
+.test-hint-box {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: rgba($azul, 0.06); border-radius: $radius-md;
+  padding: 10px 14px; border-left: 3px solid rgba($azul, 0.3);
+
+  svg { color: $azul; flex-shrink: 0; margin-top: 1px; }
+
+  p { font-size: 0.72rem; color: $noche; line-height: 1.55; margin: 0; }
+
+  &--ambar {
+    background: rgba($ambar, 0.06); border-left-color: rgba($ambar, 0.3);
+    svg { color: $ambar; }
+  }
+}
+
+// Toggle médicas
+.test-toggle-campo {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 12px 14px;
+  background: $fondo-low; border-radius: $radius-md;
+}
+
+.test-toggle-desc {
+  font-size: 0.7rem; color: $piedra; margin: 2px 0 0; line-height: 1.4;
+}
+
+.test-toggle {
+  width: 44px; height: 24px;
+  background: $piedra-light; border-radius: 999px;
+  position: relative; cursor: pointer;
+  transition: background 0.3s; flex-shrink: 0;
+
+  &.on { background: $noche; }
+
+  &__thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    background: white; border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+
+    .test-toggle.on & { transform: translateX(20px); }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// AVISO LEGAL
+// ════════════════════════════════════════════════════════════
+.test-aviso-legal {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: rgba($ambar-oro, 0.06);
+  border: 1px solid rgba($ambar-oro, 0.15);
+  border-radius: $radius-lg; padding: 18px;
+
+  svg { color: $ambar-oro; flex-shrink: 0; margin-top: 2px; }
+
+  h4 {
+    font-size: 0.78rem; font-weight: 800; color: $ambar-oro;
+    margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+
+  p {
+    font-size: 0.72rem; color: $noche; line-height: 1.65; margin: 0;
+    strong { color: $rojo; }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// MODAL ASISTENTE IA
+// ════════════════════════════════════════════════════════════
+.test-ia-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba($noche, 0.55); backdrop-filter: blur(8px);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+
+.test-ia-modal {
+  background: $fondo; border-radius: 28px 28px 0 0;
+  width: 100%; max-width: 560px; max-height: 80dvh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 -8px 40px rgba($noche, 0.2);
+  animation: slideUp 0.3s cubic-bezier(0.34,1.05,0.64,1);
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  &__header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px; border-bottom: 1px solid rgba($noche, 0.08);
+    background: white; flex-shrink: 0; border-radius: 28px 28px 0 0;
+
+    button {
+      background: none; border: none; cursor: pointer;
+      color: $piedra; padding: 6px; border-radius: 50%; display: flex;
+      &:hover { background: rgba($noche, 0.06); }
+    }
+  }
+
+  &__titulo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.88rem; font-weight: 700; color: $noche;
+    svg { color: $ambar; }
+  }
+
+  &__input {
+    display: flex; gap: 8px; padding: 12px 16px;
+    border-top: 1px solid rgba($noche, 0.08);
+    background: white; flex-shrink: 0;
+
+    input {
+      flex: 1; background: $fondo-low; border: none;
+      border-radius: 999px; padding: 10px 16px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.82rem; color: $noche; outline: none;
+      &::placeholder { color: $piedra-light; }
+    }
+
+    button {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: $noche; color: white; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: background 0.2s;
+
+      &:hover:not(:disabled) { background: $noche-med; }
+      &:disabled { opacity: 0.4; cursor: not-allowed; }
+    }
+  }
+}
+
+.test-ia-chat {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.test-ia-msg {
+  display: flex; gap: 8px; align-items: flex-start;
+
+  &--ia { flex-direction: row; }
+  &--usuario { flex-direction: row-reverse; }
+
+  &__avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba($ambar, 0.1); color: $ambar;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__bubble {
+    max-width: 82%; padding: 10px 14px; border-radius: 16px;
+
+    .test-ia-msg--ia     & {
+      background: $fondo-low; border-bottom-left-radius: 4px;
+    }
+    .test-ia-msg--usuario & {
+      background: $noche; border-bottom-right-radius: 4px;
+    }
+
+    p {
+      font-size: 0.8rem; line-height: 1.6; margin: 0;
+      font-family: 'Newsreader', serif; font-style: italic;
+      .test-ia-msg--usuario & {
+        font-family: 'Manrope', sans-serif;
+        font-style: normal; color: white;
+      }
+    }
+  }
+}
+
+.test-ia-loader {
+  animation: spin 1s linear infinite;
+  color: $ambar;
+}
+
+// Toast
+.test-toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%);
+  background: $noche; color: white;
+  padding: 10px 20px; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; box-shadow: $shadow-lg; z-index: 400;
+  animation: toastIn 0.3s ease both;
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .test-grid-2 { grid-template-columns: 1fr; }
+  .test-hero__titulo { font-size: 1.2rem; }
+}

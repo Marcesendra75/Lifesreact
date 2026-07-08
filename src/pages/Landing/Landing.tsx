@@ -1,35 +1,64 @@
 // ============================================
 // LIFE'S — Landing Page (Personal + Empresas)
+// Lucide React | Rediseñada
 // ============================================
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  User, Building2, LogIn, ArrowRight, GitBranch,
+  Activity, Lock, Zap, Coins, UserPlus,
+  BadgeCheck, TrendingUp, Users, Film,
+  Heart,
+} from 'lucide-react';
 import './Landing.scss';
 
 type Mode = 'personal' | 'empresa';
 
 const PALABRAS = ['recuerdos', 'emociones', 'momentos', 'personas', 'historias', 'legados'];
 
+const TAGS_PERSONAL = [
+  { icono: <GitBranch size={11} strokeWidth={2} />, label: 'Árbol genealógico' },
+  { icono: <Activity  size={11} strokeWidth={2} />, label: 'Línea de vida'     },
+  { icono: <Lock      size={11} strokeWidth={2} />, label: 'Caja fuerte'       },
+  { icono: <Zap       size={11} strokeWidth={2} />, label: 'Ecos IA'           },
+  { icono: <Coins     size={11} strokeWidth={2} />, label: 'Ahorro herederos'  },
+  { icono: <Heart     size={11} strokeWidth={2} />, label: 'Cápsula del tiempo'},
+];
+
+const TAGS_EMPRESA = [
+  { icono: <GitBranch  size={11} strokeWidth={2} />, label: 'Árbol organizacional' },
+  { icono: <Activity   size={11} strokeWidth={2} />, label: 'Historia corporativa'  },
+  { icono: <Users      size={11} strokeWidth={2} />, label: 'Personas clave'        },
+  { icono: <BadgeCheck size={11} strokeWidth={2} />, label: 'Legado verificado'     },
+  { icono: <TrendingUp size={11} strokeWidth={2} />, label: 'Monetización'          },
+  { icono: <Film       size={11} strokeWidth={2} />, label: 'Archivo multimedia'    },
+];
+
+const PLANES = [
+  { id: 'starter',    nombre: 'Starter',      precio: '$500',  dark: false },
+  { id: 'pro',        nombre: 'Pro ⭐',        precio: '$1.200',dark: true  },
+  { id: 'enterprise', nombre: 'Enterprise',   precio: 'Custom',dark: false },
+];
+
 export default function Landing() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [mode, setMode]             = useState<Mode>('personal');
-  const [palabra, setPalabra]       = useState(PALABRAS[0]);
+  const [mode, setMode]               = useState<Mode>('personal');
+  const [palabra, setPalabra]         = useState(PALABRAS[0]);
   const [palabraAnim, setPalabraAnim] = useState<'in' | 'out' | ''>('');
   const [sliderStyle, setSliderStyle] = useState({ left: '4px', width: '0px' });
 
-  const pillRef    = useRef<HTMLDivElement>(null);
-  const emailRef   = useRef<HTMLInputElement>(null);
-  const passRef    = useRef<HTMLInputElement>(null);
-  const emailERef  = useRef<HTMLInputElement>(null);
-  const passERef   = useRef<HTMLInputElement>(null);
+  const pillRef  = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passRef  = useRef<HTMLInputElement>(null);
+  const emailERef= useRef<HTMLInputElement>(null);
+  const passERef = useRef<HTMLInputElement>(null);
 
-  // Leer parámetro URL ?mode=empresa
   useEffect(() => {
     if (searchParams.get('mode') === 'empresa') setMode('empresa');
   }, [searchParams]);
 
-  // Calcular slider
   useEffect(() => {
     const calcSlider = () => {
       if (!pillRef.current) return;
@@ -45,7 +74,6 @@ export default function Landing() {
     return () => window.removeEventListener('resize', calcSlider);
   }, [mode]);
 
-  // Animación Thanos en palabras
   useEffect(() => {
     let idx = 0;
     const interval = setInterval(() => {
@@ -61,13 +89,11 @@ export default function Landing() {
 
   const handleLogin = (e: React.FormEvent, tipo: 'personal' | 'empresa') => {
     e.preventDefault();
-    // Ir a triple seguridad (auth real)
     navigate(`/acceso-seguro?tipo=${tipo}`);
   };
 
   return (
     <div className="landing-root">
-      {/* Orbes de fondo */}
       <div className="landing-orb landing-orb--1" />
       <div className="landing-orb landing-orb--2" />
 
@@ -80,14 +106,14 @@ export default function Landing() {
             className={`landing-pill__btn${mode === 'personal' ? ' active' : ''}`}
             onClick={() => setMode('personal')}
           >
-            <span className="material-symbols-outlined">person</span>
+            <User size={14} strokeWidth={2} />
             Personal
           </button>
           <button
             className={`landing-pill__btn${mode === 'empresa' ? ' active' : ''}`}
             onClick={() => setMode('empresa')}
           >
-            <span className="material-symbols-outlined">business</span>
+            <Building2 size={14} strokeWidth={2} />
             Empresas
           </button>
         </div>
@@ -96,15 +122,14 @@ export default function Landing() {
         {mode === 'personal' && (
           <div className="landing-section fade-up">
 
-            {/* Logo */}
             <div className="landing-logo" style={{ transform: 'rotate(-1deg)' }}>
               <div className="landing-logo__border" />
               <div className="landing-logo__wrap">
-                <img src="/images/landing.png" alt="Life's" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img src="/images/landing.png" alt="Life's"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
             </div>
 
-            {/* Título */}
             <div className="landing-title">
               <h1 className="landing-title__main">Life's</h1>
               <p className="landing-title__sub">
@@ -115,30 +140,17 @@ export default function Landing() {
               </p>
             </div>
 
-            {/* Formulario */}
             <form onSubmit={(e) => handleLogin(e, 'personal')} className="landing-form">
-              <input
-                ref={emailRef}
-                className="landing-field"
-                type="text"
-                placeholder="Usuario o Email"
-                autoComplete="username"
-              />
-              <input
-                ref={passRef}
-                className="landing-field"
-                type="password"
-                placeholder="Contraseña"
-                autoComplete="current-password"
-              />
-
+              <input ref={emailRef} className="landing-field"
+                type="text" placeholder="Usuario o Email" autoComplete="username" />
+              <input ref={passRef} className="landing-field"
+                type="password" placeholder="Contraseña" autoComplete="current-password" />
               <button type="submit" className="landing-btn landing-btn--primary">
+                <LogIn size={15} strokeWidth={2} />
                 <span>Acceder</span>
-                <span className="material-symbols-outlined">login</span>
               </button>
             </form>
 
-            {/* Links recuperar */}
             <div className="landing-recover">
               <button className="landing-footer-link" onClick={() => navigate('/recuperar?tipo=usuario')}>
                 ¿Olvidé mi usuario?
@@ -148,34 +160,22 @@ export default function Landing() {
               </button>
             </div>
 
-            {/* Separador */}
             <div className="landing-divider">¿Primera vez?</div>
 
-            {/* Crear cuenta */}
-            <button
-              className="landing-btn landing-btn--outline"
-              onClick={() => navigate('/crear-cuenta')}
-            >
+            <button className="landing-btn landing-btn--outline" onClick={() => navigate('/crear-cuenta')}>
+              <UserPlus size={15} strokeWidth={2} />
               Crear mi legado personal
             </button>
 
-            {/* Feature tags */}
             <div className="landing-tags">
-              {[
-                { icon: 'account_tree', label: 'Árbol genealógico' },
-                { icon: 'timeline',     label: 'Línea de vida' },
-                { icon: 'lock',         label: 'Caja fuerte' },
-                { icon: 'psychology',   label: 'Ecos IA' },
-                { icon: 'savings',      label: 'Ahorro herederos' },
-              ].map((t) => (
+              {TAGS_PERSONAL.map(t => (
                 <span key={t.label} className="landing-tag">
-                  <span className="material-symbols-outlined">{t.icon}</span>
+                  {t.icono}
                   {t.label}
                 </span>
               ))}
             </div>
 
-            {/* Switch a empresa */}
             <div className="landing-switch">
               <button className="landing-footer-link" onClick={() => setMode('empresa')}>
                 ¿Sos empresa? Accedé aquí →
@@ -188,23 +188,20 @@ export default function Landing() {
         {mode === 'empresa' && (
           <div className="landing-section fade-up">
 
-            {/* Logo empresas */}
             <div className="landing-logo">
               <div className="landing-logo__border" style={{ borderColor: 'rgba(3,25,46,0.2)' }} />
-              <div className="landing-logo__wrap" style={{ background: 'white', padding: '8px' }}>
-                <img src="/images/empresas.png" alt="Life's Empresas" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <div className="landing-logo__wrap landing-logo__wrap--dark">
+                <Building2 size={52} strokeWidth={1.2} color="rgba(255,224,136,0.85)" />
               </div>
             </div>
 
-            {/* Badge */}
             <div className="landing-empresa-badge-wrap">
               <div className="landing-empresa-badge">
-                <span className="material-symbols-outlined">business_center</span>
+                <Building2 size={13} strokeWidth={2} />
                 Life's Empresas
               </div>
             </div>
 
-            {/* Título */}
             <div className="landing-title">
               <h2 className="landing-title__empresa">
                 El legado<br />de tu organización
@@ -214,30 +211,17 @@ export default function Landing() {
               </p>
             </div>
 
-            {/* Formulario empresa */}
             <form onSubmit={(e) => handleLogin(e, 'empresa')} className="landing-form">
-              <input
-                ref={emailERef}
-                className="landing-field"
-                type="email"
-                placeholder="Email corporativo"
-                autoComplete="email"
-              />
-              <input
-                ref={passERef}
-                className="landing-field"
-                type="password"
-                placeholder="Contraseña"
-                autoComplete="current-password"
-              />
-
+              <input ref={emailERef} className="landing-field"
+                type="email" placeholder="Email corporativo" autoComplete="email" />
+              <input ref={passERef} className="landing-field"
+                type="password" placeholder="Contraseña" autoComplete="current-password" />
               <button type="submit" className="landing-btn landing-btn--empresa">
-                <span className="material-symbols-outlined">business_center</span>
+                <Building2 size={15} strokeWidth={2} />
                 Acceder al Perfil Corporativo
               </button>
             </form>
 
-            {/* Links */}
             <div className="landing-recover">
               <button className="landing-footer-link" onClick={() => navigate('/recuperar')}>
                 ¿Olvidé mis credenciales?
@@ -247,29 +231,20 @@ export default function Landing() {
               </button>
             </div>
 
-            {/* Separador */}
             <div className="landing-divider">¿Tu empresa aún no está?</div>
 
-            {/* Registrar empresa */}
             <button
-              className="landing-btn landing-btn--outline"
-              onClick={() => navigate('/crear-cuenta?tipo=empresa')}
+              className="landing-btn landing-btn--outline landing-btn--empresas-cta"
+              onClick={() => navigate('/empresas')}
             >
-              <span className="material-symbols-outlined">add_business</span>
-              Registrar mi empresa
+              <ArrowRight size={15} strokeWidth={2} />
+              Solicitar perfil verificado
             </button>
 
-            {/* Feature tags empresa */}
             <div className="landing-tags">
-              {[
-                { icon: 'account_tree',       label: 'Árbol organizacional' },
-                { icon: 'timeline',           label: 'Historia corporativa' },
-                { icon: 'people',             label: 'Hitos y personas clave' },
-                { icon: 'workspace_premium',  label: 'Legado verificado' },
-                { icon: 'trending_up',        label: 'Monetización' },
-              ].map((t) => (
+              {TAGS_EMPRESA.map(t => (
                 <span key={t.label} className="landing-tag">
-                  <span className="material-symbols-outlined">{t.icon}</span>
+                  {t.icono}
                   {t.label}
                 </span>
               ))}
@@ -277,27 +252,22 @@ export default function Landing() {
 
             {/* Planes */}
             <div className="landing-planes">
-              <div className="landing-planes__label">Planes disponibles</div>
+              <div className="landing-planes__label">Planes disponibles · USD/año</div>
               <div className="landing-planes__grid">
-                {[
-                  { id: 'basico',     nombre: 'Básico',    precio: '$29',  dark: false },
-                  { id: 'pro',        nombre: 'Pro ⭐',    precio: '$99',  dark: true  },
-                  { id: 'enterprise', nombre: 'Enterprise', precio: '$299', dark: false },
-                ].map((p) => (
+                {PLANES.map(p => (
                   <button
                     key={p.id}
                     className={`landing-plan${p.dark ? ' landing-plan--dark' : ''}`}
-                    onClick={() => navigate(`/empresas/planes#${p.id}`)}
+                    onClick={() => navigate(`/empresas#planes`)}
                   >
                     <div className="landing-plan__nombre">{p.nombre}</div>
                     <div className="landing-plan__precio">{p.precio}</div>
-                    <div className="landing-plan__periodo">/mes</div>
+                    <div className="landing-plan__periodo">{p.dark ? '/año ⭐' : '/año'}</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Switch a personal */}
             <div className="landing-switch">
               <button className="landing-footer-link" onClick={() => setMode('personal')}>
                 ← Acceso Personal
@@ -306,7 +276,7 @@ export default function Landing() {
           </div>
         )}
 
-      </div>{/* /landing-container */}
+      </div>
     </div>
   );
 }

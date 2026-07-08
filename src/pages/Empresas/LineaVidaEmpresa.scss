@@ -1,0 +1,505 @@
+// ============================================================
+// LIFE'S — LineaVidaEmpresa.scss
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+$noche:       #03192E;
+$noche-med:   #1a2e44;
+$fondo:       #fbf9f5;
+$fondo-low:   #f5f3ef;
+$fondo-med:   #efeeea;
+$fondo-high:  #eae8e4;
+$ambar:       #C9932A;
+$ambar-light: #ffe088;
+$ambar-oro:   #735c00;
+$cobre:       #855324;
+$piedra:      #8A8279;
+$piedra-light:#c4c6cd;
+$verde:       #4a7a4e;
+$azul:        #3a5a8a;
+
+$radius-md:  14px;
+$radius-lg:  20px;
+$radius-xl:  28px;
+$radius-2xl: 36px;
+
+$shadow-sm:  0 2px 8px rgba(3,25,46,0.06);
+$shadow-md:  0 4px 20px rgba(3,25,46,0.09);
+$shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+// ── Base ───────────────────────────────────────────────────
+.lve-page {
+  min-height: 100dvh;
+  background: $fondo;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Header ─────────────────────────────────────────────────
+.lve-header {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba($fondo, 0.94);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba($piedra-light, 0.2);
+
+  &__left { display: flex; align-items: center; gap: 12px; }
+
+  &__back {
+    background: none; border: none; cursor: pointer;
+    color: $noche; padding: 8px; border-radius: 50%; display: flex;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__title {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.2rem;
+    font-weight: 400; color: $noche; margin: 0;
+  }
+
+  &__sub {
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: $piedra; margin: 0;
+  }
+
+  &__add {
+    display: flex; align-items: center; gap: 6px;
+    background: $noche; color: white; border: none;
+    border-radius: 999px; padding: 8px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $noche-med; }
+  }
+}
+
+// ── Selector de vista ──────────────────────────────────────
+.lve-vista-selector {
+  display: flex; gap: 0;
+  padding: 12px 16px 0;
+  border-bottom: 1px solid rgba($noche, 0.07);
+  max-width: 720px; margin: 0 auto;
+}
+
+.lve-vista-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none;
+  border-bottom: 3px solid transparent;
+  padding: 10px 18px; margin-bottom: -1px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem; font-weight: 600;
+  color: $piedra; cursor: pointer; transition: all 0.2s;
+
+  &.active { color: $ambar; border-bottom-color: $ambar; }
+  &:hover:not(.active) { color: $noche; }
+}
+
+// ════════════════════════════════════════════════════════════
+// LÍNEA DE TIEMPO
+// ════════════════════════════════════════════════════════════
+.lve-linea-wrap {
+  max-width: 720px; margin: 0 auto; padding: 20px 16px;
+}
+
+// Filtros
+.lve-filtros {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  margin-bottom: 14px;
+
+  &__icono { color: $piedra; flex-shrink: 0; }
+}
+
+.lve-filtro-btn {
+  background: $fondo-low; border: 1.5px solid transparent;
+  border-radius: 999px; padding: 4px 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.65rem; font-weight: 700; cursor: pointer;
+  color: $piedra; transition: all 0.15s;
+
+  &:hover:not(.active) { border-color: rgba($noche, 0.15); color: $noche; }
+}
+
+.lve-filtro-limpiar {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.62rem; font-weight: 700; color: $piedra;
+  transition: color 0.2s;
+  &:hover { color: $noche; }
+}
+
+.lve-linea-meta {
+  display: flex; gap: 16px; margin-bottom: 20px;
+  font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: $piedra;
+}
+
+// Timeline
+.lve-timeline { display: flex; flex-direction: column; }
+
+.lve-hito {
+  display: flex; gap: 14px;
+
+  &--destacado {
+    .lve-hito__dot {
+      width: 40px; height: 40px; font-size: 1.1rem;
+      box-shadow: 0 0 0 6px rgba(201,147,42,0.12);
+    }
+    .lve-hito__card {
+      border-left: 3px solid $ambar;
+      background: white;
+      box-shadow: $shadow-md;
+    }
+    .lve-hito__titulo { color: $ambar-oro; }
+  }
+
+  &__track {
+    display: flex; flex-direction: column; align-items: center;
+    flex-shrink: 0; padding-top: 6px;
+  }
+
+  &__dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; flex-shrink: 0; border: 2px solid white;
+    box-shadow: $shadow-sm; z-index: 1;
+    transition: all 0.2s;
+  }
+
+  &__linea {
+    width: 2px; flex: 1; min-height: 20px;
+    background: rgba($noche, 0.08); margin: 6px 0;
+  }
+
+  &__card {
+    flex: 1; background: $fondo-low; border-radius: $radius-lg;
+    padding: 14px 16px; margin-bottom: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: box-shadow 0.2s;
+
+    &:hover { box-shadow: $shadow-sm; }
+  }
+
+  &__card-header {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  &__año-wrap { display: flex; align-items: center; gap: 8px; }
+
+  &__año {
+    font-family: 'Newsreader', serif;
+    font-size: 1.1rem; font-weight: 700; color: $noche;
+  }
+
+  &__cat-badge {
+    font-size: 0.58rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 20px;
+  }
+
+  &__star { flex-shrink: 0; }
+
+  &__titulo {
+    font-size: 0.88rem; font-weight: 700; color: $noche; margin: 0;
+  }
+
+  &__desc {
+    font-size: 0.75rem; color: $piedra; line-height: 1.6; margin: 0;
+  }
+
+  &__img {
+    width: 100%; border-radius: $radius-md; margin-top: 4px;
+    object-fit: cover; height: 150px; box-shadow: $shadow-sm;
+  }
+
+  &__productos {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;
+  }
+
+  &__producto-tag {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba($ambar, 0.08); color: $ambar-oro;
+    font-size: 0.62rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 20px;
+    svg { flex-shrink: 0; }
+  }
+}
+
+.lve-agregar-inline {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 2px dashed rgba($noche, 0.1);
+  border-radius: $radius-lg; padding: 14px 20px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem; font-weight: 700; color: $piedra;
+  cursor: pointer; width: 100%; justify-content: center;
+  margin-top: 8px; transition: all 0.2s;
+
+  svg { color: $ambar; }
+  &:hover { border-color: $ambar; color: $ambar; }
+}
+
+// ════════════════════════════════════════════════════════════
+// ÁRBOL DE PRODUCTOS
+// ════════════════════════════════════════════════════════════
+.lve-arbol-wrap {
+  max-width: 960px; margin: 0 auto; padding: 20px 16px;
+}
+
+.lve-arbol-controles {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px;
+}
+
+.lve-arbol-ctrl {
+  width: 36px; height: 36px; border-radius: $radius-md;
+  background: white; border: 1.5px solid rgba($noche, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: $noche; transition: all 0.2s;
+  box-shadow: $shadow-sm;
+
+  &:hover { background: $noche; color: white; border-color: $noche; }
+}
+
+.lve-arbol-zoom {
+  font-size: 0.72rem; font-weight: 700; color: $piedra;
+  padding: 0 8px;
+}
+
+.lve-arbol-leyenda {
+  display: flex; gap: 14px; margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.lve-leyenda-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.68rem; color: $piedra; font-weight: 600;
+
+  svg { color: $piedra; }
+}
+
+.lve-leyenda-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+
+.lve-arbol-canvas {
+  overflow-x: auto; padding-bottom: 20px;
+  transform-origin: top left;
+  transition: transform 0.3s ease;
+}
+
+// Nodo árbol
+.lve-nodo-wrap {
+  display: flex; flex-direction: column; align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.lve-nodo {
+  border: 2px solid; border-radius: $radius-lg;
+  padding: 12px 16px; cursor: pointer;
+  min-width: 160px; max-width: 220px;
+  position: relative; transition: all 0.2s;
+  box-shadow: $shadow-sm;
+
+  &:hover { box-shadow: $shadow-md; transform: translateY(-1px); }
+
+  &--inactivo { opacity: 0.5; }
+
+  &__año {
+    font-size: 0.6rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  &__nombre {
+    font-size: 0.82rem; font-weight: 700; color: $noche; line-height: 1.3;
+  }
+
+  &__disc {
+    font-size: 0.58rem; color: $piedra; margin-top: 3px;
+    font-style: italic;
+  }
+
+  &__toggle {
+    position: absolute; top: 8px; right: 10px;
+    font-size: 1rem; font-weight: 700; line-height: 1;
+  }
+
+  &__hijos {
+    display: flex; flex-direction: row; gap: 0;
+    padding-left: 20px; position: relative; margin-top: 4px;
+  }
+
+  &__linea-v {
+    position: absolute; left: 0; top: 0; bottom: 50%;
+    width: 0; border-left: 2px dashed;
+    pointer-events: none;
+  }
+
+  &__hijos-grid {
+    display: flex; flex-direction: column; gap: 6px;
+    padding-left: 20px; border-left: 2px dashed rgba($noche, 0.1);
+    margin-left: 10px;
+  }
+}
+
+.lve-arbol-ver-linea {
+  display: flex; align-items: center; gap: 8px;
+  background: $fondo-low; border: 1.5px solid rgba($noche, 0.08);
+  border-radius: $radius-lg; padding: 12px 16px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem; font-weight: 700; color: $piedra;
+  cursor: pointer; transition: all 0.2s; margin-top: 20px;
+  width: 100%; justify-content: center;
+
+  svg { color: $ambar; }
+  &:hover { border-color: $ambar; color: $ambar-oro; }
+}
+
+// ════════════════════════════════════════════════════════════
+// MODAL
+// ════════════════════════════════════════════════════════════
+.lve-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba($noche, 0.55); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+
+.lve-modal {
+  background: $fondo; border-radius: $radius-2xl;
+  width: 100%; max-width: 520px; max-height: 90dvh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba($noche, 0.3);
+  animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  &__handle { padding: 12px; display: flex; justify-content: center; }
+  &__bar { width: 36px; height: 4px; background: $piedra-light; border-radius: 2px; }
+
+  &__header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 20px 14px; border-bottom: 1px solid rgba($noche, 0.08);
+    background: white;
+
+    h3 { font-family: 'Newsreader', serif; font-style: italic;
+      font-size: 1.1rem; font-weight: 400; color: $noche; margin: 0; }
+
+    button { background: none; border: none; cursor: pointer; color: $piedra;
+      padding: 6px; border-radius: 50%; display: flex;
+      &:hover { background: rgba($noche, 0.06); } }
+  }
+
+  &__body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  &__grupo {
+    display: flex; flex-direction: column; gap: 6px;
+
+    label { font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: $piedra; }
+  }
+
+  &__input {
+    background: $fondo-low; border: 2px solid transparent;
+    border-radius: $radius-md; padding: 11px 14px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.85rem; color: $noche; outline: none;
+    transition: border-color 0.2s; width: 100%; box-sizing: border-box;
+    &:focus { border-color: $ambar; }
+    &::placeholder { color: $piedra-light; }
+  }
+
+  &__textarea {
+    @extend .lve-modal__input;
+    resize: vertical; min-height: 80px; line-height: 1.6;
+  }
+
+  &__cats { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  &__cat-btn {
+    background: $fondo-low; border: 1.5px solid transparent;
+    border-radius: 999px; padding: 5px 12px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.65rem; font-weight: 700; cursor: pointer;
+    color: $piedra; transition: all 0.15s;
+    &:hover:not(.active) { border-color: rgba($noche, 0.15); }
+  }
+
+  &__toggle-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 14px; background: $fondo-low; border-radius: $radius-md;
+
+    label { font-size: 0.78rem; font-weight: 700; color: $noche; display: block; margin-bottom: 2px; }
+  }
+
+  &__toggle-desc { font-size: 0.65rem; color: $piedra; margin: 0; line-height: 1.4; }
+
+  &__footer {
+    padding: 12px 20px; border-top: 1px solid rgba($noche, 0.08);
+    background: white; display: flex; gap: 10px;
+  }
+
+  &__cancelar {
+    flex: 1; background: none; border: 2px solid rgba($noche, 0.1);
+    border-radius: $radius-md; padding: 12px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 600; color: $piedra; cursor: pointer;
+    &:hover { border-color: $noche; color: $noche; }
+  }
+
+  &__guardar {
+    flex: 2; display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: $noche; border: none; border-radius: $radius-md;
+    padding: 12px; font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 700; color: white; cursor: pointer;
+    &:hover { background: $noche-med; }
+  }
+}
+
+.lve-toggle {
+  width: 44px; height: 24px; background: $piedra-light;
+  border-radius: 999px; position: relative; cursor: pointer;
+  transition: background 0.3s; flex-shrink: 0;
+
+  &.on { background: $noche; }
+
+  &__thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; background: white; border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+
+    .lve-toggle.on & { transform: translateX(20px); }
+  }
+}
+
+.lve-toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%);
+  background: $noche; color: white;
+  padding: 10px 20px; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; box-shadow: $shadow-lg; z-index: 400;
+  animation: toastIn 0.3s ease both;
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+}
+
+@media (max-width: 480px) {
+  .lve-vista-btn { padding: 10px 12px; font-size: 0.72rem; }
+  .lve-nodo { min-width: 130px; }
+}
