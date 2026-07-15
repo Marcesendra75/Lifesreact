@@ -11,6 +11,7 @@ import VaultRoute        from './components/VaultRoute/VaultRoute';
 
 // ── Navbar compartida ──
 import Navbar            from './components/Navbar/Navbar';
+import NavbarEmpresa     from './components/NavbarEmpresa/NavbarEmpresa';
 
 // ── Páginas públicas ──
 import Landing           from './pages/Landing/Landing';
@@ -55,6 +56,7 @@ function App() {
       <BrowserRouter>
 
         <Navbar />
+        <NavbarEmpresa />
 
         <Routes>
 

@@ -133,7 +133,7 @@ export default function PerfilEmpresa() {
   };
 
   return (
-    <div className="pe-page with-navbar">
+    <div className="pe-page with-navbar-empresa">
 
       {/* ── HEADER ── */}
       <header className="pe-header">
@@ -240,6 +240,16 @@ export default function PerfilEmpresa() {
             <div>
               <span className="pe-acceso-btn__titulo">Árbol de Productos</span>
               <span className="pe-acceso-btn__sub">Genealogía visual de productos</span>
+            </div>
+            <ChevronRight size={16} strokeWidth={1.8} className="pe-acceso-btn__arrow" />
+          </button>
+          <button className="pe-acceso-btn" onClick={() => navigate('/empresas/arbol')}>
+            <div className="pe-acceso-btn__icono pe-acceso-btn__icono--oscuro">
+              <Users size={22} strokeWidth={1.6} />
+            </div>
+            <div>
+              <span className="pe-acceso-btn__titulo">Árbol de Liderazgo</span>
+              <span className="pe-acceso-btn__sub">Historia completa de directivos y fundadores</span>
             </div>
             <ChevronRight size={16} strokeWidth={1.8} className="pe-acceso-btn__arrow" />
           </button>

@@ -22,11 +22,18 @@ const RUTAS_OCULTAS = [
   '/', '/login', '/crear-cuenta', '/acceso-seguro',
   '/recuperar', '/tarjeta-legado', '/tarjeta-pendiente',
   '/empresas', '/empresas/planes', '/404',
+  '/empresas/perfil', '/empresas/linea-de-vida',
+  '/empresas/arbol',
 ];
 
 export default function Navbar() {
   const location = useLocation();
-  if (RUTAS_OCULTAS.includes(location.pathname)) return null;
+  if (
+    RUTAS_OCULTAS.includes(location.pathname) ||
+    location.pathname.startsWith('/empresas/perfil') ||
+    location.pathname.startsWith('/empresas/linea-de-vida') ||
+    location.pathname.startsWith('/empresas/arbol')
+  ) return null;
 
   return (
     <>

@@ -224,7 +224,7 @@ export default function ArbolEmpresa() {
   };
 
   return (
-    <div className="ae-page with-navbar">
+    <div className="ae-page with-navbar-empresa">
 
       {/* ── HEADER ── */}
       <header className="ae-header">
@@ -286,6 +286,57 @@ export default function ArbolEmpresa() {
         onMouseLeave={handleMouseUp}
         style={{ cursor: dragging ? 'grabbing' : 'grab' }}
       >
+        {/* ── Árbol artístico de fondo en degradados ámbar ── */}
+        <svg className="ae-bg-tree" viewBox="0 0 800 560" preserveAspectRatio="xMidYMax meet">
+          <g fill="none" stroke="#C9932A" strokeLinecap="round">
+            <path strokeWidth="9"  d="M400 440 Q340 460 270 490 Q230 505 180 520"/>
+            <path strokeWidth="7"  d="M400 440 Q360 465 320 495 Q290 510 260 530"/>
+            <path strokeWidth="6"  d="M400 440 Q395 460 390 490 Q387 510 385 535"/>
+            <path strokeWidth="6"  d="M400 440 Q420 458 445 482 Q460 500 470 525"/>
+            <path strokeWidth="7"  d="M400 440 Q440 460 490 488 Q530 508 570 522"/>
+            <path strokeWidth="4"  d="M270 490 Q240 500 210 515"/>
+            <path strokeWidth="3"  d="M320 495 Q295 510 275 528"/>
+            <path strokeWidth="4"  d="M490 488 Q510 500 530 520"/>
+          </g>
+          <path fill="none" stroke="#855324" strokeLinecap="round" strokeWidth="28" d="M400 440 Q398 390 395 350 Q392 310 390 270"/>
+          <path fill="none" stroke="#855324" strokeLinecap="round" strokeWidth="22" d="M390 270 Q388 240 385 210 Q382 180 378 155"/>
+          <g fill="none" stroke="#C9932A" strokeLinecap="round">
+            <path strokeWidth="14" d="M390 270 Q360 255 330 235 Q300 215 270 195"/>
+            <path strokeWidth="10" d="M270 195 Q245 180 218 162 Q195 148 175 132"/>
+            <path strokeWidth="7"  d="M175 132 Q155 118 135 105 Q115 92 98 80"/>
+            <path strokeWidth="14" d="M390 270 Q420 252 450 232 Q478 214 508 196"/>
+            <path strokeWidth="10" d="M508 196 Q535 180 562 162 Q586 146 608 130"/>
+            <path strokeWidth="7"  d="M608 130 Q628 116 648 103 Q668 90 685 78"/>
+            <path strokeWidth="12" d="M385 210 Q384 185 382 162 Q380 140 378 118"/>
+            <path strokeWidth="8"  d="M378 118 Q376 98 374 80 Q372 62 370 46"/>
+            <path strokeWidth="8"  d="M330 235 Q315 215 298 195 Q282 175 265 158"/>
+            <path strokeWidth="8"  d="M450 232 Q465 212 480 192 Q495 172 510 155"/>
+          </g>
+          <g>
+            <ellipse cx="370" cy="46"  rx="62" ry="48" fill="#735c00" opacity="0.7"/>
+            <ellipse cx="320" cy="60"  rx="48" ry="40" fill="#C9932A" opacity="0.65"/>
+            <ellipse cx="420" cy="55"  rx="52" ry="42" fill="#855324" opacity="0.6"/>
+            <ellipse cx="370" cy="28"  rx="44" ry="34" fill="#ffe088" opacity="0.5"/>
+            <ellipse cx="98"  cy="65"  rx="46" ry="38" fill="#735c00" opacity="0.65"/>
+            <ellipse cx="148" cy="92"  rx="40" ry="32" fill="#C9932A" opacity="0.6"/>
+            <ellipse cx="72"  cy="48"  rx="32" ry="26" fill="#855324" opacity="0.55"/>
+            <ellipse cx="685" cy="64"  rx="46" ry="38" fill="#735c00" opacity="0.65"/>
+            <ellipse cx="632" cy="90"  rx="40" ry="32" fill="#C9932A" opacity="0.6"/>
+            <ellipse cx="706" cy="46"  rx="32" ry="26" fill="#855324" opacity="0.55"/>
+            <ellipse cx="188" cy="80"  rx="34" ry="28" fill="#C9932A" opacity="0.5"/>
+            <ellipse cx="235" cy="112" rx="30" ry="24" fill="#855324" opacity="0.48"/>
+            <ellipse cx="586" cy="80"  rx="34" ry="28" fill="#C9932A" opacity="0.5"/>
+            <ellipse cx="535" cy="110" rx="30" ry="24" fill="#855324" opacity="0.48"/>
+            <circle cx="370" cy="35"  r="5" fill="#ffe088" opacity="0.9"/>
+            <circle cx="98"  cy="52"  r="4" fill="#ffe088" opacity="0.85"/>
+            <circle cx="685" cy="52"  r="4" fill="#ffe088" opacity="0.85"/>
+            <circle cx="320" cy="48"  r="3" fill="#C9932A" opacity="0.8"/>
+            <circle cx="420" cy="44"  r="3" fill="#C9932A" opacity="0.8"/>
+            <circle cx="148" cy="80"  r="3" fill="#ffe088" opacity="0.75"/>
+            <circle cx="632" cy="78"  r="3" fill="#ffe088" opacity="0.75"/>
+          </g>
+        </svg>
+
         <svg
           ref={svgRef}
           width="100%"
@@ -370,7 +421,7 @@ export default function ArbolEmpresa() {
                   x={0} y={avatarSize / 2 + 16}
                   textAnchor="middle"
                   className="ae-nodo-nombre"
-                  style={{ fontSize: lider.era === 0 ? '13px' : '11px', fontWeight: 700, fill: '#03192e' }}
+                  style={{ fontSize: lider.era === 0 ? '13px' : '11px', fontWeight: 700, fill: 'white' }}
                 >
                   {lider.nombre.split(' ').slice(0, 2).join(' ')}
                 </text>
@@ -379,7 +430,7 @@ export default function ArbolEmpresa() {
                 <text
                   x={0} y={avatarSize / 2 + 30}
                   textAnchor="middle"
-                  style={{ fontSize: '9px', fill: era.color, fontWeight: 600 }}
+                  style={{ fontSize: '9px', fill: '#ffe088', fontWeight: 600 }}
                 >
                   {(lider.cargoPersonalizado || lider.cargo).split(' ').slice(0, 3).join(' ')}
                 </text>
@@ -388,7 +439,7 @@ export default function ArbolEmpresa() {
                 <text
                   x={0} y={avatarSize / 2 + 42}
                   textAnchor="middle"
-                  style={{ fontSize: '8px', fill: '#8A8279' }}
+                  style={{ fontSize: '8px', fill: 'rgba(255,255,255,0.55)' }}
                 >
                   {lider.desde} – {lider.hasta}
                 </text>

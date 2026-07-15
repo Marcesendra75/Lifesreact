@@ -188,7 +188,7 @@ export default function LineaVidaEmpresa() {
   };
 
   return (
-    <div className="lve-page with-navbar">
+    <div className="lve-page with-navbar-empresa">
 
       {/* ── HEADER ── */}
       <header className="lve-header">

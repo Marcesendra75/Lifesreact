@@ -1,0 +1,519 @@
+// ============================================================
+// LIFE'S — PlanesEmpresa.scss
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+$noche:       #03192E;
+$noche-med:   #1a2e44;
+$crema:       #F5F0E8;
+$fondo:       #fbf9f5;
+$fondo-low:   #f5f3ef;
+$fondo-med:   #efeeea;
+$fondo-high:  #eae8e4;
+$ambar:       #C9932A;
+$ambar-light: #ffe088;
+$ambar-oro:   #735c00;
+$cobre:       #855324;
+$piedra:      #8A8279;
+$piedra-light:#c4c6cd;
+$verde:       #4a7a4e;
+$rojo:        #ba1a1a;
+
+$radius-md:  14px;
+$radius-lg:  20px;
+$radius-xl:  28px;
+$radius-2xl: 36px;
+
+$shadow-sm:  0 2px 8px rgba(3,25,46,0.06);
+$shadow-md:  0 4px 20px rgba(3,25,46,0.09);
+$shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+// ── Base ───────────────────────────────────────────────────
+.pla-page {
+  min-height: 100dvh;
+  background: $fondo;
+  font-family: 'Manrope', sans-serif;
+  color: $noche;
+  padding-bottom: 80px;
+}
+
+// ── Header ─────────────────────────────────────────────────
+.pla-header {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba($fondo, 0.94);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba($piedra-light, 0.2);
+
+  &__left { display: flex; align-items: center; gap: 12px; }
+
+  &__back {
+    background: none; border: none; cursor: pointer;
+    color: $noche; padding: 8px; border-radius: 50%; display: flex;
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__title {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.2rem;
+    font-weight: 400; color: $noche; margin: 0;
+  }
+
+  &__sub {
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: $piedra; margin: 0;
+  }
+
+  &__contacto {
+    display: flex; align-items: center; gap: 6px;
+    background: $noche; color: white; border: none;
+    border-radius: 999px; padding: 8px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $noche-med; }
+  }
+}
+
+// ── Main ───────────────────────────────────────────────────
+.pla-main {
+  max-width: 900px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 0;
+}
+
+// ── Eyebrow ────────────────────────────────────────────────
+.pla-eyebrow {
+  display: block; font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: $ambar; margin-bottom: 6px;
+}
+
+// ════════════════════════════════════════════════════════════
+// HERO
+// ════════════════════════════════════════════════════════════
+.pla-hero {
+  background: linear-gradient(140deg, $noche 0%, $noche-med 100%);
+  padding: 48px 24px 56px;
+  position: relative; overflow: hidden;
+
+  &__bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 50% 60% at 90% 20%, rgba($ambar-oro, 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 10% 80%, rgba($cobre, 0.08) 0%, transparent 60%);
+  }
+
+  &__inner {
+    position: relative; z-index: 1;
+    max-width: 580px; margin: 0 auto; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+
+  &__badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba($ambar, 0.15); color: $ambar-light;
+    font-size: 0.62rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 999px;
+    border: 1px solid rgba($ambar, 0.25);
+    svg { color: $ambar; }
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-size: 2.6rem; font-weight: 400; color: white;
+    line-height: 1.15; margin: 0;
+    em { font-style: italic; color: $ambar-light; }
+
+    @media (max-width: 480px) { font-size: 1.9rem; }
+  }
+
+  &__desc {
+    font-size: 0.85rem; color: rgba(255,255,255,0.6);
+    line-height: 1.7; margin: 0; max-width: 480px;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// PLANES
+// ════════════════════════════════════════════════════════════
+.pla-planes-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; padding: 32px 24px;
+  background: $fondo-low;
+
+  @media (max-width: 768px) { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+}
+
+.pla-plan-card {
+  background: white; border-radius: $radius-xl;
+  padding: 28px; box-shadow: $shadow-sm;
+  display: flex; flex-direction: column; gap: 16px;
+  border: 2px solid transparent;
+  position: relative; transition: all 0.25s;
+
+  &:hover { transform: translateY(-3px); box-shadow: $shadow-md; }
+
+  &--destacado {
+    box-shadow: $shadow-lg;
+    transform: scale(1.03);
+
+    @media (max-width: 768px) { transform: none; }
+  }
+
+  &__badge {
+    position: absolute; top: -13px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 5px;
+    color: white; font-size: 0.6rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 14px; border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  &__header { display: flex; flex-direction: column; gap: 6px; }
+
+  &__nombre {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.5rem;
+    font-weight: 400; margin: 0;
+  }
+
+  &__desc {
+    font-size: 0.75rem; color: $piedra; line-height: 1.5; margin: 0;
+  }
+
+  &__precio {
+    display: flex; align-items: baseline; gap: 4px;
+    padding: 12px 0; border-top: 1px solid rgba($noche, 0.06);
+    border-bottom: 1px solid rgba($noche, 0.06);
+  }
+
+  &__monto {
+    font-family: 'Newsreader', serif;
+    font-size: 2.2rem; font-weight: 700; color: $noche;
+
+    &--consultar { font-size: 1.4rem; }
+  }
+
+  &__periodo { font-size: 0.78rem; color: $piedra; }
+
+  &__cta {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: $noche; color: white; border: none;
+    border-radius: $radius-md; padding: 13px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; margin-top: auto;
+    &:hover { opacity: 0.85; transform: translateY(-1px); }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// PANEL ADMINISTRADOR
+// ════════════════════════════════════════════════════════════
+.pla-admin-section {
+  padding: 48px 24px;
+  background: $fondo;
+
+  &__header {
+    display: flex; align-items: flex-start; gap: 16px;
+    margin-bottom: 28px;
+
+    @media (max-width: 600px) { flex-direction: column; }
+  }
+
+  &__icono {
+    width: 52px; height: 52px; border-radius: $radius-md;
+    background: rgba($ambar, 0.1); color: $ambar-oro;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.6rem;
+    font-weight: 400; color: $noche; margin: 0 0 6px;
+  }
+
+  &__desc {
+    font-size: 0.82rem; color: $piedra; line-height: 1.65; margin: 0;
+    max-width: 520px;
+  }
+}
+
+.pla-admin-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+.pla-admin-card {
+  background: white; border-radius: $radius-lg;
+  padding: 18px; box-shadow: $shadow-sm;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: all 0.2s;
+
+  &:hover { transform: translateY(-2px); box-shadow: $shadow-md; }
+
+  &__icono {
+    width: 40px; height: 40px; border-radius: $radius-md;
+    background: rgba($ambar, 0.08); color: $ambar-oro;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  &__titulo {
+    font-size: 0.82rem; font-weight: 700; color: $noche; margin: 0;
+  }
+
+  &__desc {
+    font-size: 0.72rem; color: $piedra; line-height: 1.55; margin: 0;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// TABLA COMPARATIVA
+// ════════════════════════════════════════════════════════════
+.pla-comparativa {
+  padding: 48px 24px;
+  background: $fondo-low;
+
+  &__header { margin-bottom: 24px; }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.6rem;
+    font-weight: 400; color: $noche; margin: 0;
+  }
+}
+
+.pla-comp-table {
+  background: white; border-radius: $radius-xl;
+  overflow: hidden; box-shadow: $shadow-sm;
+}
+
+.pla-comp-header {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  background: $noche; padding: 14px 20px;
+  align-items: center; gap: 8px;
+
+  @media (max-width: 600px) { grid-template-columns: 1.5fr repeat(3, 1fr); }
+
+  &__vacio { }
+
+  &__plan {
+    text-align: center; font-size: 0.72rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    padding: 6px 8px; border-radius: $radius-md; border: 1.5px solid transparent;
+
+    &.destacado {
+      background: rgba($ambar, 0.15);
+      border-color: rgba($ambar, 0.4);
+    }
+  }
+}
+
+.pla-comp-cat {
+  border-bottom: 1px solid rgba($noche, 0.06);
+
+  &:last-child { border-bottom: none; }
+
+  &__header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px; background: none; border: none;
+    cursor: pointer; width: 100%; text-align: left;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.78rem; font-weight: 700; color: $noche;
+    transition: background 0.18s;
+    background: $fondo-low;
+
+    &:hover { background: $fondo-med; }
+
+    svg:last-child { margin-left: auto; color: $piedra; }
+  }
+
+  &__icono { color: $ambar; display: flex; flex-shrink: 0; }
+
+  &__label { flex: 1; }
+
+  &__rows { }
+}
+
+.pla-comp-row {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 10px 20px; align-items: center; gap: 8px;
+  border-top: 1px solid rgba($noche, 0.04);
+  transition: background 0.15s;
+
+  &:hover { background: rgba($noche, 0.02); }
+
+  @media (max-width: 600px) { grid-template-columns: 1.5fr repeat(3, 1fr); }
+
+  &__label {
+    font-size: 0.78rem; color: $noche; line-height: 1.4;
+  }
+
+  &__vals {
+    display: contents;
+  }
+
+  &__val {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 600; color: $piedra;
+
+    &--pro {
+      background: rgba($ambar, 0.04);
+      border-radius: 6px;
+      padding: 2px 4px;
+    }
+  }
+}
+
+.pe-comp__check { color: $verde; flex-shrink: 0; }
+.pe-comp__x     { color: $piedra-light; flex-shrink: 0; }
+.pe-comp__val   { font-size: 0.72rem; font-weight: 700; color: $ambar-oro; }
+
+// ════════════════════════════════════════════════════════════
+// FAQ
+// ════════════════════════════════════════════════════════════
+.pla-faq {
+  padding: 48px 24px;
+
+  &__header { margin-bottom: 20px; }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.6rem;
+    font-weight: 400; color: $noche; margin: 0;
+  }
+
+  &__lista { display: flex; flex-direction: column; gap: 8px; }
+}
+
+.pla-faq-item {
+  background: white; border-radius: $radius-lg;
+  overflow: hidden; box-shadow: $shadow-sm;
+  border: 1.5px solid transparent;
+  transition: border-color 0.2s;
+
+  &.abierto { border-color: rgba($ambar, 0.25); }
+
+  &__pregunta {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 20px; background: none; border: none; cursor: pointer;
+    width: 100%; text-align: left;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.88rem; font-weight: 700; color: $noche;
+    transition: background 0.18s;
+
+    &:hover { background: rgba($noche, 0.02); }
+
+    svg { flex-shrink: 0; color: $ambar; }
+  }
+
+  &__respuesta {
+    padding: 0 20px 16px;
+    border-top: 1px solid rgba($noche, 0.06);
+    animation: fadeIn 0.2s ease;
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    p {
+      font-size: 0.82rem; color: $piedra; line-height: 1.7; margin: 12px 0 0;
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// CTA FINAL
+// ════════════════════════════════════════════════════════════
+.pla-cta-final {
+  background: linear-gradient(140deg, $noche 0%, $noche-med 100%);
+  padding: 56px 24px;
+  position: relative; overflow: hidden;
+
+  &__bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 60% 70% at 50% 50%, rgba($ambar-oro, 0.1) 0%, transparent 60%);
+  }
+
+  &__inner {
+    position: relative; z-index: 1;
+    max-width: 500px; margin: 0 auto; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+
+  &__icono { color: $ambar-light; opacity: 0.8; }
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1.8rem;
+    font-weight: 400; color: white; margin: 0;
+  }
+
+  &__desc {
+    font-size: 0.82rem; color: rgba(255,255,255,0.6);
+    line-height: 1.7; margin: 0;
+  }
+
+  &__btns {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    margin-top: 6px;
+  }
+
+  &__btn-primary {
+    display: flex; align-items: center; gap: 7px;
+    background: white; color: $noche; border: none;
+    border-radius: 999px; padding: 13px 24px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.85rem; font-weight: 800; cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: $crema; transform: translateY(-1px); }
+  }
+
+  &__btn-secondary {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(white, 0.08); color: rgba(white, 0.8);
+    border: 1.5px solid rgba(white, 0.2); border-radius: 999px;
+    padding: 12px 20px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: rgba(white, 0.15); }
+  }
+}
+
+// Toast
+.pla-toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%);
+  background: $noche; color: white;
+  padding: 10px 20px; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; box-shadow: $shadow-lg; z-index: 400;
+  animation: toastIn 0.3s ease both;
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .pla-hero__titulo { font-size: 1.7rem; }
+  .pla-comp-header { padding: 12px 14px; }
+  .pla-comp-row { padding: 8px 14px; }
+}

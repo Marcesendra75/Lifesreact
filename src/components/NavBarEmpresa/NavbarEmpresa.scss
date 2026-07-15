@@ -1,0 +1,315 @@
+// ============================================================
+// LIFE'S — NavbarEmpresa.scss
+// Diseño oscuro corporativo — diferenciado de la navbar personal
+// ============================================================
+
+$noche:       #03192E;
+$noche-med:   #1a2e44;
+$ambar:       #C9932A;
+$ambar-light: #ffe088;
+$ambar-oro:   #735c00;
+$piedra:      #8A8279;
+$piedra-light:#c4c6cd;
+$verde:       #4a7a4e;
+
+// Colores específicos navbar empresa — más oscura y corporativa
+$bg-rail:     #0d1117;
+$bg-hover:    rgba(255,255,255,0.05);
+$bg-active:   rgba(201,147,42,0.12);
+$border:      rgba(255,255,255,0.06);
+$text-muted:  rgba(255,255,255,0.35);
+$text-normal: rgba(255,255,255,0.65);
+$text-bright: white;
+
+$rail-width-col:  70px;
+$rail-width-exp: 230px;
+$bottom-h:        64px;
+$transition:      0.28s cubic-bezier(0.4,0,0.2,1);
+
+// ════════════════════════════════════════════════════════════
+// DESKTOP — Rail sidebar empresarial
+// ════════════════════════════════════════════════════════════
+.nbe-rail {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: $rail-width-col;
+  background: $bg-rail;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow: hidden;
+  transition: width $transition;
+  border-right: 1px solid $border;
+
+  // Línea ámbar sutil al borde derecho
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba($ambar, 0.3), transparent);
+    pointer-events: none;
+  }
+
+  &:hover {
+    width: $rail-width-exp;
+
+    .nbe-rail__logo-textos,
+    .nbe-rail__empresa-info,
+    .nbe-rail__empresa-arrow,
+    .nbe-rail__label,
+    .nbe-rail__footer-btn span {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  // ── Logo ──
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 0 16px 20px;
+    border-bottom: 1px solid $border;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  &__logo-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, $ambar, $ambar-light);
+    display: flex; align-items: center; justify-content: center;
+    color: $noche; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba($ambar, 0.3);
+
+    svg { flex-shrink: 0; }
+  }
+
+  &__logo-textos {
+    display: flex; flex-direction: column; gap: 1px;
+    opacity: 0; transform: translateX(-8px);
+    transition: opacity $transition, transform $transition;
+    white-space: nowrap;
+  }
+
+  &__logo-lifes {
+    font-family: 'Newsreader', serif;
+    font-style: italic; font-size: 1rem;
+    font-weight: 400; color: $text-bright; line-height: 1;
+  }
+
+  &__logo-badge {
+    font-size: 0.5rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: $ambar;
+  }
+
+  // ── Empresa activa ──
+  &__empresa-activa {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px;
+    margin: 0 8px 10px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    border: 1px solid $border;
+    overflow: hidden; flex-shrink: 0;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover { background: rgba(255,255,255,0.07); }
+  }
+
+  &__empresa-avatar {
+    width: 28px; height: 28px; border-radius: 6px;
+    overflow: hidden; border: 1px solid rgba($ambar, 0.3);
+    flex-shrink: 0;
+
+    img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  }
+
+  &__empresa-info {
+    flex: 1; display: flex; flex-direction: column; gap: 1px;
+    opacity: 0; transform: translateX(-8px);
+    transition: opacity $transition, transform $transition;
+    min-width: 0;
+  }
+
+  &__empresa-nombre {
+    font-size: 0.75rem; font-weight: 700; color: $text-bright;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  &__empresa-estado {
+    display: flex; align-items: center; gap: 3px;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: $verde;
+
+    svg { flex-shrink: 0; }
+  }
+
+  &__empresa-arrow {
+    color: $text-muted; flex-shrink: 0;
+    opacity: 0; transform: translateX(-8px);
+    transition: opacity $transition, transform $transition;
+  }
+
+  // ── Items ──
+  &__items {
+    list-style: none; margin: 0;
+    padding: 0 8px; flex: 1;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+
+  &__link {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 10px;
+    text-decoration: none; color: $text-normal;
+    transition: all 0.2s; overflow: hidden;
+    white-space: nowrap;
+
+    &:hover {
+      background: $bg-hover;
+      color: $text-bright;
+    }
+
+    &.active {
+      background: $bg-active;
+      color: $ambar-light;
+
+      .nbe-rail__icon svg { stroke: $ambar-light; }
+
+      // Indicador lateral ámbar
+      position: relative;
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 50%;
+        transform: translateY(-50%);
+        width: 3px; height: 20px;
+        background: $ambar;
+        border-radius: 0 3px 3px 0;
+      }
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0; width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  &__label {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem; font-weight: 600;
+    opacity: 0; transform: translateX(-8px);
+    transition: opacity $transition, transform $transition;
+  }
+
+  // ── Footer ──
+  &__footer {
+    padding: 8px; border-top: 1px solid $border;
+    flex-shrink: 0; overflow: hidden;
+    display: flex; flex-direction: column; gap: 2px;
+    margin-top: auto;
+  }
+
+  &__footer-btn {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 12px; border-radius: 10px;
+    background: none; border: none; cursor: pointer;
+    color: $text-muted; font-family: 'Manrope', sans-serif;
+    font-size: 0.78rem; font-weight: 600;
+    transition: all 0.2s; white-space: nowrap;
+    width: 100%; text-align: left;
+
+    svg { flex-shrink: 0; }
+
+    span {
+      opacity: 0; transform: translateX(-8px);
+      transition: opacity $transition, transform $transition;
+    }
+
+    &:hover { background: $bg-hover; color: $text-bright; }
+
+    &--salir {
+      color: rgba(255,100,100,0.5);
+      &:hover { background: rgba(255,100,100,0.08); color: rgba(255,120,120,0.9); }
+    }
+  }
+
+  @media (max-width: 768px) { display: none; }
+}
+
+// ════════════════════════════════════════════════════════════
+// MOBILE — Bottom bar empresarial
+// ════════════════════════════════════════════════════════════
+.nbe-bottom {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: $bottom-h;
+    background: rgba($bg-rail, 0.97);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid $border;
+    z-index: 100;
+    align-items: stretch;
+    justify-content: space-around;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  &__item {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px; flex: 1;
+    text-decoration: none;
+    color: $text-muted;
+    transition: color 0.2s; padding: 8px 4px;
+    position: relative;
+
+    &.active {
+      color: $ambar-light;
+
+      &::before {
+        content: '';
+        position: absolute; top: 0; left: 50%;
+        transform: translateX(-50%);
+        width: 28px; height: 2px;
+        background: $ambar;
+        border-radius: 0 0 2px 2px;
+      }
+    }
+
+    &:active { transform: scale(0.92); }
+  }
+
+  &__icon {
+    width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  &__label {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.55rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// AJUSTE DE CONTENIDO — clase with-navbar-empresa
+// ════════════════════════════════════════════════════════════
+.with-navbar-empresa {
+  @media (min-width: 769px) {
+    margin-left: $rail-width-col;
+    transition: margin-left $transition;
+  }
+
+  @media (max-width: 768px) {
+    padding-bottom: calc(#{$bottom-h} + env(safe-area-inset-bottom));
+  }
+}
