@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import './Timeline.scss';
 
+
 // ── Tipos ──
 interface Memory {
   id: number;
