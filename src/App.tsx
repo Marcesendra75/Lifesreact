@@ -47,6 +47,10 @@ import Testamento        from './pages/Testamento/Testamento';
 import FarewellVideo     from './pages/FarewellVideo/FarewellVideo';
 import CajaDeValores     from './pages/CajaDeValores/CajaDeValores';
 
+// ── Admin Empresarial ──
+import AdminEmpresa       from './pages/Empresas/AdminEmpresa/AdminEmpresa';
+import LoginAdmin         from './pages/Empresas/LoginAdmin/LoginAdmin';
+
 // ── Shared ──
 import NotFound          from './pages/NotFound/NotFound';
 
@@ -76,6 +80,9 @@ function App() {
           <Route path="/empresas/perfil/:empresaId"  element={<PerfilEmpresa />} />
           <Route path="/empresas/linea-de-vida"      element={<LineaVidaEmpresa />} />
           <Route path="/empresas/arbol"              element={<ArbolEmpresa />} />
+          <Route path="/empresas/login-admin"        element={<LoginAdmin />} />
+          <Route path="/empresas/admin"              element={<AdminEmpresa />} />
+          <Route path="/empresas/admin/:modulo"      element={<AdminEmpresa />} />
 
           {/* ══ PÁGINAS EN DESARROLLO — sin auth temporalmente ══ */}
           <Route path="/feed"                      element={<Feed />} />

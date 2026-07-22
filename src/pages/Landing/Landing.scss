@@ -487,3 +487,47 @@
   text-align: center;
   margin-top: 0.5rem;
 }
+
+// ── Acceso Panel Admin ─────────────────────────────────────
+.landing-admin-acceso {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  margin-bottom: 0.5rem;
+
+  &__divider {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%;
+
+    &::before, &::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    span {
+      font-size: 0.58rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      white-space: nowrap;
+    }
+  }
+
+  &__hint {
+    font-size: 0.6rem; color: rgba(255,255,255,0.25);
+    text-align: center; line-height: 1.4;
+    font-family: v.$font-body;
+  }
+}
+
+.landing-btn--admin {
+  background: rgba(201,147,42,0.12) !important;
+  color: #ffe088 !important;
+  border: 1.5px solid rgba(201,147,42,0.3) !important;
+
+  svg { color: #C9932A; }
+
+  &:hover {
+    background: rgba(201,147,42,0.2) !important;
+    border-color: rgba(201,147,42,0.5) !important;
+    color: white !important;
+    transform: none !important;
+  }
+}

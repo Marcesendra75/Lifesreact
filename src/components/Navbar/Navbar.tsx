@@ -32,7 +32,9 @@ export default function Navbar() {
     RUTAS_OCULTAS.includes(location.pathname) ||
     location.pathname.startsWith('/empresas/perfil') ||
     location.pathname.startsWith('/empresas/linea-de-vida') ||
-    location.pathname.startsWith('/empresas/arbol')
+    location.pathname.startsWith('/empresas/arbol') ||
+    location.pathname.startsWith('/empresas/admin') ||
+    location.pathname.startsWith('/empresas/login-admin')
   ) return null;
 
   return (

@@ -1,0 +1,248 @@
+// ============================================================
+// LIFE'S — LoginAdmin.scss | Login Panel Admin
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+$bg:      #0d1117;
+$surface: #161b22;
+$surface2:#1c2128;
+$border:  rgba(255,255,255,0.08);
+$ambar:   #C9932A;
+$ambar-l: #ffe088;
+$ambar-d: rgba(201,147,42,0.12);
+$verde:   #86efac;
+$rojo:    #f85149;
+$t1:      rgba(255,255,255,0.92);
+$t2:      rgba(255,255,255,0.5);
+$t3:      rgba(255,255,255,0.22);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes bgSway {
+  0%,100% { transform: scale(1) rotate(0deg); }
+  50%      { transform: scale(1.02) rotate(0.3deg); }
+}
+
+// ── Base ───────────────────────────────────────────────────
+.la-page {
+  min-height: 100dvh;
+  background: $bg;
+  font-family: 'Manrope', sans-serif;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; position: relative; overflow: hidden;
+}
+
+// Fondo con árbol sutil
+.la-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba($ambar, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 10% 80%, rgba(3,25,46,0.5) 0%, transparent 60%);
+  animation: bgSway 12s ease-in-out infinite;
+
+  // Grid de puntos
+  &::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+}
+
+// ── Wrap centrado ──────────────────────────────────────────
+.la-wrap {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 400px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  animation: fadeUp 0.5s ease both;
+}
+
+// ── Logo ───────────────────────────────────────────────────
+.la-logo {
+  display: flex; align-items: center; gap: 12px;
+
+  &__icono {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: linear-gradient(135deg, $ambar, rgba($ambar, 0.6));
+    display: flex; align-items: center; justify-content: center;
+    color: $bg; box-shadow: 0 4px 20px rgba($ambar, 0.3);
+    flex-shrink: 0;
+  }
+
+  &__textos { display: flex; flex-direction: column; gap: 2px; }
+
+  &__lifes {
+    font-family: 'Newsreader', serif; font-style: italic;
+    font-size: 1.6rem; font-weight: 400; color: $t1; line-height: 1;
+  }
+
+  &__badge {
+    font-size: 0.58rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: $ambar;
+  }
+}
+
+// ── Card ───────────────────────────────────────────────────
+.la-card {
+  width: 100%;
+  background: $surface; border: 1px solid $border;
+  border-radius: 20px; padding: 28px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+
+  &__header {
+    display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px;
+  }
+
+  &__shield { color: $ambar; margin-top: 2px; flex-shrink: 0; }
+
+  &__titulo {
+    font-family: 'Newsreader', serif; font-style: italic;
+    font-size: 1.3rem; font-weight: 400; color: $t1; margin: 0 0 3px;
+  }
+
+  &__sub {
+    font-size: 0.68rem; color: $t3; margin: 0;
+  }
+}
+
+// ── Form ───────────────────────────────────────────────────
+.la-form { display: flex; flex-direction: column; gap: 14px; }
+
+.la-campo {
+  display: flex; flex-direction: column; gap: 6px;
+
+  label {
+    font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: $t3;
+  }
+}
+
+.la-input-wrap {
+  position: relative; display: flex; align-items: center;
+}
+
+.la-input-icon {
+  position: absolute; left: 12px; color: $t3; pointer-events: none;
+}
+
+.la-input-wrap input {
+  width: 100%; background: $surface2; border: 1.5px solid $border;
+  border-radius: 10px; padding: 11px 40px 11px 38px;
+  font-family: 'Manrope', sans-serif; font-size: 0.85rem;
+  color: $t1; outline: none; transition: border-color 0.2s;
+  box-sizing: border-box;
+
+  &::placeholder { color: $t3; }
+  &:focus { border-color: rgba($ambar, 0.5); }
+  &.error { border-color: rgba($rojo, 0.5); }
+}
+
+.la-toggle-pass {
+  position: absolute; right: 12px; background: none; border: none;
+  cursor: pointer; color: $t3; display: flex; padding: 4px;
+  transition: color 0.2s;
+  &:hover { color: $t1; }
+}
+
+// Error
+.la-error {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba($rojo, 0.1); border: 1px solid rgba($rojo, 0.2);
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 0.75rem; color: $rojo;
+  svg { flex-shrink: 0; }
+}
+
+// Botón submit
+.la-btn-submit {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: $ambar; color: $bg; border: none;
+  border-radius: 999px; padding: 13px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem; font-weight: 800; cursor: pointer;
+  transition: all 0.2s; width: 100%; margin-top: 4px;
+
+  &:hover:not(:disabled) { background: $ambar-l; transform: translateY(-1px); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  &__loader {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid rgba($bg, 0.3);
+    border-top-color: $bg;
+    animation: spin 0.7s linear infinite;
+  }
+}
+
+// Links
+.la-links {
+  display: flex; justify-content: space-between;
+  margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid $border;
+}
+
+.la-link {
+  background: none; border: none; cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.68rem; font-weight: 600; color: $t3;
+  transition: color 0.2s;
+  &:hover { color: $ambar; }
+}
+
+// ── Credenciales de prueba ─────────────────────────────────
+.la-test-creds {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px;
+
+  &__toggle {
+    display: flex; align-items: center; gap: 5px;
+    background: none; border: 1px solid $border;
+    border-radius: 999px; padding: 6px 14px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.65rem; font-weight: 700; color: $t3;
+    cursor: pointer; transition: all 0.2s;
+    svg { color: $ambar; }
+    &:hover { border-color: rgba($ambar, 0.3); color: $t2; }
+  }
+
+  &__card {
+    width: 100%; background: $ambar-d;
+    border: 1px solid rgba($ambar, 0.2); border-radius: 14px;
+    padding: 14px; animation: fadeUp 0.2s ease;
+  }
+
+  &__header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+    span { font-size: 0.72rem; font-weight: 700; color: $ambar-l; }
+  }
+
+  &__usar {
+    display: flex; align-items: center; gap: 4px;
+    background: $ambar; color: $bg; border: none;
+    border-radius: 999px; padding: 4px 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.62rem; font-weight: 800; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $ambar-l; }
+  }
+
+  &__datos { display: flex; flex-direction: column; gap: 6px; }
+
+  &__dato {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.7rem;
+    span  { color: $t3; }
+    strong { color: $t1; font-weight: 700; font-family: monospace; font-size: 0.72rem; }
+  }
+}
+
+// Footer
+.la-footer {
+  font-size: 0.58rem; color: $t3; text-align: center; line-height: 1.6;
+}
