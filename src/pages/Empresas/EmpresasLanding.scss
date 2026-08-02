@@ -647,3 +647,82 @@ $shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
   .el-hero__titulo { font-size: 1.7rem; }
   .el-tipo-btn span:last-child { display: none; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — EmpresasLanding
+// ════════════════════════════════════════════════════════════
+
+@media (max-width: 768px) {
+
+  // Header
+  .el-header {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    &__logo { font-size: 1.1rem; }
+
+    &__nav {
+      display: none; // menú colapsado en mobile
+    }
+
+    &__acciones {
+      gap: 6px;
+    }
+
+    &__admin-btn { padding: 7px 12px; font-size: 0.68rem; }
+    &__cta       { padding: 8px 14px; font-size: 0.72rem; }
+  }
+
+  // Hero
+  .el-hero {
+    padding: 48px 20px 56px;
+
+    &__titulo { font-size: 2rem; }
+    &__desc   { font-size: 0.82rem; }
+    &__btns   { flex-direction: column; align-items: center; }
+    &__btn    { width: 100%; max-width: 320px; justify-content: center; }
+  }
+
+  // Features grid
+  .el-features-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  // Sección formulario
+  .el-form-section {
+    padding: 48px 20px;
+    flex-direction: column;
+    gap: 32px;
+
+    &__info, &__form { width: 100%; max-width: 100%; }
+  }
+
+  // Planes
+  .el-planes-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .el-plan--destacado {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .el-hero {
+    padding: 36px 16px 44px;
+    &__titulo     { font-size: 1.6rem; }
+    &__badge      { font-size: 0.58rem; }
+    &__verificados { flex-direction: column; gap: 8px; align-items: center; }
+  }
+
+  .el-section-titulo { font-size: 1.5rem; }
+
+  .el-footer__inner { flex-direction: column; gap: 12px; text-align: center; }
+  .el-footer__links { justify-content: center; }
+}

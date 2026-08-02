@@ -315,7 +315,7 @@ export default function Timeline() {
       {/* ══ ONDA ══ */}
       <div className="tl-wave-section" ref={sectionRef}>
         <div className="tl-wave-section__texture" />
-        <div className="tl-wave-title">Mi Journey Timeline</div>
+        <div className="tl-wave-title">Mi linea de vida</div>
 
         <button className="tl-arrow tl-arrow--left"
           onClick={() => scrollRef.current?.scrollBy({ left: -280, behavior: 'smooth' })}>

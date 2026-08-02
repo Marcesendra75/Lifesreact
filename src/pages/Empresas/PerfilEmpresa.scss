@@ -652,3 +652,74 @@ $shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
   span:last-child { margin-left: auto; }
   &:hover { border-color: #03192e; background: rgba(3,25,46,0.08); }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — PerfilEmpresa
+// ════════════════════════════════════════════════════════════
+
+@media (max-width: 600px) {
+
+  // Portada más baja en mobile
+  .pe-portada { height: 220px; }
+
+  // Hero info — apilado vertical
+  .pe-hero-info {
+    padding: 16px;
+    margin-top: -30px;
+
+    &__top { flex-direction: column; align-items: flex-start; gap: 12px; }
+    &__nombre-wrap { flex-wrap: wrap; }
+  }
+
+  .pe-logo-wrap { width: 60px; height: 60px; }
+  .pe-logo      { width: 60px; height: 60px; }
+
+  .pe-nombre    { font-size: 1.1rem; }
+  .pe-slogan    { font-size: 0.72rem; }
+
+  // Stats — 2 columnas en mobile
+  .pe-stats { grid-template-columns: repeat(2, 1fr); }
+
+  .pe-stat__val { font-size: 1.2rem; }
+
+  // Accesos rápidos — texto más chico
+  .pe-acceso-btn {
+    padding: 12px;
+    gap: 10px;
+
+    &__titulo { font-size: 0.8rem; }
+    &__sub    { font-size: 0.62rem; }
+  }
+
+  // Tabs — texto más pequeño
+  .pe-tab { font-size: 0.68rem; padding: 8px; gap: 4px; }
+
+  // Hitos — reducir imagen
+  .pe-hito__img { height: 200px; }
+
+  // Equipo grid — 2 columnas
+  .pe-equipo-grid { grid-template-columns: repeat(2, 1fr); }
+
+  // Productos — lista en lugar de grid
+  .pe-productos-grid { gap: 8px; }
+
+  .pe-producto-card {
+    flex-direction: column;
+
+    &__img, &__img-placeholder { width: 100%; height: 140px; border-radius: 10px 10px 0 0; }
+  }
+
+  // Contacto
+  .pe-redes { gap: 6px; }
+  .pe-red-btn { font-size: 0.65rem; padding: 6px 10px; }
+
+  // Modal
+  .pe-modal { border-radius: 20px 20px 0 0; margin-bottom: 0; }
+}
+
+@media (max-width: 380px) {
+  .pe-stats     { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .pe-stat      { padding: 10px 8px; }
+  .pe-equipo-grid { grid-template-columns: repeat(2, 1fr); }
+  .pe-nombre    { font-size: 1rem; }
+}

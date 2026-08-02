@@ -706,3 +706,23 @@ $shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
   .tc-hero__stats  { flex-wrap: wrap; }
   .tc-modal__tipos-desbloq { grid-template-columns: 1fr 1fr; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — TimeCapsule (Cápsula del tiempo)
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .tc-main { padding: 14px; gap: 14px; }
+  .tc-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .tc-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+  .tc-hero   { padding: 20px 16px; text-align: center; }
+  .tc-hero__titulo { font-size: 1.3rem; }
+  .tc-wizard-pasos { flex-direction: column; gap: 6px; }
+  .tc-paso-btn     { text-align: left; }
+  .tc-fecha-grid   { grid-template-columns: 1fr !important; }
+  .tc-destinatarios-lista { gap: 8px; }
+  .tc-modal  { border-radius: 20px 20px 0 0; }
+  .tc-overlay { align-items: flex-end; padding: 0; }
+}

@@ -467,3 +467,16 @@
     }
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — TarjetaPendiente
+// ════════════════════════════════════════════════════════════
+@media (max-width: 480px) {
+  .tp-container { padding: 16px; }
+  .tp-card-wrap { padding: 22px 16px; }
+  .tp-hero__titulo { font-size: 1.4rem; }
+  .tp-pasos { gap: 10px; }
+  .tp-paso  { padding: 12px; gap: 10px; }
+  .tp-btns  { flex-direction: column; gap: 8px;
+    button { width: 100%; justify-content: center; } }
+}

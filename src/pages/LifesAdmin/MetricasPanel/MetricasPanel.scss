@@ -1,0 +1,132 @@
+// ============================================================
+// LIFE'S — MetricasPanel.scss | Métricas globales
+// ============================================================
+
+$bg:      #080c10;
+$surface: #0d1117;
+$surface2:#161b22;
+$border:  rgba(255,255,255,0.07);
+$oro:     #C9932A;
+$oro-l:   #ffe088;
+$rojo:    #f85149;
+$verde:   #86efac;
+$azul:    #58a6ff;
+$t1:      rgba(255,255,255,0.92);
+$t2:      rgba(255,255,255,0.5);
+$t3:      rgba(255,255,255,0.22);
+
+// ── Selectores período y moneda ────────────────────────────
+.la-selector-grupo {
+  display: flex; gap: 2px;
+  background: $surface2; border-radius: 8px; padding: 3px;
+}
+
+.la-selector-btn {
+  background: none; border: none; border-radius: 6px;
+  padding: 5px 10px; font-family: 'Manrope', sans-serif;
+  font-size: 0.65rem; font-weight: 700; color: $t3;
+  cursor: pointer; transition: all 0.18s; white-space: nowrap;
+  &.active { background: $oro; color: #080c10; }
+  &:hover:not(.active) { color: $t1; }
+}
+
+// ── Secciones ──────────────────────────────────────────────
+.la-metricas-seccion {
+  display: flex; flex-direction: column; gap: 12px;
+
+  &__titulo {
+    font-size: 0.72rem; font-weight: 800;
+    letter-spacing: 0.06em; color: $t2; margin: 0;
+  }
+}
+
+// ── Ingresos ───────────────────────────────────────────────
+.la-ingresos-grid {
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.la-ingreso-card {
+  display: flex; align-items: center; gap: 14px;
+  background: $surface; border: 1px solid $border;
+  border-radius: 12px; padding: 14px 18px;
+  transition: border-color 0.2s;
+  &:hover { border-color: rgba($oro, 0.2); }
+  &--btc  { border-color: rgba(#f7931a, 0.2); }
+
+  &__icono { font-size: 1.4rem; flex-shrink: 0; }
+
+  &__info {
+    display: flex; flex-direction: column; gap: 2px; flex: 1;
+  }
+
+  &__label {
+    font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: $t3;
+  }
+
+  &__val {
+    font-family: 'Newsreader', serif; font-size: 1.3rem;
+    font-weight: 700; line-height: 1;
+  }
+
+  &__desc { font-size: 0.65rem; color: $t3; }
+}
+
+// ── Gráfico de barras ──────────────────────────────────────
+.la-grafico-barras {
+  display: flex; align-items: flex-end; gap: 4px;
+  height: 150px; padding-top: 24px;
+
+  &__col {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; flex: 1; position: relative;
+  }
+
+  &__val {
+    position: absolute; top: -18px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.5rem; color: $t3; white-space: nowrap;
+  }
+
+  &__track {
+    width: 100%; flex: 1;
+    background: rgba(255,255,255,0.04);
+    border-radius: 4px 4px 0 0; overflow: hidden;
+    display: flex; align-items: flex-end;
+  }
+
+  &__fill {
+    width: 100%; border-radius: 4px 4px 0 0;
+    transition: height 0.4s ease;
+  }
+
+  &__label { font-size: 0.52rem; color: rgba(255,255,255,0.2); }
+}
+
+// ── Engagement ─────────────────────────────────────────────
+.la-engagement-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+
+  @media (max-width: 640px) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.la-engagement-card {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; background: $surface; border: 1px solid $border;
+  border-radius: 12px; padding: 18px 12px; text-align: center;
+  transition: border-color 0.2s;
+  &:hover { border-color: rgba($oro, 0.2); }
+
+  &__emoji { font-size: 1.6rem; }
+  &__val   { font-family: 'Newsreader', serif; font-size: 1.4rem; font-weight: 700; color: $t1; }
+  &__label { font-size: 0.62rem; color: $t3; font-weight: 600; }
+}
+
+// ── Responsive ─────────────────────────────────────────────
+@media (max-width: 640px) {
+  .la-selector-grupo { flex-wrap: wrap; }
+  .la-selector-btn   { font-size: 0.6rem; padding: 4px 8px; }
+  .la-ingreso-card   { padding: 10px 12px; gap: 10px; }
+  .la-ingreso-card__val { font-size: 1.1rem; }
+  .la-grafico-barras { height: 120px; }
+}

@@ -9,9 +9,9 @@ import { AuthProvider }  from './context/AuthContext';
 import PrivateRoute      from './components/PrivateRoute/PrivateRoute';
 import VaultRoute        from './components/VaultRoute/VaultRoute';
 
-// ── Navbar compartida ──
+// ── Navbars ──
 import Navbar            from './components/Navbar/Navbar';
-import NavbarEmpresa     from './components/NavbarEmpresa/NavbarEmpresa';
+import NavbarEmpresa     from './components/NavBarEmpresa/NavbarEmpresa';
 
 // ── Páginas públicas ──
 import Landing           from './pages/Landing/Landing';
@@ -22,12 +22,22 @@ import ForgotPassword    from './pages/Auth/ForgotPassword';
 import TarjetaPendiente  from './pages/Auth/TarjetaPendiente';
 import TarjetaLegado     from './pages/Auth/TarjetaLegado';
 
-// ── Empresas (públicas) ──
+// ── Empresas ──
 import EmpresasLanding   from './pages/Empresas/EmpresasLanding';
 import PlanesEmpresa     from './pages/Empresas/PlanesEmpresa';
 import PerfilEmpresa     from './pages/Empresas/PerfilEmpresa';
 import LineaVidaEmpresa  from './pages/Empresas/LineaVidaEmpresa';
 import ArbolEmpresa      from './pages/Empresas/ArbolEmpresa';
+import LoginAdmin        from './pages/Empresas/LoginAdmin/LoginAdmin';
+import AdminEmpresa      from './pages/Empresas/AdminEmpresa/AdminEmpresa';
+
+// ── Alta Empresa ──
+import AltaEmpresa       from './pages/LifesAdmin/AltaEmpresa/AltaEmpresa';
+import AltaEmpleado      from './pages/LifesAdmin/AltaEmpleado/AltaEmpleado';
+
+// ── Admin Life's ──
+import LoginLifesAdmin   from './pages/LifesAdmin/LoginLifesAdmin/LoginLifesAdmin';
+import LifesAdmin        from './pages/LifesAdmin/LifesAdmin/LifesAdmin';
 
 // ── Páginas principales ──
 import Feed              from './pages/Feed/Feed';
@@ -46,10 +56,6 @@ import Herederos         from './pages/Herederos/Herederos';
 import Testamento        from './pages/Testamento/Testamento';
 import FarewellVideo     from './pages/FarewellVideo/FarewellVideo';
 import CajaDeValores     from './pages/CajaDeValores/CajaDeValores';
-
-// ── Admin Empresarial ──
-import AdminEmpresa       from './pages/Empresas/AdminEmpresa/AdminEmpresa';
-import LoginAdmin         from './pages/Empresas/LoginAdmin/LoginAdmin';
 
 // ── Shared ──
 import NotFound          from './pages/NotFound/NotFound';
@@ -74,34 +80,41 @@ function App() {
           <Route path="/tarjeta-legado"    element={<TarjetaLegado />} />
 
           {/* ══ EMPRESAS ══ */}
-          <Route path="/empresas"                    element={<EmpresasLanding />} />
-          <Route path="/empresas/planes"             element={<PlanesEmpresa />} />
-          <Route path="/empresas/perfil"             element={<PerfilEmpresa />} />
-          <Route path="/empresas/perfil/:empresaId"  element={<PerfilEmpresa />} />
-          <Route path="/empresas/linea-de-vida"      element={<LineaVidaEmpresa />} />
-          <Route path="/empresas/arbol"              element={<ArbolEmpresa />} />
-          <Route path="/empresas/login-admin"        element={<LoginAdmin />} />
-          <Route path="/empresas/admin"              element={<AdminEmpresa />} />
-          <Route path="/empresas/admin/:modulo"      element={<AdminEmpresa />} />
+          <Route path="/empresas"                           element={<EmpresasLanding />} />
+          <Route path="/empresas/planes"                    element={<PlanesEmpresa />} />
+          <Route path="/empresas/perfil"                    element={<PerfilEmpresa />} />
+          <Route path="/empresas/perfil/:empresaId"         element={<PerfilEmpresa />} />
+          <Route path="/empresas/linea-de-vida"             element={<LineaVidaEmpresa />} />
+          <Route path="/empresas/linea-de-vida/:empresaId"  element={<LineaVidaEmpresa />} />
+          <Route path="/empresas/arbol"                     element={<ArbolEmpresa />} />
+          <Route path="/empresas/login-admin"               element={<LoginAdmin />} />
+          <Route path="/empresas/admin"                     element={<AdminEmpresa />} />
+          <Route path="/empresas/admin/:modulo"             element={<AdminEmpresa />} />
 
-          {/* ══ PÁGINAS EN DESARROLLO — sin auth temporalmente ══ */}
-          <Route path="/feed"                      element={<Feed />} />
-          <Route path="/muro-biografico"           element={<MuroBiografico />} />
-          <Route path="/muro-biografico/:userId"   element={<MuroBiografico />} />
-          <Route path="/perfil"                    element={<Profile />} />
-          <Route path="/perfil/:userId"            element={<Profile />} />
-          <Route path="/linea-de-vida"             element={<Timeline />} />
-          <Route path="/linea-de-vida/:userId"     element={<Timeline />} />
-          <Route path="/arbol-genealogico"         element={<FamilyTree />} />
-          <Route path="/arbol-genealogico/:userId" element={<FamilyTree />} />
-          <Route path="/ecos/:userId"              element={<DigitalEcho />} />
-          <Route path="/configuracion"             element={<Settings />} />
-          <Route path="/capsula-del-tiempo"        element={<TimeCapsule />} />
-          <Route path="/postal"                    element={<Postal />} />
-          <Route path="/vinculos"                  element={<Feed />} />
-          <Route path="/mapa-linaje"               element={<Feed />} />
+          {/* ══ ADMIN LIFE'S ══ */}
+          <Route path="/lifes-admin/login"  element={<LoginLifesAdmin />} />
+          <Route path="/lifes-admin"                element={<LifesAdmin />} />
+          <Route path="/lifes-admin/alta-empresa"   element={<AltaEmpresa />} />
+          <Route path="/lifes-admin/alta-empleado"  element={<AltaEmpleado />} />
 
-          {/* ══ BÓVEDA — sin auth temporalmente para desarrollo ══ */}
+          {/* ══ PÁGINAS EN DESARROLLO ══ */}
+          <Route path="/feed"                               element={<Feed />} />
+          <Route path="/muro-biografico"                    element={<MuroBiografico />} />
+          <Route path="/muro-biografico/:userId"            element={<MuroBiografico />} />
+          <Route path="/perfil"                             element={<Profile />} />
+          <Route path="/perfil/:userId"                     element={<Profile />} />
+          <Route path="/linea-de-vida"                      element={<Timeline />} />
+          <Route path="/linea-de-vida/:userId"              element={<Timeline />} />
+          <Route path="/arbol-genealogico"                  element={<FamilyTree />} />
+          <Route path="/arbol-genealogico/:userId"          element={<FamilyTree />} />
+          <Route path="/ecos/:userId"                       element={<DigitalEcho />} />
+          <Route path="/configuracion"                      element={<Settings />} />
+          <Route path="/capsula-del-tiempo"                 element={<TimeCapsule />} />
+          <Route path="/postal"                             element={<Postal />} />
+          <Route path="/vinculos"                           element={<Feed />} />
+          <Route path="/mapa-linaje"                        element={<Feed />} />
+
+          {/* ══ BÓVEDA ══ */}
           <Route path="/caja-fuerte"      element={<SafeBox />} />
           <Route path="/caja-de-valores"  element={<CajaDeValores />} />
           <Route path="/ahorro"           element={<CajaDeValores />} />

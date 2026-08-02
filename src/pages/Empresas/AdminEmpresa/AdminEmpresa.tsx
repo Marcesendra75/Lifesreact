@@ -1865,6 +1865,26 @@ export default function AdminEmpresa() {
         }}
       />
 
+      {/* ── Bottom Nav Mobile ── */}
+      <nav className="adm-bottom-nav">
+        {[
+          { id:'dashboard',  label:'Inicio',    icono:'📊' },
+          { id:'hitos',      label:'Hitos',     icono:'📌' },
+          { id:'equipo',     label:'Equipo',    icono:'👥' },
+          { id:'multimedia', label:'Media',     icono:'🖼️' },
+          { id:'plan',       label:'Plan',      icono:'💳' },
+        ].map(item => (
+          <button
+            key={item.id}
+            className={`adm-bottom-nav__item${modulo === item.id ? ' active' : ''}`}
+            onClick={() => setModulo(item.id as any)}
+          >
+            <span style={{fontSize:'1.1rem'}}>{item.icono}</span>
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
       {/* Toast */}
       {toast && (
         <div className="adm-toast">

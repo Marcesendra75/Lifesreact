@@ -441,3 +441,19 @@
     &:hover { color: #855324; opacity: 1; }
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — CrearCuenta
+// ════════════════════════════════════════════════════════════
+@media (max-width: 480px) {
+  .cc-card { padding: 22px 16px; border-radius: 20px; }
+  .cc-titulo { font-size: 1.4rem; }
+  .cc-grid-2 { grid-template-columns: 1fr !important; }
+  .cc-btn    { padding: 13px; font-size: 0.82rem; }
+  .cc-links  { flex-direction: column; gap: 6px; align-items: center; }
+}
+
+@media (max-width: 360px) {
+  .cc-card   { padding: 18px 14px; }
+  .cc-titulo { font-size: 1.2rem; }
+}

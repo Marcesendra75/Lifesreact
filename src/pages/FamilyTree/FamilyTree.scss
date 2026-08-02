@@ -793,3 +793,108 @@
     }
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — FamilyTree (Árbol genealógico)
+// ════════════════════════════════════════════════════════════
+
+@media (max-width: 768px) {
+
+  // ── Header ──
+  .ft-header {
+    padding: 10px 14px;
+    flex-wrap: nowrap;
+
+    // Ocultar botones extra — solo dejar back y avatar
+    &__actions {
+      gap: 4px;
+
+      // Ocultar botones secundarios en mobile
+      .ft-header__btn:not(:last-child) { display: none; }
+    }
+
+    &__title { font-size: 1rem; }
+    &__sub    { display: none; }
+  }
+
+  // ── Buscador full width ──
+  .ft-search-bar { padding: 8px 14px; }
+
+  // ── Canvas ──
+  .ft-wrap {
+    height: 55dvh;
+    min-height: 300px;
+  }
+
+  // ── Quick actions ──
+  .ft-quick-actions { display: none; }
+
+  // ── Leyenda oculta ──
+  .ft-leyenda { display: none; }
+
+  // ── Zoom reposicionado sobre bottom nav ──
+  .ft-zoom { bottom: 90px; right: 12px; }
+
+  // ── Panel lateral — sheet desde abajo ──
+  .ft-panel-wrap {
+    position: fixed !important;
+    bottom: 70px !important; left: 0; right: 0;
+    height: auto; max-height: 55dvh;
+    border-radius: 20px 20px 0 0;
+    overflow-y: auto; z-index: 90;
+    box-shadow: 0 -8px 40px rgba(3,25,46,0.15);
+    border-top: 1px solid rgba(196,198,205,0.2);
+  }
+
+  // ── Bottom nav ya existe en el componente — ajuste ──
+  .ft-bottom-nav {
+    border-radius: 0;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+
+    &__item {
+      font-size: 8px;
+      padding: 0.3rem 0.5rem;
+      svg { width: 20px; height: 20px; }
+    }
+
+    &__add {
+      width: 52px; height: 52px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+
+  .ft-header {
+    padding: 8px 12px;
+    &__title { font-size: 0.88rem; }
+  }
+
+  // Nodos más compactos
+  .ft-node {
+    min-width: 70px;
+
+    &__foto   { width: 32px; height: 32px; }
+    &__nombre { font-size: 0.58rem; }
+    &__cargo  { font-size: 0.5rem; }
+  }
+
+  // Controles de zoom más pequeños
+  .ft-zoom-btns button {
+    width: 28px; height: 28px;
+    svg { width: 14px; height: 14px; }
+  }
+
+  .ft-search-bar {
+    input { font-size: 0.82rem; }
+  }
+}
+
+@media (max-width: 360px) {
+  .ft-header__title { font-size: 0.82rem; }
+  .ft-node {
+    min-width: 60px;
+    &__foto { width: 28px; height: 28px; }
+    &__nombre { font-size: 0.52rem; }
+  }
+}

@@ -517,3 +517,18 @@ $shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
   .pla-comp-header { padding: 12px 14px; }
   .pla-comp-row { padding: 8px 14px; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — PlanesEmpresa (adicional)
+// ════════════════════════════════════════════════════════════
+@media (max-width: 480px) {
+  .pe-planes-grid { grid-template-columns: 1fr !important; }
+  .pe-plan--destacado { transform: none !important; }
+  .pe-plan-card { padding: 20px; }
+  .pe-comparativa { overflow-x: auto; }
+  .pe-comparativa-tabla { min-width: 400px; }
+  .pe-faq-item { padding: 14px; }
+  .pe-hero__titulo { font-size: 1.6rem; }
+  .pe-cta { padding: 30px 16px; }
+  .pe-cta__titulo { font-size: 1.4rem; }
+}

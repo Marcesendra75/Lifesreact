@@ -780,3 +780,21 @@ $shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
   .fw-caps-grid { grid-template-columns: 1fr; }
   .fw-recuerdos-grid { grid-template-columns: 1fr; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — FarewellVideo (Último tributo)
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .fv-main  { padding: 14px; gap: 14px; }
+  .fv-grid  { grid-template-columns: 1fr !important; }
+  .fv-video-wrap { aspect-ratio: 16/9; }
+}
+
+@media (max-width: 480px) {
+  .fv-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+  .fv-hero   { padding: 20px 16px; flex-direction: column; gap: 12px; text-align: center; }
+  .fv-hero__titulo { font-size: 1.3rem; }
+  .fv-upload-zone  { padding: 24px 16px; }
+  .fv-controles    { flex-wrap: wrap; gap: 8px;
+    button { flex: 1; min-width: 120px; justify-content: center; } }
+}

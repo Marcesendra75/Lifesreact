@@ -403,3 +403,43 @@
     }
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — MuroBiografico
+// ════════════════════════════════════════════════════════════
+
+@media (max-width: 768px) {
+  .mb-root { padding-bottom: 70px; }
+
+  .mb-header {
+    padding: 12px 16px; flex-wrap: wrap; gap: 8px;
+    &__titulo { font-size: 0.95rem; }
+  }
+
+  .mb-main { padding: 12px; gap: 12px; }
+
+  .mb-portada { height: 200px; }
+
+  .mb-numeros {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px; padding: 12px;
+  }
+
+  .mb-numero__val { font-size: 1.3rem; }
+
+  .mb-capitulos { grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  .mb-portada  { height: 160px; }
+
+  .mb-numeros  { grid-template-columns: repeat(2, 1fr); }
+
+  .mb-capitulos { grid-template-columns: 1fr; }
+
+  .mb-capitulo {
+    &__img { height: 160px; }
+  }
+
+  .mb-section-header { flex-wrap: wrap; gap: 8px; }
+}

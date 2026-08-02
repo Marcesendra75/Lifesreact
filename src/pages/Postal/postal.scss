@@ -978,3 +978,25 @@ $shadow-paper:
 
   .postal-preview__paper { transform: rotate(0deg); }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — Postal
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .postal-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  .postal-preview {
+    position: static !important;
+    order: -1;
+  }
+  .postal-wizard { padding: 16px; }
+}
+
+@media (max-width: 480px) {
+  .postal-header { padding: 12px 16px; }
+  .postal-seccion { gap: 10px; }
+  .postal-controles { flex-direction: column; gap: 8px;
+    button { width: 100%; justify-content: center; } }
+}

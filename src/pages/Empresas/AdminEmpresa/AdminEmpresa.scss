@@ -883,3 +883,104 @@ $sidebar-w: 240px;
   strong { color: rgba(255,255,255,0.85); }
   span { font-size: 1.1rem; flex-shrink: 0; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — AdminEmpresa
+// ════════════════════════════════════════════════════════════
+
+// Bottom nav mobile — reemplaza el sidebar
+.adm-bottom-nav {
+  display: none;
+
+  @media (max-width: 640px) {
+    display: flex;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 60px; z-index: 100;
+    background: rgba($surface, 0.97);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid $border;
+    align-items: stretch;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  &__item {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 3px; flex: 1;
+    background: none; border: none; cursor: pointer;
+    color: $t3; font-family: 'Manrope', sans-serif;
+    font-size: 0.52rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    transition: color 0.18s; padding: 6px 2px;
+
+    &.active { color: $ambar-l; }
+    &:active { transform: scale(0.92); }
+  }
+}
+
+@media (max-width: 640px) {
+
+  // Ocultar sidebar, mostrar bottom nav
+  .adm-sidebar { display: none; }
+  .adm-main    { margin-left: 0; padding-bottom: 70px; }
+
+  // Topbar compacta
+  .adm-topbar {
+    padding: 0 14px;
+    height: 52px;
+
+    &__search { display: none; }
+    &__perfil { padding: 4px 8px;
+      div { display: none; } // ocultar nombre/rol
+    }
+    &__titulo { font-size: 1rem; }
+  }
+
+  // Contenido con más padding lateral
+  .adm-contenido { padding: 14px; }
+
+  // KPIs 2 columnas
+  .adm-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .adm-kpi__val { font-size: 1.5rem; }
+
+  // Row 2 apilado
+  .adm-row-2 { grid-template-columns: 1fr; }
+
+  // Tablas — scroll horizontal
+  .adm-tabla {
+    overflow-x: auto;
+    &__head, &__row {
+      min-width: 500px;
+    }
+  }
+
+  // Alerta
+  .adm-alerta {
+    flex-wrap: wrap;
+    button { margin-left: 0; width: 100%; }
+  }
+
+  // Plan grid
+  .adm-plan-grid { grid-template-columns: 1fr; }
+
+  // Seguridad grid
+  .adm-seg-grid { grid-template-columns: 1fr; }
+
+  // Árbol — solo canvas sin panel
+  .adm-arbol-wrap { grid-template-columns: 1fr; }
+
+  // Media grid
+  .adm-media-grid { grid-template-columns: repeat(2, 1fr); }
+
+  // Prod grid
+  .adm-prod-grid { grid-template-columns: repeat(2, 1fr); }
+
+  // Modal full width
+  .adm-modal { border-radius: 20px 20px 0 0; }
+  .adm-overlay { align-items: flex-end; padding: 0; }
+}
+
+@media (max-width: 380px) {
+  .adm-kpi-grid  { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .adm-media-grid { grid-template-columns: repeat(2, 1fr); }
+  .adm-prod-grid  { grid-template-columns: 1fr; }
+}

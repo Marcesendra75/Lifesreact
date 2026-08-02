@@ -461,3 +461,38 @@ $shadow-lg:  0 8px 40px rgba(0,0,0,0.4);
   .ae-panel { width: 100%; top: auto; height: 70vh; border-radius: 24px 24px 0 0; }
   .ae-leyenda { display: none; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — ArbolEmpresa
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .ae-page { padding-bottom: 70px; }
+
+  .ae-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px;
+    &__titulo { font-size: 1rem; } }
+
+  .ae-controles { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+
+  .ae-leyenda { display: none; }
+
+  // SVG con scroll horizontal
+  .ae-canvas-wrap { overflow-x: auto; }
+  .ae-svg { min-width: 600px; }
+
+  .ae-zoom-btns { bottom: 80px; right: 12px; }
+
+  // Panel lateral desde abajo en mobile
+  .ae-panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    border-radius: 20px 20px 0 0; z-index: 100;
+    max-height: 55dvh; overflow-y: auto;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+  }
+}
+
+@media (max-width: 480px) {
+  .ae-node { min-width: 80px; padding: 8px; }
+  .ae-node__foto   { width: 36px; height: 36px; }
+  .ae-node__nombre { font-size: 0.62rem; }
+  .ae-node__cargo  { font-size: 0.55rem; }
+}

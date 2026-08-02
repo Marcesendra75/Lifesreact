@@ -753,3 +753,20 @@ $shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
   .de-hero__inner { flex-direction: column; text-align: center; }
   .de-hero__stats { justify-content: center; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — DigitalEcho (Eco digital)
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .de-main { grid-template-columns: 1fr !important; padding: 14px; gap: 14px; }
+  .de-sidebar { display: none; }
+}
+
+@media (max-width: 480px) {
+  .de-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+  .de-hero   { padding: 20px 16px; text-align: center; }
+  .de-hero__titulo { font-size: 1.3rem; }
+  .de-chat-input-wrap { padding: 10px 14px; gap: 8px; }
+  .de-chat-input      { font-size: 0.82rem; }
+  .de-mensaje         { max-width: 90%; }
+}

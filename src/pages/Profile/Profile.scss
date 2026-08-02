@@ -998,3 +998,40 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     padding-right: 20px;
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — Profile (adicional)
+// ════════════════════════════════════════════════════════════
+// Profile ya tenía 29 media queries — agregamos los faltantes
+
+@media (max-width: 480px) {
+  .profile-root { padding-bottom: 70px; }
+
+  .profile-header {
+    padding: 12px 14px;
+    &__titulo { font-size: 0.9rem; }
+    &__acciones { gap: 4px; }
+    &__btn { padding: 6px 10px; font-size: 0.65rem; }
+  }
+
+  .profile-portada { height: 180px; }
+
+  .profile-avatar-wrap { width: 68px; height: 68px; }
+
+  .profile-nombre { font-size: 1.1rem; }
+
+  .profile-stats { gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  .profile-tabs { overflow-x: auto; flex-wrap: nowrap;
+    .profile-tab { flex-shrink: 0; } }
+
+  .profile-grid { grid-template-columns: 1fr !important; }
+
+  .profile-hito-img { height: 180px; }
+}
+
+@media (max-width: 360px) {
+  .profile-portada { height: 140px; }
+  .profile-avatar-wrap { width: 56px; height: 56px; }
+  .profile-nombre { font-size: 1rem; }
+}

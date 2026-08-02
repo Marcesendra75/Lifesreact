@@ -993,3 +993,20 @@ $shadow-hero: 0 20px 60px rgba(3,25,46,0.3);
     align-items: flex-start;
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — SafeBox (Caja fuerte)
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .sb-main { grid-template-columns: 1fr !important; padding: 14px; gap: 14px; }
+  .sb-sidebar { display: none; }
+  .sb-grid   { grid-template-columns: 1fr 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .sb-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+  .sb-grid   { grid-template-columns: 1fr !important; }
+  .sb-card   { padding: 14px; }
+  .sb-hero   { padding: 20px 16px; }
+  .sb-hero__titulo { font-size: 1.4rem; }
+}

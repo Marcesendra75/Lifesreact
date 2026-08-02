@@ -1132,3 +1132,35 @@ select.cdv-input {
   .cdv-tiers .cdv-tier { padding: 10px 12px; }
   .cdv-monedas { grid-template-columns: 1fr 1fr; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — CajaDeValores (Fondo de Legado)
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .cdv-main { padding: 14px; gap: 14px; }
+
+  .cdv-balance-card { padding: 20px; }
+
+  .cdv-tiers-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px;
+  }
+
+  .cdv-acciones { grid-template-columns: 1fr !important; }
+  .cdv-historial-tabla { overflow-x: auto; }
+}
+
+@media (max-width: 480px) {
+  .cdv-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+
+  .cdv-balance-card {
+    padding: 16px;
+    flex-direction: column; gap: 12px;
+  }
+
+  .cdv-tiers-grid { grid-template-columns: 1fr !important; }
+
+  .cdv-monto-display { font-size: 2.2rem; }
+
+  .cdv-tier-badge { font-size: 0.65rem; }
+}

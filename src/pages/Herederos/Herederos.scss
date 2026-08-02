@@ -785,3 +785,21 @@ $shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
   .her-hero__titulo { font-size: 1.3rem; }
   .her-drawer { width: 100%; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — Herederos
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .her-main { padding: 14px; gap: 14px; }
+  .her-grid { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+}
+
+@media (max-width: 480px) {
+  .her-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+  .her-grid   { grid-template-columns: 1fr !important; }
+  .her-card   { padding: 16px; }
+  .her-hero   { padding: 20px 16px; flex-direction: column; gap: 12px; text-align: center; }
+  .her-hero__titulo { font-size: 1.3rem; }
+  .her-modal  { border-radius: 20px 20px 0 0; }
+  .her-overlay { align-items: flex-end; padding: 0; }
+}

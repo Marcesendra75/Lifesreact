@@ -503,3 +503,21 @@ $shadow-lg:  0 8px 40px rgba(3,25,46,0.14);
   .lve-vista-btn { padding: 10px 12px; font-size: 0.72rem; }
   .lve-nodo { min-width: 130px; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — LineaVidaEmpresa
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .lve-main { padding: 14px; gap: 14px; }
+  .lve-hito-card { flex-direction: column !important; gap: 14px; }
+  .lve-hito-año  { writing-mode: horizontal-tb !important; font-size: 2rem; }
+  .lve-hito-img  { width: 100% !important; height: 200px; border-radius: 12px; }
+}
+
+@media (max-width: 480px) {
+  .lve-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+  .lve-filtros { overflow-x: auto; flex-wrap: nowrap; gap: 6px; padding-bottom: 4px;
+    button { flex-shrink: 0; } }
+  .lve-hito-año     { font-size: 1.6rem; }
+  .lve-hito-titulo  { font-size: 1rem; }
+}

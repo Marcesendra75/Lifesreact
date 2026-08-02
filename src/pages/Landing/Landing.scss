@@ -531,3 +531,112 @@
     transform: none !important;
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — Landing
+// ════════════════════════════════════════════════════════════
+
+@media (max-width: 480px) {
+
+  .landing-wrap {
+    padding: 16px;
+  }
+
+  // Pill selector
+  .landing-pill {
+    width: 100%;
+
+    &__btn {
+      flex: 1;
+      font-size: 0.72rem;
+      padding: 9px 8px;
+    }
+  }
+
+  // Card central
+  .landing-card {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  // Logo
+  .landing-logo-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .landing-titulo {
+    font-size: 2rem;
+  }
+
+  .landing-slogan {
+    font-size: 0.82rem;
+  }
+
+  // Formulario
+  .landing-form {
+    gap: 10px;
+  }
+
+  .landing-input-wrap input {
+    font-size: 0.88rem;
+    padding: 12px 14px 12px 38px;
+  }
+
+  // Botones
+  .landing-btn {
+    padding: 13px;
+    font-size: 0.82rem;
+  }
+
+  .landing-links {
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  // Tags
+  .landing-tags {
+    gap: 5px;
+    justify-content: center;
+  }
+
+  .landing-tag {
+    font-size: 0.6rem;
+    padding: 4px 8px;
+  }
+
+  // Planes
+  .landing-planes {
+    gap: 8px;
+  }
+
+  .landing-plan {
+    padding: 14px;
+  }
+
+  .landing-plan__precio {
+    font-size: 1.6rem;
+  }
+
+  // Switch
+  .landing-switch {
+    margin-top: 8px;
+  }
+
+  // Admin btn
+  .landing-admin-acceso {
+    &__divider span { font-size: 0.55rem; }
+  }
+
+  .landing-btn--admin {
+    font-size: 0.72rem;
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .landing-titulo { font-size: 1.7rem; }
+  .landing-tag    { display: none; }
+  .landing-tags .landing-tag:nth-child(-n+3) { display: flex; }
+}

@@ -1096,3 +1096,46 @@
     strong { color: #C9932A; }
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — Timeline (Línea de vida)
+// ════════════════════════════════════════════════════════════
+
+@media (max-width: 768px) {
+  .tl-root { padding-bottom: 70px; }
+
+  .tl-header {
+    padding: 12px 16px; flex-wrap: wrap; gap: 10px;
+    &__titulo { font-size: 1rem; }
+    &__acciones { gap: 6px; }
+  }
+
+  .tl-year-filter {
+    overflow-x: auto; flex-wrap: nowrap;
+    padding: 10px 16px; gap: 6px;
+    &__btn { flex-shrink: 0; }
+  }
+
+  .tl-scroll { padding: 0 16px 24px; }
+
+  // Olas — reducir tamaño
+  .tl-wave-section { margin-bottom: 32px; }
+  .tl-wave-title   { font-size: 1.4rem; }
+
+  // Nodos más pequeños
+  .tl-node {
+    &__card { min-width: 180px; max-width: 220px; }
+    &__año  { font-size: 1.8rem; }
+  }
+
+  // Formulario full width
+  .tl-form-wrap { width: calc(100% - 32px); left: 16px; right: 16px; }
+}
+
+@media (max-width: 480px) {
+  .tl-wave-title { font-size: 1.1rem; }
+  .tl-node__card { min-width: 150px; max-width: 180px; padding: 12px; }
+  .tl-node__año  { font-size: 1.4rem; }
+  .tl-node__titulo { font-size: 0.75rem; }
+  .tl-svg-wrap { min-width: 600px; } // scroll horizontal en mobile
+}

@@ -584,3 +584,19 @@
     &.active { color: #855324; background: rgba(133,83,36,0.08); }
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — TarjetaLegado
+// ════════════════════════════════════════════════════════════
+@media (max-width: 480px) {
+  .tl-container { padding: 16px; }
+  .tl-card      { padding: 24px 18px; }
+  .tl-titulo    { font-size: 1.5rem; }
+  .tl-btns      { flex-direction: column; gap: 8px;
+    button { width: 100%; justify-content: center; } }
+}
+
+@media (max-width: 360px) {
+  .tl-card   { padding: 20px 14px; }
+  .tl-titulo { font-size: 1.3rem; }
+}

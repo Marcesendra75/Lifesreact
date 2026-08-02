@@ -565,3 +565,20 @@ select.test-input { cursor: pointer; appearance: none; }
   .test-grid-2 { grid-template-columns: 1fr; }
   .test-hero__titulo { font-size: 1.2rem; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — Testamento
+// ════════════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .test-main { padding: 14px; gap: 14px; }
+  .test-hero  { padding: 20px 16px; flex-direction: column; gap: 14px; }
+}
+
+@media (max-width: 480px) {
+  .test-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+  .test-hero__titulo { font-size: 1.3rem; }
+  .test-acordeon-item { padding: 14px; }
+  .test-acordeon-titulo { font-size: 0.88rem; }
+  .test-btns { flex-direction: column; gap: 8px;
+    button { width: 100%; justify-content: center; } }
+}

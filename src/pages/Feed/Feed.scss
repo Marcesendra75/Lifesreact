@@ -875,3 +875,53 @@
 
   &:hover { color: #855324; }
 }
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE — Feed
+// ════════════════════════════════════════════════════════════
+
+@media (max-width: 900px) {
+  .feed-main {
+    grid-template-columns: 1fr !important;
+    padding: 16px;
+  }
+
+  .feed-sidebar { display: none; }
+
+  .feed-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .feed-root { padding-bottom: 70px; } // espacio bottom nav
+
+  .feed-header {
+    padding: 12px 16px;
+    flex-wrap: wrap; gap: 10px;
+
+    &__titulo { font-size: 1rem; }
+    &__search { width: 100%; order: 3; }
+  }
+
+  .feed-main { padding: 12px; gap: 12px; }
+
+  .feed-profile {
+    flex-direction: column; align-items: center; text-align: center;
+    padding: 16px;
+  }
+
+  .feed-stats { justify-content: center; gap: 16px; }
+
+  .feed-epocas { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+  .feed-epoca-btn { flex-shrink: 0; }
+
+  .feed-hoy-hace { padding: 12px; }
+
+  .feed-mini-tree { display: none; }
+}
+
+@media (max-width: 380px) {
+  .feed-header { padding: 10px 12px; }
+  .feed-main   { padding: 10px; }
+}

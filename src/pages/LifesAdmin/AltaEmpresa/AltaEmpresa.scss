@@ -1,0 +1,415 @@
+// ============================================================
+// LIFE'S — AltaEmpresa.scss | Wizard Alta de Empresa
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+$bg:      #080c10;
+$surface: #0d1117;
+$surface2:#161b22;
+$surface3:#1c2128;
+$border:  rgba(255,255,255,0.07);
+$oro:     #C9932A;
+$oro-l:   #ffe088;
+$oro-dim: rgba(201,147,42,0.1);
+$rojo:    #f85149;
+$verde:   #86efac;
+$azul:    #58a6ff;
+$t1:      rgba(255,255,255,0.92);
+$t2:      rgba(255,255,255,0.5);
+$t3:      rgba(255,255,255,0.22);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+// ── Base ───────────────────────────────────────────────────
+.ae-page {
+  min-height: 100dvh; background: $bg;
+  font-family: 'Manrope', sans-serif; color: $t1;
+}
+
+// ── Header ─────────────────────────────────────────────────
+.ae-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 24px; background: $surface;
+  border-bottom: 1px solid $border;
+  position: sticky; top: 0; z-index: 40;
+
+  &__back {
+    background: rgba(255,255,255,0.06); border: none; cursor: pointer;
+    color: $t2; width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    &:hover { background: rgba(255,255,255,0.12); color: $t1; }
+  }
+
+  &__titulo {
+    font-family: 'Newsreader', serif; font-style: italic;
+    font-size: 1.2rem; font-weight: 400; color: $t1; margin: 0;
+  }
+
+  &__sub { font-size: 0.6rem; color: $t3; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+}
+
+// ── Stepper ────────────────────────────────────────────────
+.ae-stepper {
+  display: flex; align-items: center;
+  padding: 20px 24px; background: $surface;
+  border-bottom: 1px solid $border;
+  overflow-x: auto; gap: 0;
+
+  &__item {
+    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__btn {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: $surface2; border: 2px solid $border;
+    display: flex; align-items: center; justify-content: center;
+    color: $t3; cursor: default; transition: all 0.2s; flex-shrink: 0;
+
+    &.active {
+      background: $oro; border-color: $oro; color: #080c10;
+      box-shadow: 0 0 0 4px rgba($oro, 0.2);
+    }
+    &.done {
+      background: rgba($verde, 0.15); border-color: rgba($verde, 0.4);
+      color: $verde; cursor: pointer;
+      &:hover { background: rgba($verde, 0.25); }
+    }
+  }
+
+  &__label {
+    font-size: 0.7rem; font-weight: 700; color: $t3;
+    white-space: nowrap;
+    .ae-stepper__btn.active + & { color: $oro; }
+    .ae-stepper__btn.done + & { color: $verde; }
+  }
+
+  &__linea {
+    width: 40px; height: 2px; background: $border;
+    margin: 0 8px; flex-shrink: 0;
+    &.done { background: rgba($verde, 0.4); }
+  }
+}
+
+// ── Contenido ──────────────────────────────────────────────
+.ae-contenido {
+  max-width: 860px; margin: 0 auto;
+  padding: 28px 24px; display: flex; flex-direction: column; gap: 0;
+}
+
+// ── Paso ───────────────────────────────────────────────────
+.ae-paso {
+  display: flex; flex-direction: column; gap: 20px;
+  animation: fadeUp 0.3s ease;
+
+  &__titulo {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding-bottom: 16px; border-bottom: 1px solid $border;
+
+    svg { color: $oro; margin-top: 4px; flex-shrink: 0; }
+
+    h2 { font-family: 'Newsreader', serif; font-style: italic; font-size: 1.4rem; font-weight: 400; color: $t1; margin: 0 0 3px; }
+    p  { font-size: 0.75rem; color: $t3; margin: 0; }
+  }
+}
+
+// ── Sección ────────────────────────────────────────────────
+.ae-seccion {
+  display: flex; flex-direction: column; gap: 14px;
+
+  &__titulo {
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; color: $oro; margin: 0;
+  }
+
+  &__desc { font-size: 0.72rem; color: $t3; margin: -8px 0 0; }
+}
+
+// ── Grids ──────────────────────────────────────────────────
+.ae-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  @media (max-width: 600px) { grid-template-columns: 1fr; } }
+.ae-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+  @media (max-width: 720px) { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 500px) { grid-template-columns: 1fr; } }
+
+// ── Campo ──────────────────────────────────────────────────
+.ae-campo {
+  display: flex; flex-direction: column; gap: 5px;
+  &--full { grid-column: 1 / -1; }
+  &--center { justify-content: center; }
+
+  label {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: $t3;
+    span { color: $oro; }
+  }
+
+  input, select, textarea {
+    background: $surface2; border: 1.5px solid $border;
+    border-radius: 10px; padding: 10px 13px;
+    font-family: 'Manrope', sans-serif; font-size: 0.83rem; color: $t1;
+    outline: none; transition: border-color 0.2s;
+    width: 100%; box-sizing: border-box;
+    &:focus  { border-color: rgba($oro, 0.5); }
+    &::placeholder { color: $t3; }
+    &.error { border-color: rgba($rojo, 0.5); }
+    &.valid { border-color: rgba($verde, 0.4); }
+  }
+
+  select { cursor: pointer; appearance: none; }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+  &__count { font-size: 0.58rem; color: $t3; text-align: right; margin-top: -2px; }
+  &__hint  { font-size: 0.62rem; color: $t3; font-style: italic; margin-top: -2px; }
+}
+
+.ae-error { font-size: 0.62rem; color: $rojo; display: flex; align-items: center; gap: 4px; }
+.ae-ok    { font-size: 0.62rem; color: $verde; }
+
+// Input con icono
+.ae-input-icon-wrap {
+  position: relative; display: flex; align-items: center;
+
+  input { padding-left: 36px; }
+}
+
+.ae-input-icon {
+  position: absolute; left: 12px; color: $t3; pointer-events: none; flex-shrink: 0;
+}
+
+.ae-input-check {
+  position: absolute; right: 10px;
+  &.ok   { color: $verde; }
+  &.fail { color: $rojo; }
+}
+
+// ── Alerta error ───────────────────────────────────────────
+.ae-alerta-error {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba($rojo, 0.08); border: 1px solid rgba($rojo, 0.2);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 0.78rem; color: $rojo;
+  svg { flex-shrink: 0; }
+}
+
+// ── Socio card ─────────────────────────────────────────────
+.ae-socio-card {
+  background: $surface; border: 1px solid $border;
+  border-radius: 14px; padding: 18px;
+  display: flex; flex-direction: column; gap: 14px;
+  animation: fadeUp 0.2s ease;
+
+  &__header {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  &__num {
+    font-size: 0.65rem; font-weight: 800; letter-spacing: 0.1em;
+    text-transform: uppercase; color: $t3;
+  }
+
+  &__rep-badge {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 0.58rem; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; color: $oro;
+    background: $oro-dim; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid rgba($oro, 0.25);
+    svg { color: $oro; }
+  }
+
+  &__del {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    color: rgba($rojo, 0.5); padding: 4px; border-radius: 6px;
+    display: flex; transition: all 0.2s;
+    &:hover { color: $rojo; background: rgba($rojo, 0.08); }
+  }
+}
+
+.ae-toggle-rep {
+  display: flex; align-items: center; gap: 10px;
+  background: $surface2; border: 1.5px solid $border;
+  border-radius: 10px; padding: 10px 14px; cursor: pointer;
+  transition: all 0.2s;
+
+  &.active { border-color: rgba($oro, 0.4); background: rgba($oro, 0.06); }
+
+  &__thumb {
+    width: 36px; height: 20px; background: rgba(255,255,255,0.1);
+    border-radius: 999px; position: relative; flex-shrink: 0;
+    transition: background 0.3s;
+
+    &::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 16px; height: 16px; background: white; border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+  }
+
+  &.active &__thumb {
+    background: $oro;
+    &::after { transform: translateX(16px); }
+  }
+
+  span { font-size: 0.72rem; color: $t2; }
+  &.active span { color: $oro-l; }
+}
+
+.ae-btn-agregar-socio {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 2px dashed rgba($oro, 0.3);
+  border-radius: 12px; padding: 14px; cursor: pointer;
+  font-family: 'Manrope', sans-serif; font-size: 0.78rem;
+  font-weight: 700; color: rgba($oro, 0.7); width: 100%;
+  justify-content: center; transition: all 0.2s;
+  &:hover { border-color: $oro; color: $oro-l; background: rgba($oro, 0.04); }
+}
+
+.ae-socios-resumen {
+  background: $surface; border: 1px solid $border; border-radius: 10px; padding: 12px 16px;
+  &__total { font-size: 0.78rem; color: $t2; strong { color: $t1; } }
+  &__warn { color: rgba($rojo, 0.8); font-weight: 700; }
+}
+
+// ── Empleados ──────────────────────────────────────────────
+.ae-opciones-empleados { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.ae-opcion-empleados {
+  background: $surface2; border: 1.5px solid $border; border-radius: 8px;
+  padding: 7px 14px; font-family: 'Manrope', sans-serif;
+  font-size: 0.72rem; font-weight: 700; color: $t3; cursor: pointer;
+  transition: all 0.18s;
+  &.active { background: rgba($oro, 0.12); border-color: rgba($oro, 0.4); color: $oro-l; }
+  &:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: $t1; }
+}
+
+// ── Planes ─────────────────────────────────────────────────
+.ae-planes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  @media (max-width: 600px) { grid-template-columns: 1fr; } }
+
+.ae-plan-card {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  gap: 6px; padding: 20px 14px; background: $surface;
+  border: 1.5px solid $border; border-radius: 14px; cursor: pointer;
+  transition: all 0.2s; text-align: center;
+
+  &:hover { border-color: rgba(255,255,255,0.2); }
+
+  &.active { border-color: $oro; background: rgba($oro, 0.06);
+    box-shadow: 0 0 0 3px rgba($oro, 0.15); }
+
+  &.destacado { border-color: rgba($oro, 0.3); }
+
+  &__badge {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    background: $oro; color: #080c10; font-size: 0.58rem; font-weight: 800;
+    padding: 2px 10px; border-radius: 999px; white-space: nowrap;
+  }
+
+  &__nombre { font-family: 'Newsreader', serif; font-style: italic; font-size: 1.1rem; color: $t1; }
+  &__precio { font-size: 0.85rem; font-weight: 800; color: $oro; }
+  &__desc   { font-size: 0.65rem; color: $t3; }
+  &__check  { color: $oro; margin-top: 4px; }
+}
+
+// ── Nivel verificación ──────────────────────────────────────
+.ae-opciones-nivel { display: flex; gap: 8px; }
+
+.ae-opcion-nivel {
+  flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: center;
+  padding: 12px; background: $surface2; border: 1.5px solid $border;
+  border-radius: 10px; cursor: pointer; transition: all 0.18s;
+
+  strong { font-size: 0.78rem; color: $t1; }
+  span   { font-size: 0.62rem; color: $t3; }
+
+  &.active {
+    border-color: rgba($oro, 0.4); background: rgba($oro, 0.08);
+    strong { color: $oro-l; } span { color: rgba($oro, 0.6); }
+  }
+}
+
+// ── Documentación ──────────────────────────────────────────
+.ae-docs-lista { display: flex; flex-direction: column; gap: 8px; }
+
+.ae-doc-item {
+  display: flex; align-items: center; gap: 12px;
+  background: $surface; border: 1px solid $border;
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 0.78rem; color: $t2;
+
+  &__check {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    background: $surface2; border: 1.5px solid $border;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.18s; color: transparent;
+
+    &.active { background: $oro; border-color: $oro; color: #080c10; }
+  }
+
+  &__req {
+    margin-left: auto; font-size: 0.58rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: rgba($oro, 0.6);
+  }
+}
+
+// ── Resumen ────────────────────────────────────────────────
+.ae-resumen {
+  background: $surface; border: 1px solid rgba($oro, 0.2);
+  border-radius: 14px; padding: 20px;
+
+  h3 { font-family: 'Newsreader', serif; font-style: italic;
+    font-size: 1.1rem; font-weight: 400; color: $t1; margin: 0 0 14px; }
+
+  &__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    @media (max-width: 500px) { grid-template-columns: 1fr; } }
+
+  &__item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; background: $surface2; border-radius: 8px;
+    font-size: 0.72rem;
+    span   { color: $t3; }
+    strong { color: $t1; font-weight: 700; }
+  }
+}
+
+// ── Navegación ─────────────────────────────────────────────
+.ae-nav {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 24px; padding-top: 20px; border-top: 1px solid $border;
+
+  &__btn-prev {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.06); color: $t2; border: 1px solid $border;
+    border-radius: 999px; padding: 10px 20px;
+    font-family: 'Manrope', sans-serif; font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    &:hover { background: rgba(255,255,255,0.1); color: $t1; }
+  }
+
+  &__btn-next {
+    display: flex; align-items: center; gap: 6px;
+    background: $oro; color: #080c10; border: none;
+    border-radius: 999px; padding: 10px 24px;
+    font-family: 'Manrope', sans-serif; font-size: 0.8rem; font-weight: 800;
+    cursor: pointer; transition: all 0.2s;
+    &:hover { background: $oro-l; transform: translateY(-1px); }
+  }
+
+  &__btn-guardar {
+    display: flex; align-items: center; gap: 7px;
+    background: linear-gradient(135deg, $verde, rgba($verde, 0.7));
+    color: #080c10; border: none; border-radius: 999px; padding: 11px 28px;
+    font-family: 'Manrope', sans-serif; font-size: 0.85rem; font-weight: 800;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba($verde, 0.25);
+    &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgba($verde, 0.35); }
+    &:disabled { opacity: 0.7; }
+  }
+}
