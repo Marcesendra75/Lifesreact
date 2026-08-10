@@ -1,0 +1,341 @@
+// ============================================================
+// LIFE'S — TripleSeguridad.scss
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+$bg:     #080c10;
+$surf:   #0d1117;
+$surf2:  #161b22;
+$border: rgba(255,255,255,0.07);
+$oro:    #C9932A;
+$oro-l:  #ffe088;
+$rojo:   #f85149;
+$verde:  #86efac;
+$t1:     rgba(255,255,255,0.92);
+$t2:     rgba(255,255,255,0.5);
+$t3:     rgba(255,255,255,0.22);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes pulse {
+  0%,100% { box-shadow:0 0 0 0 rgba(201,147,42,0.4); }
+  50%      { box-shadow:0 0 0 10px rgba(201,147,42,0); }
+}
+
+// ── Base ───────────────────────────────────────────────────
+.ts-page {
+  min-height: 100dvh; background: $bg;
+  font-family: 'Manrope', sans-serif; color: $t1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; position: relative; overflow: hidden;
+}
+
+.ts-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba($oro,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 80%, rgba(58,90,138,.08) 0%, transparent 60%);
+  &::after {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(circle, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+.ts-wrap {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 440px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  animation: fadeUp 0.4s ease both;
+}
+
+// ── Logo ───────────────────────────────────────────────────
+.ts-logo {
+  display: flex; align-items: center; gap: 14px;
+
+  &__shield {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(135deg, $oro, rgba($oro,.5));
+    display: flex; align-items: center; justify-content: center;
+    color: #080c10; flex-shrink: 0;
+    box-shadow: 0 4px 24px rgba($oro,.35);
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  &__lifes {
+    display: block; font-family: 'Newsreader', serif; font-style: italic;
+    font-size: 1.8rem; font-weight: 400; color: $t1; line-height: 1;
+  }
+
+  &__badge {
+    display: block; font-size: 0.58rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase; color: $oro; margin-top: 2px;
+  }
+}
+
+// ── Pasos ──────────────────────────────────────────────────
+.ts-pasos {
+  display: flex; align-items: center; gap: 0; width: 100%;
+  background: $surf; border: 1px solid $border; border-radius: 12px; padding: 12px 16px;
+
+  &__item {
+    display: flex; align-items: center; gap: 8px; flex: 1;
+  }
+
+  &__dot {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: $surf2; border: 2px solid $border;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; color: $t3; transition: all 0.3s;
+
+    &.active { background: $oro; border-color: $oro; color: #080c10;
+      box-shadow: 0 0 0 3px rgba($oro,.25); }
+    &.done   { background: rgba($verde,.15); border-color: rgba($verde,.4); color: $verde; }
+  }
+
+  &__label {
+    font-size: 0.62rem; font-weight: 700; color: $t3;
+    white-space: nowrap; transition: color 0.3s;
+    &.active { color: $oro; }
+  }
+
+  &__linea {
+    flex: 1; height: 2px; background: $border; margin: 0 6px;
+    &.done { background: rgba($verde,.4); }
+  }
+}
+
+// ── Card ───────────────────────────────────────────────────
+.ts-card {
+  width: 100%; background: $surf; border: 1px solid $border;
+  border-radius: 20px; padding: 28px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; gap: 18px;
+  animation: fadeUp 0.3s ease both;
+
+  &__header {
+    display: flex; align-items: flex-start; gap: 12px;
+    h2 { font-family: 'Newsreader', serif; font-style: italic;
+      font-size: 1.3rem; font-weight: 400; color: $t1; margin: 0 0 3px; }
+    p  { font-size: 0.65rem; color: $t3; margin: 0; }
+  }
+}
+
+// ── Usuario mini ───────────────────────────────────────────
+.ts-usuario-mini {
+  display: flex; align-items: center; gap: 10px;
+  background: $surf2; border: 1px solid $border; border-radius: 10px; padding: 10px 14px;
+
+  &__avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 800;
+  }
+
+  strong { display: block; font-size: 0.8rem; font-weight: 700; color: $t1; }
+  span   { display: block; font-size: 0.62rem; color: $t3; margin-top: 1px; }
+}
+
+// ── Form ───────────────────────────────────────────────────
+.ts-form { display: flex; flex-direction: column; gap: 14px; }
+
+.ts-campo {
+  display: flex; flex-direction: column; gap: 6px;
+
+  label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: $t3; }
+
+  input {
+    background: $surf2; border: 1.5px solid $border; border-radius: 10px;
+    padding: 11px 14px; font-family: 'Manrope', sans-serif;
+    font-size: 0.85rem; color: $t1; outline: none; transition: border-color 0.2s;
+    width: 100%; box-sizing: border-box;
+    &:focus { border-color: rgba($oro,.5); }
+    &::placeholder { color: $t3; }
+    &.error { border-color: rgba($rojo,.5); }
+  }
+
+  &__hint { font-size: 0.62rem; color: $t3; font-style: italic; }
+}
+
+.ts-input-mono input { font-family: monospace; font-size: 1rem; letter-spacing: 0.1em; }
+
+.ts-input-pass {
+  position: relative;
+  input { padding-right: 42px; }
+  button { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: $t3;
+    display: flex; &:hover { color: $t1; } }
+}
+
+// ── Tabs método QR ─────────────────────────────────────────
+.ts-metodo-tabs {
+  display: flex; gap: 4px; background: $surf2; border-radius: 10px; padding: 4px;
+}
+
+.ts-metodo-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: none; border: none; border-radius: 8px; padding: 8px;
+  font-family: 'Manrope', sans-serif; font-size: 0.72rem; font-weight: 700;
+  color: $t3; cursor: pointer; transition: all 0.18s;
+  &.active { background: $oro; color: #080c10; }
+  &:hover:not(.active) { color: $t1; }
+}
+
+// ── Cámara placeholder ─────────────────────────────────────
+.ts-camara-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 28px 20px; text-align: center;
+  background: $surf2; border: 2px dashed $border; border-radius: 14px;
+
+  svg { color: $t3; }
+  h3  { font-family: 'Newsreader', serif; font-style: italic; font-size: 1.1rem; color: $t1; margin: 0; }
+  p   { font-size: 0.72rem; color: $t3; margin: 0; line-height: 1.5; }
+}
+
+// ── Demo QR ────────────────────────────────────────────────
+.ts-demo-qr {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba($oro,.06); border: 1px solid rgba($oro,.15);
+  border-radius: 10px; padding: 10px 14px;
+  font-size: 0.7rem; color: $t2; flex-wrap: wrap;
+
+  &__codigo {
+    background: $surf2; border: 1px solid rgba($oro,.3); border-radius: 6px;
+    padding: 4px 10px; font-family: monospace; font-size: 0.82rem;
+    font-weight: 700; color: $oro-l; cursor: pointer; transition: all 0.18s;
+    display: flex; align-items: center; gap: 6px;
+    span { font-family: 'Manrope',sans-serif; font-size: 0.6rem; color: $t3; }
+    &:hover { background: rgba($oro,.12); }
+  }
+}
+
+// ── PIN ────────────────────────────────────────────────────
+.ts-pin-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.ts-pin-label { font-size: 0.75rem; color: $t2; text-align: center; }
+
+.ts-pin-inputs { display: flex; gap: 10px; }
+
+.ts-pin-input {
+  width: 46px; height: 56px; border-radius: 12px;
+  background: $surf2; border: 2px solid $border;
+  font-size: 1.5rem; font-weight: 800; color: $t1;
+  text-align: center; outline: none; transition: all 0.2s;
+  caret-color: transparent;
+  &:focus { border-color: $oro; box-shadow: 0 0 0 3px rgba($oro,.2); }
+  &.error { border-color: $rojo; animation: shake 0.3s ease; }
+  &:not(:placeholder-shown) { background: rgba($oro,.08); }
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
+}
+
+.ts-verificando {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.75rem; color: $t3;
+}
+
+// ── Recordar dispositivo ───────────────────────────────────
+.ts-recordar {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: $surf2; border: 1.5px solid $border; border-radius: 12px;
+  padding: 12px 14px; cursor: pointer; transition: all 0.2s;
+  &:hover { border-color: rgba($oro,.2); }
+
+  &__check {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; margin-top: 1px;
+    background: $surf; border: 1.5px solid $border;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    color: transparent;
+    &.active { background: $oro; border-color: $oro; color: #080c10; }
+  }
+
+  span  { display: block; font-size: 0.78rem; font-weight: 700; color: $t1; margin-bottom: 2px; }
+  small { display: block; font-size: 0.62rem; color: $t3; }
+}
+
+// ── Demo usuarios ──────────────────────────────────────────
+.ts-demo { display: flex; flex-direction: column; gap: 8px; }
+
+.ts-demo__toggle {
+  background: none; border: 1px solid $border; border-radius: 999px;
+  padding: 6px 14px; font-family: 'Manrope',sans-serif; font-size: 0.65rem;
+  font-weight: 700; color: $t3; cursor: pointer; transition: all 0.18s; width: fit-content; margin: 0 auto;
+  &:hover { border-color: rgba($oro,.3); color: $t2; }
+}
+
+.ts-demo__lista { display: flex; flex-direction: column; gap: 6px; }
+
+.ts-demo__user {
+  display: flex; align-items: center; gap: 10px;
+  background: $surf2; border: 1.5px solid $border; border-radius: 10px;
+  padding: 10px 12px; cursor: pointer; transition: all 0.18s; text-align: left; width: 100%;
+  &:hover { border-color: rgba($oro,.25); }
+
+  strong { display: block; font-size: 0.75rem; color: $t1; font-weight: 700; }
+  span   { display: block; font-size: 0.6rem; color: $t3; &:first-of-type { color: rgba($oro,.7); } }
+}
+
+.ts-demo__avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; font-weight: 800;
+}
+
+// ── QR SVG ─────────────────────────────────────────────────
+.ts-qr-svg { width: 100%; max-width: 120px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.3); }
+
+// ── Botones ────────────────────────────────────────────────
+.ts-btn-primary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(135deg, $oro, rgba($oro,.7));
+  color: #080c10; border: none; border-radius: 999px; padding: 13px;
+  font-family: 'Manrope',sans-serif; font-size: 0.85rem; font-weight: 800;
+  cursor: pointer; transition: all 0.2s; width: 100%;
+  box-shadow: 0 4px 20px rgba($oro,.3);
+  &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgba($oro,.4); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.ts-btn-secondary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(255,255,255,.06); color: $t1; border: 1px solid $border;
+  border-radius: 999px; padding: 10px 20px; font-family: 'Manrope',sans-serif;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  &:hover { background: rgba(255,255,255,.1); }
+}
+
+.ts-link {
+  display: flex; align-items: center; gap: 5px; background: none; border: none;
+  cursor: pointer; font-family: 'Manrope',sans-serif; font-size: 0.68rem;
+  font-weight: 600; color: $t3; transition: color 0.2s; margin: 0 auto;
+  &:hover { color: $oro; }
+}
+
+.ts-error {
+  display: flex; align-items: center; gap: 7px; background: rgba($rojo,.1);
+  border: 1px solid rgba($rojo,.2); border-radius: 8px; padding: 10px 12px;
+  font-size: 0.75rem; color: $rojo; svg { flex-shrink: 0; }
+}
+
+.ts-loader {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid rgba(#080c10,.3); border-top-color: #080c10;
+  animation: spin 0.7s linear infinite; display: inline-block;
+}
+
+// ── Responsive ─────────────────────────────────────────────
+@media (max-width: 480px) {
+  .ts-card { padding: 22px 16px; }
+  .ts-logo { gap: 10px; &__shield { width: 46px; height: 46px; } &__lifes { font-size: 1.5rem; } }
+  .ts-pin-inputs { gap: 7px; }
+  .ts-pin-input { width: 40px; height: 50px; font-size: 1.3rem; }
+  .ts-pasos { padding: 10px 12px; &__label { display: none; } }
+}

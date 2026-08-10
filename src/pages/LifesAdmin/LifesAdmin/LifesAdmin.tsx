@@ -229,6 +229,28 @@ export default function LifesAdmin() {
   const [periodoMetrica, setPeriodoMetrica] = useState('Mes');
   const [monedaMetrica,  setMonedaMetrica]  = useState<'ars'|'usd'|'btc'>('ars');
 
+  // ── Estado Configuración ──
+  const [cfgNombrePlat,   setCfgNombrePlat]   = useState("Life's");
+  const [cfgEmailSoporte, setCfgEmailSoporte] = useState('soporte@lifes.com');
+  const [cfgEmailAdmin,   setCfgEmailAdmin]   = useState('admin@lifes.com');
+  const [cfgPrecioStart,  setCfgPrecioStart]  = useState('500');
+  const [cfgPrecioPro,    setCfgPrecioPro]    = useState('1200');
+  const [cfgPrecioEnt,    setCfgPrecioEnt]    = useState('A consultar');
+  const [cfgStorageStart, setCfgStorageStart] = useState('10');
+  const [cfgStoragePro,   setCfgStoragePro]   = useState('50');
+  const [cfgStorageEnt,   setCfgStorageEnt]   = useState('500');
+  const [cfgTasaNivel1,   setCfgTasaNivel1]   = useState('3.5');
+  const [cfgTasaNivel2,   setCfgTasaNivel2]   = useState('4.8');
+  const [cfgTasaNivel3,   setCfgTasaNivel3]   = useState('5.8');
+  const [cfgTasaNivel4,   setCfgTasaNivel4]   = useState('7.2');
+  const [cfgPrecioRecuerdo, setCfgPrecioRecuerdo] = useState('2500');
+  const [cfgPrecioLogistica, setCfgPrecioLogistica] = useState('1500');
+  const [cfgMantenimiento,  setCfgMantenimiento]  = useState(false);
+  const [cfgRegistroAbierto, setCfgRegistroAbierto] = useState(true);
+  const [cfgNotifEmail,    setCfgNotifEmail]   = useState(true);
+  const [cfgNotifWhatsapp, setCfgNotifWhatsapp] = useState(false);
+  const [cfgSeccionActiva, setCfgSeccionActiva] = useState('plataforma');
+
   useEffect(() => {
     const data = sessionStorage.getItem('la_usuario');
     if (!data) { navigate('/lifes-admin/login'); return; }
@@ -813,7 +835,258 @@ export default function LifesAdmin() {
             </div>
           )}
 
-          {/* ── PLACEHOLDER módulos restantes ── */}
+          {/* ── CONFIGURACIÓN ── */}
+          {modulo === 'config' && rol === 'Superadmin' && (
+            <div className="la-modulo">
+              <div className="la-modulo__header">
+                <div>
+                  <h2 className="la-modulo__titulo">Configuración de plataforma</h2>
+                  <p className="la-modulo__sub">Solo visible para Superadmin · Los cambios afectan toda la plataforma</p>
+                </div>
+                <button className="la-btn-primary" onClick={() => showToast('✓ Configuración guardada')}>
+                  <Check size={14} strokeWidth={2}/> Guardar cambios
+                </button>
+              </div>
+
+              {/* Tabs de configuración */}
+              <div className="la-cfg-tabs">
+                {[
+                  { id:'plataforma', label:'🌐 Plataforma' },
+                  { id:'planes',     label:'💳 Planes' },
+                  { id:'legado',     label:'🏦 Fondo de Legado' },
+                  { id:'recuerdos',  label:'💌 Recuerdos' },
+                  { id:'notif',      label:'🔔 Notificaciones' },
+                  { id:'sistema',    label:'⚙️ Sistema' },
+                ].map(t => (
+                  <button key={t.id}
+                    className={`la-cfg-tab${cfgSeccionActiva===t.id?' active':''}`}
+                    onClick={() => setCfgSeccionActiva(t.id)}
+                  >{t.label}</button>
+                ))}
+              </div>
+
+              {/* ── Plataforma ── */}
+              {cfgSeccionActiva === 'plataforma' && (
+                <div className="la-cfg-seccion">
+                  <h3 className="la-cfg-seccion__titulo">Datos generales</h3>
+                  <div className="la-cfg-grid">
+                    <div className="la-cfg-campo">
+                      <label>Nombre de la plataforma</label>
+                      <input value={cfgNombrePlat} onChange={e => setCfgNombrePlat(e.target.value)}/>
+                    </div>
+                    <div className="la-cfg-campo">
+                      <label>Email de soporte</label>
+                      <input type="email" value={cfgEmailSoporte} onChange={e => setCfgEmailSoporte(e.target.value)}/>
+                    </div>
+                    <div className="la-cfg-campo">
+                      <label>Email de administración</label>
+                      <input type="email" value={cfgEmailAdmin} onChange={e => setCfgEmailAdmin(e.target.value)}/>
+                    </div>
+                  </div>
+
+                  <h3 className="la-cfg-seccion__titulo" style={{marginTop:'8px'}}>Storage por plan (GB)</h3>
+                  <div className="la-cfg-grid">
+                    <div className="la-cfg-campo">
+                      <label>Starter</label>
+                      <div className="la-cfg-input-unit">
+                        <input type="number" value={cfgStorageStart} onChange={e => setCfgStorageStart(e.target.value)}/>
+                        <span>GB</span>
+                      </div>
+                    </div>
+                    <div className="la-cfg-campo">
+                      <label>Professional</label>
+                      <div className="la-cfg-input-unit">
+                        <input type="number" value={cfgStoragePro} onChange={e => setCfgStoragePro(e.target.value)}/>
+                        <span>GB</span>
+                      </div>
+                    </div>
+                    <div className="la-cfg-campo">
+                      <label>Enterprise</label>
+                      <div className="la-cfg-input-unit">
+                        <input type="number" value={cfgStorageEnt} onChange={e => setCfgStorageEnt(e.target.value)}/>
+                        <span>GB</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Planes ── */}
+              {cfgSeccionActiva === 'planes' && (
+                <div className="la-cfg-seccion">
+                  <h3 className="la-cfg-seccion__titulo">Precios de planes empresariales (ARS / año)</h3>
+                  <div className="la-cfg-planes">
+                    {[
+                      { label:'Starter',      color:'#8A8279', precio:cfgPrecioStart,  set:setCfgPrecioStart,  desc:'PyMEs, clubes y ONGs' },
+                      { label:'Professional', color:'#C9932A', precio:cfgPrecioPro,    set:setCfgPrecioPro,    desc:'Empresas medianas' },
+                      { label:'Enterprise',   color:'#3a5a8a', precio:cfgPrecioEnt,    set:setCfgPrecioEnt,    desc:'Grandes corporaciones' },
+                    ].map(p => (
+                      <div key={p.label} className="la-cfg-plan-card">
+                        <div className="la-cfg-plan-card__header" style={{borderColor:p.color}}>
+                          <span className="la-cfg-plan-card__nombre" style={{color:p.color}}>{p.label}</span>
+                          <span className="la-cfg-plan-card__desc">{p.desc}</span>
+                        </div>
+                        <div className="la-cfg-campo">
+                          <label>Precio anual</label>
+                          <div className="la-cfg-input-unit">
+                            <span>$</span>
+                            <input value={p.precio} onChange={e => p.set(e.target.value)}
+                              placeholder={p.label==='Enterprise'?'A consultar':'0'}/>
+                            <span>ARS</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="la-cfg-info-box">
+                    <span>💡</span>
+                    <p>Los cambios de precio aplican solo a nuevas contrataciones. Los planes activos mantienen el precio al momento de la compra hasta su vencimiento.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Fondo de Legado ── */}
+              {cfgSeccionActiva === 'legado' && (
+                <div className="la-cfg-seccion">
+                  <h3 className="la-cfg-seccion__titulo">Tasas de interés mensual por nivel</h3>
+                  <div className="la-cfg-grid">
+                    {[
+                      { label:'Nivel Base (2-4 años)',  val:cfgTasaNivel1, set:setCfgTasaNivel1, color:'#8A8279' },
+                      { label:'Nivel Plata (4-7 años)', val:cfgTasaNivel2, set:setCfgTasaNivel2, color:'#C9932A' },
+                      { label:'Nivel Oro (7-10 años)',  val:cfgTasaNivel3, set:setCfgTasaNivel3, color:'#C9932A' },
+                      { label:'Nivel Legado (+10 años)',val:cfgTasaNivel4, set:setCfgTasaNivel4, color:'#ffe088' },
+                    ].map(n => (
+                      <div key={n.label} className="la-cfg-campo">
+                        <label style={{color:n.color}}>{n.label}</label>
+                        <div className="la-cfg-input-unit">
+                          <input type="number" step="0.1" min="0" max="20"
+                            value={n.val} onChange={e => n.set(e.target.value)}/>
+                          <span>% mensual</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="la-cfg-info-box">
+                    <span>⚠️</span>
+                    <p>Modificar las tasas afecta los nuevos depósitos únicamente. Los depósitos existentes mantienen la tasa acordada al momento del ingreso.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Recuerdos ── */}
+              {cfgSeccionActiva === 'recuerdos' && (
+                <div className="la-cfg-seccion">
+                  <h3 className="la-cfg-seccion__titulo">Precios de venta de recuerdos</h3>
+                  <div className="la-cfg-grid">
+                    <div className="la-cfg-campo">
+                      <label>Precio base del recuerdo</label>
+                      <div className="la-cfg-input-unit">
+                        <span>$</span>
+                        <input type="number" value={cfgPrecioRecuerdo}
+                          onChange={e => setCfgPrecioRecuerdo(e.target.value)}/>
+                        <span>ARS</span>
+                      </div>
+                    </div>
+                    <div className="la-cfg-campo">
+                      <label>Costo de logística</label>
+                      <div className="la-cfg-input-unit">
+                        <span>$</span>
+                        <input type="number" value={cfgPrecioLogistica}
+                          onChange={e => setCfgPrecioLogistica(e.target.value)}/>
+                        <span>ARS</span>
+                      </div>
+                    </div>
+                    <div className="la-cfg-campo">
+                      <label>Precio total al cliente</label>
+                      <div className="la-cfg-input-unit la-cfg-input-unit--readonly">
+                        <span>$</span>
+                        <input readOnly value={parseInt(cfgPrecioRecuerdo||'0') + parseInt(cfgPrecioLogistica||'0')}/>
+                        <span>ARS</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="la-cfg-info-box">
+                    <span>💌</span>
+                    <p>El precio total incluye el recuerdo más la logística de envío. En producción la logística se calculará automáticamente por zona vía n8n.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Notificaciones ── */}
+              {cfgSeccionActiva === 'notif' && (
+                <div className="la-cfg-seccion">
+                  <h3 className="la-cfg-seccion__titulo">Canales de notificación</h3>
+                  <div className="la-cfg-toggles">
+                    {[
+                      { label:'Notificaciones por email',     desc:'Bienvenida, verificación, pagos, recordatorios', val:cfgNotifEmail,    set:setCfgNotifEmail    },
+                      { label:'Notificaciones por WhatsApp',  desc:'Alertas críticas y confirmaciones (vía n8n)',    val:cfgNotifWhatsapp, set:setCfgNotifWhatsapp },
+                    ].map(n => (
+                      <div key={n.label} className="la-cfg-toggle-item">
+                        <div>
+                          <span className="la-cfg-toggle-item__label">{n.label}</span>
+                          <span className="la-cfg-toggle-item__desc">{n.desc}</span>
+                        </div>
+                        <div className={`la-cfg-toggle${n.val?' on':''}`} onClick={() => n.set(!n.val)}>
+                          <div className="la-cfg-toggle__thumb"/>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Sistema ── */}
+              {cfgSeccionActiva === 'sistema' && (
+                <div className="la-cfg-seccion">
+                  <h3 className="la-cfg-seccion__titulo">Estado del sistema</h3>
+                  <div className="la-cfg-toggles">
+                    {[
+                      { label:'Modo mantenimiento',   desc:'Bloquea el acceso público mientras se realizan tareas técnicas', val:cfgMantenimiento,   set:setCfgMantenimiento,   danger:true  },
+                      { label:'Registro abierto',     desc:'Permite que nuevos usuarios creen cuenta en la plataforma',      val:cfgRegistroAbierto, set:setCfgRegistroAbierto, danger:false },
+                    ].map(n => (
+                      <div key={n.label} className={`la-cfg-toggle-item${n.danger?' danger':''}`}>
+                        <div>
+                          <span className="la-cfg-toggle-item__label">{n.label}</span>
+                          <span className="la-cfg-toggle-item__desc">{n.desc}</span>
+                          {n.danger && n.val && (
+                            <span className="la-cfg-toggle-item__alerta">⚠️ El sitio está en mantenimiento — usuarios no pueden ingresar</span>
+                          )}
+                        </div>
+                        <div className={`la-cfg-toggle${n.val?' on':''}${n.danger?' danger':''}`}
+                          onClick={() => n.set(!n.val)}>
+                          <div className="la-cfg-toggle__thumb"/>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <h3 className="la-cfg-seccion__titulo" style={{marginTop:'8px'}}>Información del sistema</h3>
+                  <div className="la-cfg-sysinfo">
+                    {[
+                      { label:'Versión frontend',  val:'1.0.0 · React 18 + Vite 4' },
+                      { label:'Stack',             val:'TypeScript · SCSS · React Router' },
+                      { label:'Entorno',           val:'Desarrollo local · localhost:5173' },
+                      { label:'Último deploy',     val:'Pendiente · Backend en desarrollo' },
+                      { label:'Base de datos',     val:'⏳ Pendiente implementación' },
+                      { label:'Storage',           val:'⏳ Pendiente · S3 / Cloudflare R2' },
+                      { label:'Autenticación',     val:'⏳ Pendiente · JWT + 2FA' },
+                      { label:'n8n',               val:'⏳ Pendiente · Flujos en desarrollo' },
+                    ].map(s => (
+                      <div key={s.label} className="la-cfg-sysinfo__item">
+                        <span>{s.label}</span>
+                        <strong>{s.val}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
+
           {/* ── MÉTRICAS ── */}
           {modulo === 'metricas' && (
             <MetricasPanel

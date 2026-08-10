@@ -1,0 +1,235 @@
+// ============================================================
+// LIFE'S — CartasPrivadas.scss | Editor de Cartas de Legado
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,700&family=Manrope:wght@300;400;500;600;700;800&family=Special+Elite&family=Dancing+Script:wght@400;700&display=swap');
+
+$bg:       #0d1117;
+$surface:  #161b22;
+$surface2: #1c2128;
+$border:   rgba(255,255,255,0.07);
+$oro:      #C9932A;
+$oro-l:    #ffe088;
+$t1:       rgba(255,255,255,0.92);
+$t2:       rgba(255,255,255,0.5);
+$t3:       rgba(255,255,255,0.22);
+$rojo:     #f85149;
+$azul:     #58a6ff;
+$verde:    #86efac;
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+// ── Tipografías de carta ───────────────────────────────────
+.cp-font-newsreader { font-family: 'Newsreader', serif; font-style: italic; font-size: 1rem; line-height: 1.9; }
+.cp-font-mono       { font-family: 'Special Elite', monospace; font-size: 0.9rem; line-height: 1.8; letter-spacing: 0.02em; }
+.cp-font-script     { font-family: 'Dancing Script', cursive; font-size: 1.05rem; line-height: 1.85; }
+.cp-font-moderna    { font-family: 'Manrope', sans-serif; font-size: 0.88rem; line-height: 1.75; }
+.cp-font-clasica    { font-family: 'Newsreader', serif; font-size: 0.95rem; line-height: 1.85; }
+
+// ── Base ───────────────────────────────────────────────────
+.cp-page {
+  min-height: 100dvh; background: $bg;
+  font-family: 'Manrope', sans-serif; color: $t1;
+  display: flex; flex-direction: column;
+  padding-left: 68px; // ancho del navbar rail colapsado
+
+  @media (max-width: 768px) {
+    padding-left: 0; // en mobile el navbar es bottom, no lateral
+    padding-bottom: 70px;
+  }
+}
+
+// ── Header ─────────────────────────────────────────────────
+.cp-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 22px; background: $surface;
+  border-bottom: 1px solid $border;
+  position: sticky; top: 0; z-index: 40;
+
+  &__back {
+    background: rgba(255,255,255,0.06); border: none; cursor: pointer;
+    color: $t2; width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+    &:hover { background: rgba(255,255,255,0.12); color: $t1; }
+  }
+
+  &__info  { display: flex; align-items: center; gap: 10px; flex: 1; }
+  &__icono { color: $oro; flex-shrink: 0; }
+
+  &__titulo {
+    font-family: 'Newsreader', serif; font-style: italic;
+    font-size: 1.2rem; font-weight: 400; color: $t1; margin: 0;
+  }
+
+  &__sub {
+    font-size: 0.6rem; color: $t3; margin: 0;
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
+  }
+}
+
+.cp-btn-nueva {
+  display: flex; align-items: center; gap: 6px;
+  background: $oro; color: #080c10; border: none; border-radius: 999px;
+  padding: 9px 18px; font-family: 'Manrope', sans-serif;
+  font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  &:hover { background: $oro-l; transform: translateY(-1px); }
+}
+
+.cp-btn-preview {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.06); border: 1px solid $border; border-radius: 999px;
+  padding: 7px 14px; font-family: 'Manrope', sans-serif;
+  font-size: 0.72rem; font-weight: 700; color: $t2; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  &:hover { background: rgba(255,255,255,0.1); color: $t1; }
+}
+
+// ── Lista ──────────────────────────────────────────────────
+.cp-lista-wrap { padding: 22px; flex: 1; animation: fadeUp 0.3s ease; }
+
+.cp-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; min-height: 60vh; text-align: center;
+  svg { color: rgba($oro, 0.3); }
+  h2 { font-family: 'Newsreader', serif; font-style: italic; font-size: 1.5rem; color: $t1; margin: 0; }
+  p  { font-size: 0.82rem; color: $t3; max-width: 320px; line-height: 1.6; }
+}
+
+.cp-cartas-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px;
+  @media (max-width: 900px) { grid-template-columns: repeat(2,1fr); }
+  @media (max-width: 560px) { grid-template-columns: 1fr; }
+}
+
+.cp-carta-card {
+  background: $surface; border: 1px solid $border; border-radius: 16px;
+  overflow: hidden; transition: all 0.2s; animation: fadeUp 0.3s ease;
+  &:hover { border-color: rgba($oro,0.25); transform: translateY(-2px); }
+
+  &__preview { position: relative; height: 160px; padding: 16px; border-bottom: 2px solid; overflow: hidden; display: flex; align-items: flex-start; }
+  &__sello   { position: absolute; top: 10px; right: 12px; font-size: 1.4rem; opacity: 0.6; }
+  &__texto   { font-size: 0.75rem; line-height: 1.6; margin: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; opacity: 0.85; }
+  &__info    { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  &__header  { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  &__asunto  { font-size: 0.82rem; font-weight: 700; color: $t1; line-height: 1.3; flex: 1; }
+  &__estado  { font-size: 0.55rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+  &__meta    { display: flex; flex-direction: column; gap: 3px; font-size: 0.65rem; color: $t3; span { display: flex; align-items: center; gap: 4px; } }
+  &__acciones {
+    display: flex; gap: 8px; padding-top: 6px; border-top: 1px solid $border;
+    button { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.06); border: none; border-radius: 8px; padding: 6px 12px; font-family: 'Manrope',sans-serif; font-size: 0.68rem; font-weight: 700; color: $t2; cursor: pointer; transition: all 0.15s; flex: 1; justify-content: center; &:hover { background: rgba(255,255,255,0.12); color: $t1; } }
+  }
+}
+
+.cp-btn-del { background: rgba($rojo,0.08) !important; color: rgba($rojo,0.6) !important; flex: 0 0 auto !important; width: 34px !important; &:hover { background: rgba($rojo,0.15) !important; color: $rojo !important; } }
+
+.cp-carta-nueva {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 260px;
+  background: none; border: 2px dashed rgba(255,255,255,0.08); border-radius: 16px; cursor: pointer;
+  color: $t3; font-family: 'Manrope',sans-serif; font-size: 0.78rem; font-weight: 700; transition: all 0.2s;
+  &:hover { border-color: rgba($oro,0.3); color: $oro; }
+}
+
+// ── Editor ─────────────────────────────────────────────────
+.cp-editor-wrap {
+  flex: 1; display: flex; overflow: hidden;
+  &.con-preview {
+    .cp-editor-form { width: 48%; border-right: 1px solid $border; }
+    .cp-preview-panel { flex: 1; }
+  }
+}
+
+.cp-editor-form { width: 100%; overflow-y: auto; padding: 20px 22px; display: flex; flex-direction: column; gap: 20px; animation: fadeUp 0.3s ease; }
+
+.cp-seccion {
+  display: flex; flex-direction: column; gap: 10px;
+  &__titulo { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: $oro; margin: 0; }
+}
+
+.cp-input {
+  background: $surface2; border: 1.5px solid $border; border-radius: 10px;
+  padding: 10px 14px; font-family: 'Manrope',sans-serif; font-size: 0.85rem; color: $t1;
+  outline: none; transition: border-color 0.2s; width: 100%; box-sizing: border-box;
+  &:focus { border-color: rgba($oro,0.5); } &::placeholder { color: $t3; }
+}
+
+.cp-textarea {
+  background: $surface2; border: 1.5px solid $border; border-radius: 12px;
+  padding: 14px; font-family: 'Manrope',sans-serif; font-size: 0.88rem; color: $t1;
+  outline: none; line-height: 1.7; transition: border-color 0.2s; width: 100%; box-sizing: border-box;
+  resize: vertical; min-height: 200px;
+  &:focus { border-color: rgba($oro,0.5); } &::placeholder { color: $t3; font-style: italic; }
+}
+
+.cp-contador { font-size: 0.6rem; color: $t3; text-align: right; margin-top: -6px; }
+
+.cp-destinatarios { display: flex; flex-wrap: wrap; gap: 6px; }
+.cp-dest-btn {
+  background: $surface2; border: 1.5px solid $border; border-radius: 999px;
+  padding: 6px 14px; font-family: 'Manrope',sans-serif; font-size: 0.72rem; font-weight: 700; color: $t3; cursor: pointer; transition: all 0.18s;
+  &.active { background: rgba($oro,0.12); border-color: rgba($oro,0.4); color: $oro-l; }
+  &:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: $t1; }
+}
+
+.cp-post-partida-toggle {
+  display: flex; align-items: flex-start; gap: 12px; background: $surface2; border: 1.5px solid $border; border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s;
+  &.active { background: rgba($azul,0.08); border-color: rgba($azul,0.3); }
+  &__check { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; margin-top: 1px; background: $surface; border: 1.5px solid $border; display: flex; align-items: center; justify-content: center; transition: all 0.2s; color: transparent; .cp-post-partida-toggle.active & { background: $azul; border-color: $azul; color: white; } }
+  span  { display: block; font-size: 0.82rem; font-weight: 700; color: $t1; margin-bottom: 3px; }
+  small { display: block; font-size: 0.66rem; color: $t3; line-height: 1.4; }
+}
+
+.cp-fecha-wrap { display: flex; flex-direction: column; gap: 8px; label { font-size: 0.65rem; color: $t3; font-weight: 600; } }
+
+.cp-aviso {
+  display: flex; align-items: center; gap: 6px; font-size: 0.68rem; color: rgba($oro,0.7);
+  background: rgba($oro,0.06); border: 1px solid rgba($oro,0.15); border-radius: 8px; padding: 8px 12px;
+  svg { flex-shrink: 0; }
+}
+
+.cp-opcion-grupo { display: flex; flex-direction: column; gap: 8px; label { font-size: 0.6rem; font-weight: 700; color: $t3; text-transform: uppercase; letter-spacing: 0.08em; } }
+
+.cp-opciones-papel { display: flex; gap: 8px; flex-wrap: wrap; }
+.cp-papel-btn { width: 72px; height: 50px; border-radius: 8px; border: 2px solid; cursor: pointer; transition: all 0.2s; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; &.active { box-shadow: 0 0 0 3px rgba($oro,0.5); transform: scale(1.05); } &:hover { transform: scale(1.04); } }
+
+.cp-opciones-fila { display: flex; flex-wrap: wrap; gap: 6px; }
+.cp-opcion-btn { background: $surface2; border: 1.5px solid $border; border-radius: 8px; padding: 6px 12px; font-family: 'Manrope',sans-serif; font-size: 0.68rem; font-weight: 700; color: $t3; cursor: pointer; transition: all 0.18s; &.active { background: rgba($oro,0.12); border-color: rgba($oro,0.4); color: $oro-l; } &:hover:not(.active) { color: $t1; border-color: rgba(255,255,255,0.2); } }
+
+.cp-opciones-tinta { display: flex; gap: 8px; align-items: center; }
+.cp-tinta-btn { width: 28px; height: 28px; border-radius: 50%; border: 3px solid; cursor: pointer; transition: all 0.2s; &.active { transform: scale(1.25); box-shadow: 0 0 0 3px rgba($oro,0.4); } &:hover { transform: scale(1.15); } }
+
+.cp-sello-btn {
+  display: flex; align-items: center; gap: 5px; background: $surface2; border: 1.5px solid $border; border-radius: 8px; padding: 6px 10px; font-family: 'Manrope',sans-serif; font-size: 0.75rem; cursor: pointer; color: $t2; transition: all 0.18s;
+  span { font-size: 0.6rem; color: $t3; }
+  &.active { background: rgba($oro,0.1); border-color: rgba($oro,0.4); color: $oro-l; span { color: rgba($oro,0.7); } }
+  &:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: $t1; }
+}
+
+.cp-editor-acciones { display: flex; gap: 10px; padding-top: 8px; border-top: 1px solid $border; margin-top: 4px; position: sticky; bottom: 0; background: $bg; padding: 14px 0; }
+.cp-btn-borrador { background: rgba(255,255,255,0.06); color: $t2; border: 1px solid $border; border-radius: 999px; padding: 10px 20px; font-family: 'Manrope',sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s; &:hover { background: rgba(255,255,255,0.1); color: $t1; } }
+.cp-btn-guardar { display: flex; align-items: center; gap: 7px; flex: 1; justify-content: center; background: linear-gradient(135deg,$oro,rgba($oro,0.7)); color: #080c10; border: none; border-radius: 999px; padding: 11px 24px; font-family: 'Manrope',sans-serif; font-size: 0.82rem; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba($oro,0.25); &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 24px rgba($oro,0.35); } &:disabled { opacity: 0.5; cursor: not-allowed; } }
+
+// ── Preview ────────────────────────────────────────────────
+.cp-preview-panel { display: flex; flex-direction: column; gap: 12px; padding: 20px; overflow-y: auto; background: $surface2; animation: fadeUp 0.3s ease; }
+.cp-preview-label { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: $oro; }
+.cp-carta-preview { border-radius: 12px; padding: 32px 28px; border: 2px solid; min-height: 400px; box-shadow: 0 8px 40px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 16px; position: relative; transition: all 0.3s; }
+.cp-preview-sello    { position: absolute; top: 16px; right: 18px; font-size: 1.8rem; opacity: 0.5; }
+.cp-preview-meta     { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; font-size: 0.7rem; opacity: 0.6; font-style: italic; padding-bottom: 12px; border-bottom: 1px solid currentColor; }
+.cp-preview-asunto   { font-size: 1.1rem; font-weight: 700; margin: 0; line-height: 1.3; }
+.cp-preview-contenido { flex: 1; line-height: 1.9; white-space: pre-wrap; font-size: inherit; }
+.cp-preview-firma    { text-align: right; font-style: italic; opacity: 0.5; font-size: 0.85rem; }
+
+// ── Responsive ─────────────────────────────────────────────
+@media (max-width: 768px) {
+  .cp-editor-wrap.con-preview { flex-direction: column; .cp-editor-form { width: 100%; border-right: none; border-bottom: 1px solid $border; } .cp-preview-panel { min-height: 400px; } }
+}
+@media (max-width: 480px) {
+  .cp-header { padding: 10px 14px; }
+  .cp-lista-wrap { padding: 14px; }
+  .cp-editor-form { padding: 14px; }
+  .cp-btn-nueva { padding: 8px 14px; font-size: 0.7rem; }
+  .cp-carta-preview { padding: 22px 18px; }
+  .cp-opciones-papel { .cp-papel-btn { width: 60px; height: 44px; } }
+}

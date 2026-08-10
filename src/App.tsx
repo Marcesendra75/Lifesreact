@@ -48,6 +48,7 @@ import FamilyTree        from './pages/FamilyTree/FamilyTree';
 import DigitalEcho       from './pages/DigitalEcho/DigitalEcho';
 import Settings          from './pages/Settings/Settings';
 import TimeCapsule       from './pages/TimeCapsule/TimeCapsule';
+import CartasPrivadas    from './pages/CartasPrivadas/CartasPrivadas';
 import Postal            from './pages/Postal/Postal';
 
 // ── Páginas bóveda ──
@@ -110,6 +111,7 @@ function App() {
           <Route path="/ecos/:userId"                       element={<DigitalEcho />} />
           <Route path="/configuracion"                      element={<Settings />} />
           <Route path="/capsula-del-tiempo"                 element={<TimeCapsule />} />
+          <Route path="/cartas-privadas"                    element={<CartasPrivadas />} />
           <Route path="/postal"                             element={<Postal />} />
           <Route path="/vinculos"                           element={<Feed />} />
           <Route path="/mapa-linaje"                        element={<Feed />} />
