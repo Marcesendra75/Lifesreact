@@ -447,20 +447,22 @@ export default function FamilyTree() {
                   <button onClick={() => setAddPanelOpen(true)}>Agregar ahora</button>
                 </div>
               ) : (
-                treeData.filter(CATEGORY_MAP[activeTab]).map(node => (
-                  <div key={node.id} className="ft-person-card" onClick={() => openModal(node)}>
-                    <div className="ft-person-card__ring" style={{ background: getGenConfig(node.gen).ring }}>
-                      <img src={node.img || `https://i.pravatar.cc/44?img=${node.id}`} alt={node.name}
-                        style={{ filter: node.isDead ? 'grayscale(0.6) sepia(0.3)' : 'none' }} />
+                <div className="ft-family-list__scroll">
+                  {treeData.filter(CATEGORY_MAP[activeTab]).map(node => (
+                    <div key={node.id} className="ft-person-card" onClick={() => openModal(node)}>
+                      <div className="ft-person-card__ring" style={{ background: getGenConfig(node.gen).ring }}>
+                        <img src={node.img || `https://i.pravatar.cc/44?img=${node.id}`} alt={node.name}
+                          style={{ filter: node.isDead ? 'grayscale(0.6) sepia(0.3)' : 'none' }} />
+                      </div>
+                      <div className="ft-person-card__info">
+                        <div className="ft-person-card__name">{node.name} {node.isDead ? '🕯️' : ''} {node.countryFlag}</div>
+                        <div className="ft-person-card__role">{node.role}</div>
+                        {node.birth && <div className="ft-person-card__birth">{node.birth}{node.death ? ` — ${node.death}` : ''}</div>}
+                      </div>
+                      <ChevronRight size={16} strokeWidth={1.8} className="ft-person-card__arrow" />
                     </div>
-                    <div className="ft-person-card__info">
-                      <div className="ft-person-card__name">{node.name} {node.isDead ? '🕯️' : ''} {node.countryFlag}</div>
-                      <div className="ft-person-card__role">{node.role}</div>
-                      {node.birth && <div className="ft-person-card__birth">{node.birth}{node.death ? ` — ${node.death}` : ''}</div>}
-                    </div>
-                    <ChevronRight size={16} strokeWidth={1.8} className="ft-person-card__arrow" />
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           )}

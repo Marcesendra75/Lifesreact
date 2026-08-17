@@ -377,6 +377,11 @@
   margin: 0.5rem 1.25rem 0;
   background: white; border-radius: 1.25rem; overflow: hidden;
   box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  // En mobile: scroll horizontal para ver todos los miembros
+  @media (max-width: 768px) {
+    margin: 0.5rem 0.75rem 0;
+    border-radius: 1rem;
+  }
 
   &__header {
     display: flex; align-items: center; justify-content: space-between;
@@ -443,6 +448,13 @@
   &__arrow {
     font-size: 18px; color: #c4c6cd; flex-shrink: 0;
   }
+}
+
+
+// ── Scroll horizontal lista familia ──
+.ft-family-list__scroll {
+  display: flex;
+  flex-direction: column; // desktop: columna normal
 }
 
 // ── Botón agregar ──
@@ -800,16 +812,47 @@
 
 @media (max-width: 768px) {
 
+  // ── Linaje vivo — scroll horizontal ──
+  .ft-family-list {
+    margin: 0.5rem 0.75rem;
+    border-radius: 1rem;
+  }
+
+  .ft-family-list__scroll {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(196,198,205,0.4) transparent;
+    padding-bottom: 4px;
+    &::-webkit-scrollbar { height: 4px; }
+    &::-webkit-scrollbar-thumb { background: rgba(196,198,205,0.5); border-radius: 2px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+  }
+
+  .ft-person-card {
+    min-width: 200px;
+    max-width: 200px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    border-right: 1px solid rgba(196,198,205,0.15);
+    border-bottom: none;
+    padding: 0.75rem;
+    &:last-child { border-right: none; }
+    &__ring { width: 40px; height: 40px; }
+    &__name { font-size: 0.8rem; }
+  }
+
   // ── Header ──
   .ft-header {
     padding: 10px 14px;
     flex-wrap: nowrap;
 
-    // Ocultar botones extra — solo dejar back y avatar
     &__actions {
       gap: 4px;
-
-      // Ocultar botones secundarios en mobile
       .ft-header__btn:not(:last-child) { display: none; }
     }
 
@@ -817,25 +860,17 @@
     &__sub    { display: none; }
   }
 
-  // ── Buscador full width ──
   .ft-search-bar { padding: 8px 14px; }
 
-  // ── Canvas ──
   .ft-wrap {
     height: 55dvh;
     min-height: 300px;
   }
 
-  // ── Quick actions ──
   .ft-quick-actions { display: none; }
-
-  // ── Leyenda oculta ──
   .ft-leyenda { display: none; }
-
-  // ── Zoom reposicionado sobre bottom nav ──
   .ft-zoom { bottom: 90px; right: 12px; }
 
-  // ── Panel lateral — sheet desde abajo ──
   .ft-panel-wrap {
     position: fixed !important;
     bottom: 70px !important; left: 0; right: 0;
@@ -846,7 +881,6 @@
     border-top: 1px solid rgba(196,198,205,0.2);
   }
 
-  // ── Bottom nav ya existe en el componente — ajuste ──
   .ft-bottom-nav {
     border-radius: 0;
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
@@ -857,11 +891,10 @@
       svg { width: 20px; height: 20px; }
     }
 
-    &__add {
-      width: 52px; height: 52px;
-    }
+    &__add { width: 52px; height: 52px; }
   }
 }
+
 
 @media (max-width: 480px) {
 

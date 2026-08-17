@@ -27,148 +27,11 @@
   padding-bottom: 5rem;
 }
 
-// ── Header ──
-.feed-header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-  background: rgba(251,249,245,0.85);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(196,198,205,0.15);
-
-  &__inner {
-    max-width: 1024px; margin: 0 auto;
-    padding: 1rem 1.5rem;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-
-  &__left { display: flex; align-items: center; gap: 0.75rem; }
-
-  &__avatar {
-    width: 38px; height: 38px; border-radius: 9999px;
-    overflow: hidden; border: 2px solid rgba(201,168,76,0.3);
-    img { width: 100%; height: 100%; object-fit: cover; }
-  }
-
-  &__title {
-    font-family: v.$font-display; font-style: italic;
-    font-size: 1.4rem; font-weight: 700; color: v.$primary;
-    letter-spacing: -0.02em;
-  }
-
-  &__actions { display: flex; gap: 0.5rem; }
-
-  &__btn {
-    width: 38px; height: 38px; border-radius: 9999px;
-    background: none; border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: v.$primary; transition: background 0.2s;
-
-    svg { width: 22px; height: 22px; }
-    &:hover { background: rgba(3,25,46,0.06); }
-  }
-}
-
 // ── Main ──
 .feed-main {
+  padding-top: 8px;
   max-width: 1024px; margin: 0 auto;
   padding: 5rem 1rem 2rem;
-}
-
-// ── Cover + Perfil ──
-.feed-profile {
-  border-radius: 1.5rem; overflow: hidden;
-  margin-bottom: 1.5rem; position: relative;
-  background: #f5f3ef;
-
-  &__cover {
-    height: 200px; position: relative; overflow: hidden;
-
-    img { width: 100%; height: 100%; object-fit: cover; }
-
-    @include m.mobile { height: 140px; }
-  }
-
-  &__cover-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(3,25,46,0.5), transparent);
-  }
-
-  &__info {
-    padding: 0 2rem 1.5rem;
-    display: flex; align-items: flex-end; gap: 1.5rem;
-    margin-top: -3rem; position: relative; z-index: 1;
-    flex-wrap: wrap;
-
-    @include m.mobile { padding: 0 1rem 1rem; gap: 1rem; }
-  }
-
-  &__avatar-wrap {
-    position: relative; flex-shrink: 0;
-
-    img {
-      width: 100px; height: 100px; border-radius: 9999px;
-      border: 4px solid #fbf9f5; object-fit: cover;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-    }
-  }
-
-  &__nivel-badge {
-    position: absolute; bottom: 4px; right: 4px;
-    width: 24px; height: 24px; border-radius: 9999px;
-    background: white; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-
-    svg { width: 14px; height: 14px; }
-  }
-
-  &__text { flex: 1; min-width: 0; }
-
-  &__name {
-    font-family: v.$font-display; font-style: italic;
-    font-size: 1.75rem; font-weight: 700; color: v.$primary;
-    line-height: 1.2;
-  }
-
-  &__rol {
-    font-size: 0.82rem; color: #855324; font-weight: 600;
-    letter-spacing: 0.03em;
-  }
-
-  &__btn {
-    display: flex; align-items: center; gap: 0.4rem;
-    padding: 0.75rem 1.5rem; border-radius: 0.75rem;
-    background: v.$primary; color: white; border: none; cursor: pointer;
-    font-family: v.$font-body; font-size: 0.82rem; font-weight: 700;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    transition: all 0.2s; white-space: nowrap;
-
-    svg { width: 16px; height: 16px; }
-    &:hover { background: #1a2e44; transform: translateY(-1px); }
-  }
-}
-
-// ── Stats ──
-.feed-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  background: #f5f3ef; border-radius: 1.5rem; padding: 0.5rem;
-  margin-bottom: 1.5rem; max-width: 480px; margin-left: auto; margin-right: auto;
-
-  &__item {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 1rem 0.5rem; border-radius: 1.25rem;
-    background: none; border: none; cursor: pointer;
-    transition: background 0.2s;
-    &:hover { background: #efeeea; }
-  }
-
-  &__val {
-    font-family: v.$font-display; font-size: 1.5rem; font-weight: 700;
-    color: v.$primary;
-  }
-
-  &__label {
-    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
-    text-transform: uppercase; color: #43474d;
-  }
 }
 
 // ── Grid ──
@@ -687,11 +550,7 @@
       box-shadow: 0 4px 16px rgba(133,83,36,0.3);
     }
   }
-}// ============================================================
-// LIFE'S — Feed.scss PARCHE
-// Agregar al final del Feed.scss existente
-// Nuevas clases: links a perfiles, nav botones del post
-// ============================================================
+}
 
 // ── Avatar y nombre del autor clickeables ──────────────────
 .feed-post__avatar-btn {
@@ -880,6 +739,43 @@
 // RESPONSIVE — Feed
 // ════════════════════════════════════════════════════════════
 
+
+// ── FAB — Nuevo recuerdo ──────────────────────────────────
+.feed-fab {
+  position: fixed;
+  bottom: 88px;
+  right: 20px;
+  z-index: v.$z-nav;
+  width: 56px;
+  height: 56px;
+  border-radius: v.$radius-full;
+  background: linear-gradient(135deg, v.$gold, v.$gold-dark);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: v.$primary;
+  box-shadow: v.$shadow-gold, 0 2px 8px rgba(0,0,0,0.3);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &:hover {
+    transform: scale(1.1) translateY(-2px);
+    box-shadow: 0 8px 28px rgba(201,168,76,0.5);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  @media (min-width: 769px) {
+    bottom: 28px;
+    right: 28px;
+    width: 52px;
+    height: 52px;
+  }
+}
+
 @media (max-width: 900px) {
   .feed-main {
     grid-template-columns: 1fr !important;
@@ -894,7 +790,7 @@
 }
 
 @media (max-width: 640px) {
-  .feed-root { padding-bottom: 70px; } // espacio bottom nav
+  .feed-root { padding-bottom: 70px; }
 
   .feed-header {
     padding: 12px 16px;
@@ -904,14 +800,15 @@
     &__search { width: 100%; order: 3; }
   }
 
-  .feed-main { padding: 12px; gap: 12px; }
+  .feed-main {
+    padding: 12px;
+    gap: 12px;
+  }
 
   .feed-profile {
     flex-direction: column; align-items: center; text-align: center;
     padding: 16px;
   }
-
-  .feed-stats { justify-content: center; gap: 16px; }
 
   .feed-epocas { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
   .feed-epoca-btn { flex-shrink: 0; }
@@ -922,6 +819,131 @@
 }
 
 @media (max-width: 380px) {
-  .feed-header { padding: 10px 12px; }
-  .feed-main   { padding: 10px; }
+  .feed-main { padding: 10px; }
+}
+
+// ════════════════════════════════════════════════════════════
+// INTERACCIONES — Reacciones, guardado y comentarios
+// (agregado para persistencia con localStorage)
+// ════════════════════════════════════════════════════════════
+
+// ── Estado reaccionado / guardado ──────────────────────────
+.feed-post__react-btn.reaccionado {
+  border-width: 1.5px;
+  font-weight: 800;
+  background: rgba(0,0,0,0.02);
+}
+
+.feed-post__accion.active {
+  background: rgba(133,83,36,0.1);
+  color: #855324;
+}
+
+.feed-post__accion.guardado {
+  color: #C9A84C;
+}
+
+.feed-reacciones-panel__item.active {
+  background: #f5f3ef;
+  font-weight: 800;
+}
+
+// ── Panel de comentarios ───────────────────────────────────
+.feed-post__comentarios {
+  padding: 0.75rem 1.25rem 1rem;
+  border-top: 1px solid rgba(3,25,46,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.feed-post__comentarios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.feed-post__comentario {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.feed-post__comentario-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.feed-post__comentario-body {
+  background: white;
+  border-radius: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  flex: 1;
+}
+
+.feed-post__comentario-autor {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #03192e;
+  margin-bottom: 2px;
+}
+
+.feed-post__comentario-texto {
+  font-size: 0.8rem;
+  color: #43474d;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.feed-post__comentario-fecha {
+  display: block;
+  font-size: 0.62rem;
+  color: rgba(3,25,46,0.3);
+  margin-top: 3px;
+}
+
+.feed-post__comentario-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.feed-post__comentario-input {
+  flex: 1;
+  background: white;
+  border: 1.5px solid rgba(3,25,46,0.08);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.8rem;
+  color: #03192e;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus { border-color: #855324; }
+  &::placeholder { color: rgba(3,25,46,0.3); }
+}
+
+.feed-post__comentario-enviar {
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  background: #855324;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) { background: #6b421d; transform: scale(1.05); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
 }

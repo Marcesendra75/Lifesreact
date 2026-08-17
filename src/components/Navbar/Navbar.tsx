@@ -6,13 +6,12 @@
 // ============================================================
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  Home, BookOpen, Activity, GitBranch, User, Lock,
+  Home, Activity, GitBranch, User, Lock,
 } from 'lucide-react';
 import './Navbar.scss';
 
 const NAV_ITEMS = [
   { ruta: '/feed',              label: 'Feed',          icono: <Home      size={22} strokeWidth={1.8} /> },
-  { ruta: '/muro-biografico',   label: 'Mi Muro',       icono: <BookOpen  size={22} strokeWidth={1.8} /> },
   { ruta: '/linea-de-vida',     label: 'Línea de Vida', icono: <Activity  size={22} strokeWidth={1.8} /> },
   { ruta: '/arbol-genealogico', label: 'Árbol',         icono: <GitBranch size={22} strokeWidth={1.8} /> },
   { ruta: '/perfil',            label: 'Perfil',        icono: <User      size={22} strokeWidth={1.8} /> },
@@ -58,7 +57,7 @@ export default function Navbar() {
           ))}
         </ul>
         <div className="navbar-rail__boveda">
-          <NavLink to="/muro-biografico" className="navbar-rail__boveda-btn" title="Bóveda">
+          <NavLink to="/caja-fuerte" className="navbar-rail__boveda-btn" title="Bóveda">
             <Lock size={18} strokeWidth={1.8} />
             <span>Bóveda</span>
           </NavLink>
