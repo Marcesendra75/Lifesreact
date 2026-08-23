@@ -1,9 +1,9 @@
 // ============================================
 // LIFE'S — Feed SCSS
+// Sin sidebar — columna única centrada
 // ============================================
 @use '../../styles/abstracts/variables' as v;
 @use '../../styles/abstracts/mixins' as m;
-
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
@@ -27,266 +27,31 @@
   padding-bottom: 5rem;
 }
 
-// ── Header ──
-.feed-header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-  background: rgba(251,249,245,0.85);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(196,198,205,0.15);
-
-  &__inner {
-    max-width: 1024px; margin: 0 auto;
-    padding: 1rem 1.5rem;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-
-  &__left { display: flex; align-items: center; gap: 0.75rem; }
-
-  &__avatar {
-    width: 38px; height: 38px; border-radius: 9999px;
-    overflow: hidden; border: 2px solid rgba(201,168,76,0.3);
-    img { width: 100%; height: 100%; object-fit: cover; }
-  }
-
-  &__title {
-    font-family: v.$font-display; font-style: italic;
-    font-size: 1.4rem; font-weight: 700; color: v.$primary;
-    letter-spacing: -0.02em;
-  }
-
-  &__actions { display: flex; gap: 0.5rem; }
-
-  &__btn {
-    width: 38px; height: 38px; border-radius: 9999px;
-    background: none; border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: v.$primary; transition: background 0.2s;
-
-    svg { width: 22px; height: 22px; }
-    &:hover { background: rgba(3,25,46,0.06); }
-  }
-}
-
-// ── Main ──
+// ── Main: columna única centrada ──
 .feed-main {
-  max-width: 1024px; margin: 0 auto;
-  padding: 5rem 1rem 2rem;
-}
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1rem 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 
-// ── Cover + Perfil ──
-.feed-profile {
-  border-radius: 1.5rem; overflow: hidden;
-  margin-bottom: 1.5rem; position: relative;
-  background: #f5f3ef;
-
-  &__cover {
-    height: 200px; position: relative; overflow: hidden;
-
-    img { width: 100%; height: 100%; object-fit: cover; }
-
-    @include m.mobile { height: 140px; }
+  // Con navbar lateral en desktop, compensamos el offset
+  @media (min-width: 769px) {
+    // La navbar rail ocupa 68px; centramos respecto al resto
+    margin-left: calc(68px + max(0px, (100vw - 68px - 680px) / 2));
+    margin-right: max(0px, (100vw - 68px - 680px) / 2);
+    padding-top: 1.5rem;
   }
 
-  &__cover-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(3,25,46,0.5), transparent);
+  @media (max-width: 768px) {
+    padding: 0.75rem 0.75rem 2rem;
   }
 
-  &__info {
-    padding: 0 2rem 1.5rem;
-    display: flex; align-items: flex-end; gap: 1.5rem;
-    margin-top: -3rem; position: relative; z-index: 1;
-    flex-wrap: wrap;
-
-    @include m.mobile { padding: 0 1rem 1rem; gap: 1rem; }
-  }
-
-  &__avatar-wrap {
-    position: relative; flex-shrink: 0;
-
-    img {
-      width: 100px; height: 100px; border-radius: 9999px;
-      border: 4px solid #fbf9f5; object-fit: cover;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-    }
-  }
-
-  &__nivel-badge {
-    position: absolute; bottom: 4px; right: 4px;
-    width: 24px; height: 24px; border-radius: 9999px;
-    background: white; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-
-    svg { width: 14px; height: 14px; }
-  }
-
-  &__text { flex: 1; min-width: 0; }
-
-  &__name {
-    font-family: v.$font-display; font-style: italic;
-    font-size: 1.75rem; font-weight: 700; color: v.$primary;
-    line-height: 1.2;
-  }
-
-  &__rol {
-    font-size: 0.82rem; color: #855324; font-weight: 600;
-    letter-spacing: 0.03em;
-  }
-
-  &__btn {
-    display: flex; align-items: center; gap: 0.4rem;
-    padding: 0.75rem 1.5rem; border-radius: 0.75rem;
-    background: v.$primary; color: white; border: none; cursor: pointer;
-    font-family: v.$font-body; font-size: 0.82rem; font-weight: 700;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    transition: all 0.2s; white-space: nowrap;
-
-    svg { width: 16px; height: 16px; }
-    &:hover { background: #1a2e44; transform: translateY(-1px); }
+  @media (max-width: 480px) {
+    padding: 0.5rem 0.5rem 2rem;
   }
 }
-
-// ── Stats ──
-.feed-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  background: #f5f3ef; border-radius: 1.5rem; padding: 0.5rem;
-  margin-bottom: 1.5rem; max-width: 480px; margin-left: auto; margin-right: auto;
-
-  &__item {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 1rem 0.5rem; border-radius: 1.25rem;
-    background: none; border: none; cursor: pointer;
-    transition: background 0.2s;
-    &:hover { background: #efeeea; }
-  }
-
-  &__val {
-    font-family: v.$font-display; font-size: 1.5rem; font-weight: 700;
-    color: v.$primary;
-  }
-
-  &__label {
-    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
-    text-transform: uppercase; color: #43474d;
-  }
-}
-
-// ── Grid ──
-.feed-grid {
-  display: grid; grid-template-columns: 320px 1fr;
-  gap: 1.5rem; align-items: start;
-
-  @include m.tablet { grid-template-columns: 1fr; }
-}
-
-// ── Sidebar ──
-.feed-sidebar {
-  display: flex; flex-direction: column; gap: 1rem;
-  position: sticky; top: 5rem;
-
-  @include m.tablet { display: none; }
-
-  &__card {
-    background: #f5f3ef; border-radius: 1.5rem; padding: 1.25rem;
-
-    &--dark {
-      background: v.$primary;
-      .feed-sidebar__bio { color: rgba(130,150,176,0.85); }
-    }
-  }
-
-  &__title {
-    font-family: v.$font-display; font-style: italic;
-    font-size: 1.1rem; font-weight: 700; color: v.$primary;
-    margin-bottom: 0.75rem;
-    display: flex; align-items: center; gap: 0.4rem;
-
-    svg { width: 16px; height: 16px; }
-
-    &--light { color: rgba(255,255,255,0.8); }
-  }
-
-  &__link {
-    display: flex; align-items: center; gap: 0.75rem;
-    padding: 0.6rem 0.75rem; border-radius: 0.875rem;
-    background: none; border: none; cursor: pointer; width: 100%;
-    text-align: left; transition: background 0.2s;
-
-    &:hover { background: #efeeea; }
-    &:hover .feed-sidebar__link-icon { color: #855324; transform: scale(1.1); }
-  }
-
-  &__link-icon {
-    font-size: 20px; color: #855324; transition: all 0.2s;
-  }
-
-  &__link-label {
-    font-size: 0.85rem; font-weight: 600; color: v.$primary; flex: 1;
-  }
-
-  &__vault-badge {
-    svg {
-      width: 14px; height: 14px; color: #C9A84C;
-    }
-  }
-
-  &__bio {
-    font-size: 0.82rem; color: #43474d; line-height: 1.7; margin-bottom: 0.75rem;
-  }
-
-  &__edit {
-    display: flex; align-items: center; gap: 0.3rem;
-    background: none; border: none; cursor: pointer; padding: 0;
-    font-family: v.$font-body; font-size: 0.75rem; font-weight: 700;
-    color: #855324; letter-spacing: 0.06em; text-transform: uppercase;
-
-    svg { width: 14px; height: 14px; }
-    &:hover { text-decoration: underline; }
-  }
-
-  &__link-btn {
-    display: flex; align-items: center; gap: 0.4rem; justify-content: flex-end;
-    background: none; border: none; cursor: pointer; width: 100%;
-    font-family: v.$font-body; font-size: 0.72rem; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: rgba(201,168,76,0.7); margin-top: 0.75rem;
-
-    svg { width: 14px; height: 14px; }
-    &:hover { color: #C9A84C; }
-  }
-}
-
-// ── Mini árbol ──
-.feed-mini-tree {
-  display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;
-
-  &__item {
-    display: flex; align-items: center; gap: 0.5rem;
-    padding: 0.35rem 0.5rem; border-radius: 0.625rem;
-    transition: background 0.2s;
-
-    &.activo { background: rgba(201,168,76,0.1); }
-
-    img {
-      width: 28px; height: 28px; border-radius: 9999px;
-      border: 1px solid rgba(255,255,255,0.1); object-fit: cover;
-    }
-
-    span {
-      font-size: 0.78rem; color: rgba(255,255,255,0.7); font-weight: 500;
-    }
-  }
-
-  &__you {
-    font-size: 8px !important; font-weight: 800 !important;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    color: #C9A84C !important; background: rgba(201,168,76,0.15);
-    padding: 1px 6px; border-radius: 999px;
-  }
-}
-
-// ── Content ──
-.feed-content { display: flex; flex-direction: column; gap: 1rem; }
 
 // ── Hoy hace X años ──
 .feed-hoy-hace {
@@ -313,7 +78,6 @@
     display: flex; align-items: center; gap: 0.3rem;
     font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
     text-transform: uppercase; color: #855324; margin-bottom: 0.3rem;
-
     svg { width: 13px; height: 13px; }
   }
 
@@ -330,8 +94,7 @@
 // ── Épocas ──
 .feed-epocas {
   display: flex; gap: 0.4rem; overflow-x: auto;
-  padding-bottom: 0.25rem;
-  scrollbar-width: none;
+  padding-bottom: 0.25rem; scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 }
 
@@ -358,7 +121,6 @@
   background: none; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   color: #43474d; transition: all 0.2s;
-
   svg { width: 18px; height: 18px; }
   &.active { background: white; color: v.$primary; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 }
@@ -385,7 +147,6 @@
     border: none; cursor: pointer; text-align: left;
     font-family: v.$font-body; font-size: 0.85rem;
     color: rgba(67,71,77,0.6); transition: background 0.2s;
-
     &:hover { background: #e4e2de; }
   }
 
@@ -396,7 +157,6 @@
     background: none; border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     color: #855324; transition: background 0.2s;
-
     svg { width: 20px; height: 20px; }
     &:hover { background: rgba(133,83,36,0.1); }
   }
@@ -414,7 +174,6 @@
 
   &:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
 
-  // Barra de peso emocional
   &__peso {
     height: 3px;
     background: linear-gradient(90deg, #855324, #C9A84C);
@@ -434,20 +193,17 @@
   &__meta { flex: 1; }
 
   &__autor {
-    font-size: 0.88rem; font-weight: 700; color: v.$primary;
-    display: block;
+    font-size: 0.88rem; font-weight: 700; color: v.$primary; display: block;
   }
 
   &__tiempo {
-    font-size: 10px; color: #43474d; text-transform: uppercase;
-    letter-spacing: 0.07em;
+    font-size: 10px; color: #43474d; text-transform: uppercase; letter-spacing: 0.07em;
   }
 
   &__more {
     background: none; border: none; cursor: pointer;
     color: #43474d; border-radius: 9999px; padding: 0.25rem;
     transition: background 0.2s;
-
     svg { width: 20px; height: 20px; }
     &:hover { background: #efeeea; }
   }
@@ -460,9 +216,7 @@
     margin-bottom: 0.5rem; line-height: 1.3;
   }
 
-  &__texto {
-    font-size: 0.88rem; color: #43474d; line-height: 1.75;
-  }
+  &__texto { font-size: 0.88rem; color: #43474d; line-height: 1.75; }
 
   &__cita {
     border-left: 4px solid #735c00; padding-left: 1.25rem;
@@ -489,12 +243,10 @@
   &__footer {
     display: flex; align-items: center; justify-content: space-between;
     padding: 0.75rem 1.25rem; gap: 0.5rem;
-    background: rgba(239,238,234,0.4);
-    flex-wrap: wrap;
+    background: rgba(239,238,234,0.4); flex-wrap: wrap;
   }
 
   &__reacciones { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-
   &__reacciones-wrap { position: relative; }
 
   &__react-btn {
@@ -502,16 +254,12 @@
     background: none; border: 1.5px solid rgba(3,25,46,0.1);
     border-radius: 999px; padding: 0.35rem 0.875rem;
     cursor: pointer; font-family: v.$font-body;
-    font-size: 0.75rem; font-weight: 700; color: #43474d;
-    transition: all 0.2s;
-
+    font-size: 0.75rem; font-weight: 700; color: #43474d; transition: all 0.2s;
     svg { width: 16px; height: 16px; }
     &:hover { border-color: #855324; color: #855324; }
   }
 
-  &__react-counts {
-    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
-  }
+  &__react-counts { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 
   &__react-count {
     display: flex; align-items: center; gap: 2px;
@@ -526,10 +274,52 @@
     padding: 0.4rem 0.625rem; border-radius: 0.625rem;
     color: #43474d; font-family: v.$font-body;
     font-size: 0.78rem; font-weight: 600; transition: all 0.2s;
-
     svg { width: 18px; height: 18px; }
     &:hover { background: #efeeea; color: #855324; }
   }
+
+  // Avatar y autor clickeables
+  &__avatar-btn {
+    background: none; border: none; padding: 0; cursor: pointer;
+    border-radius: 50%; flex-shrink: 0; transition: opacity 0.2s, transform 0.2s;
+    &:hover { opacity: 0.85; transform: scale(1.05); }
+  }
+
+  &__autor-btn {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font-family: v.$font-body; font-size: 0.88rem; font-weight: 700;
+    color: v.$primary; text-align: left; display: block; transition: color 0.2s;
+    &:hover { color: #855324; }
+  }
+
+  &__nav-perfil {
+    display: flex; align-items: center; gap: 4px; margin-left: auto;
+  }
+
+  &__nav-btn {
+    background: none; border: none; cursor: pointer; color: #8A8279;
+    padding: 6px; border-radius: 8px; display: flex; align-items: center;
+    transition: all 0.2s;
+    &:hover { background: rgba(133,83,36,0.08); color: #855324; }
+  }
+
+  &__ver-perfil {
+    display: flex; align-items: center; gap: 4px;
+    background: none; border: none;
+    border-top: 1px solid rgba(3,25,46,0.06);
+    width: 100%; padding: 8px 1.25rem 10px;
+    font-family: v.$font-body; font-size: 0.68rem; font-weight: 600;
+    color: #8A8279; cursor: pointer; text-align: left; transition: color 0.2s;
+    &:hover { color: #855324; }
+  }
+
+  // Estados interacción
+  &__react-btn.reaccionado {
+    border-width: 1.5px; font-weight: 800; background: rgba(0,0,0,0.02);
+  }
+
+  &__accion.active { background: rgba(133,83,36,0.1); color: #855324; }
+  &__accion.guardado { color: #C9A84C; }
 }
 
 // ── Panel de reacciones ──
@@ -538,8 +328,7 @@
   background: white; border-radius: 1rem;
   box-shadow: 0 8px 32px rgba(0,0,0,0.15);
   border: 1px solid rgba(196,198,205,0.2);
-  display: flex; gap: 0; overflow: hidden;
-  z-index: 20;
+  display: flex; gap: 0; overflow: hidden; z-index: 20;
   animation: reaccionesPop 0.2s ease both;
 
   &__item {
@@ -548,25 +337,22 @@
     font-family: v.$font-body; font-size: 9px; font-weight: 700;
     letter-spacing: 0.06em; text-transform: uppercase; color: #43474d;
     white-space: nowrap; transition: background 0.15s;
-
     svg { width: 22px; height: 22px; }
     &:hover { background: #f5f3ef; }
+    &.active { background: #f5f3ef; font-weight: 800; }
   }
 }
 
 // ── Vista Galería ──
 .feed-galeria {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
 
-  @include m.mobile { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); }
 
   &__item {
     position: relative; aspect-ratio: 1; overflow: hidden;
     border-radius: 0.75rem; cursor: pointer;
-
     img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-
     &:hover img { transform: scale(1.05); }
     &:hover .feed-galeria__overlay { opacity: 1; }
   }
@@ -574,8 +360,7 @@
   &__overlay {
     position: absolute; inset: 0;
     background: rgba(3,25,46,0.65);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 0.5rem; padding: 0.75rem;
     opacity: 0; transition: opacity 0.3s;
   }
@@ -588,20 +373,26 @@
 
   &__stats {
     display: flex; gap: 0.75rem;
-
     span {
       display: flex; align-items: center; gap: 3px;
       font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 600;
-
       svg { width: 14px; height: 14px; }
     }
+  }
+
+  &__autor {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: none; cursor: pointer; color: white;
+    font-family: v.$font-body; font-size: 0.7rem; font-weight: 700;
+    padding: 0; margin-bottom: 6px; transition: opacity 0.2s;
+    &:hover { opacity: 0.8; }
+    img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); }
   }
 }
 
 // ── Vista Cronología ──
 .feed-cronologia {
-  display: flex; flex-direction: column; gap: 0;
-  padding: 0.5rem 0;
+  display: flex; flex-direction: column; gap: 0; padding: 0.5rem 0;
 }
 
 .feed-crono-item {
@@ -611,8 +402,7 @@
     width: 44px; height: 44px; border-radius: 9999px;
     background: #f5f3ef; border: 2px solid rgba(133,83,36,0.2);
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; position: relative; z-index: 1;
-
+    flex-shrink: 0; position: relative; z-index: 1; cursor: pointer;
     svg { width: 18px; height: 18px; color: #855324; }
   }
 
@@ -622,25 +412,32 @@
     background: rgba(133,83,36,0.15);
   }
 
-  &__content {
-    padding: 0.5rem 0 2rem; flex: 1;
-  }
+  &__content { padding: 0.5rem 0 2rem; flex: 1; }
+
+  &__header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 
   &__tiempo {
     font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
-    text-transform: uppercase; color: #855324; margin-bottom: 0.25rem;
-    display: block;
+    text-transform: uppercase; color: #855324; display: block;
   }
 
   &__titulo {
     font-family: v.$font-display; font-style: italic;
-    font-size: 1rem; font-weight: 700; color: v.$primary;
-    margin-bottom: 0.5rem;
+    font-size: 1rem; font-weight: 700; color: v.$primary; margin-bottom: 0.5rem;
   }
 
   &__img {
     width: 100%; max-width: 300px; height: 160px;
     object-fit: cover; border-radius: 0.875rem;
+  }
+
+  &__autor {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: none; cursor: pointer;
+    font-family: v.$font-body; font-size: 0.72rem; font-weight: 700;
+    color: v.$primary; padding: 0; transition: color 0.2s;
+    &:hover { color: #855324; }
+    img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
   }
 }
 
@@ -650,9 +447,7 @@
   border-radius: 999px; border: 1.5px solid rgba(133,83,36,0.2);
   background: none; cursor: pointer;
   font-family: v.$font-body; font-size: 0.78rem; font-weight: 700;
-  letter-spacing: 0.08em; text-transform: uppercase; color: #855324;
-  transition: all 0.2s;
-
+  letter-spacing: 0.08em; text-transform: uppercase; color: #855324; transition: all 0.2s;
   svg { width: 16px; height: 16px; }
   &:hover { background: rgba(133,83,36,0.06); }
 }
@@ -662,8 +457,7 @@
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
   display: flex; justify-content: space-around; align-items: flex-end;
   padding: 0.5rem 0.5rem max(1.5rem, env(safe-area-inset-bottom));
-  background: rgba(251,249,245,0.92);
-  backdrop-filter: blur(20px);
+  background: rgba(251,249,245,0.92); backdrop-filter: blur(20px);
   border-top: 0.5px solid rgba(196,198,205,0.2);
   border-radius: 1.5rem 1.5rem 0 0;
   box-shadow: 0 -4px 32px rgba(3,25,46,0.08);
@@ -672,256 +466,86 @@
     display: flex; flex-direction: column; align-items: center; gap: 2px;
     padding: 0.4rem 0.875rem; border-radius: 0.875rem;
     background: none; border: none; cursor: pointer;
-    color: rgba(3,25,46,0.4);
-    font-family: v.$font-body;
+    color: rgba(3,25,46,0.4); font-family: v.$font-body;
     font-size: 9px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
     transition: all 0.2s;
-
     svg { width: 22px; height: 22px; }
-
     &:hover { color: #855324; }
-
-    &.active {
-      background: #855324; color: white;
-      transform: translateY(-4px);
-      box-shadow: 0 4px 16px rgba(133,83,36,0.3);
-    }
-  }
-}// ============================================================
-// LIFE'S — Feed.scss PARCHE
-// Agregar al final del Feed.scss existente
-// Nuevas clases: links a perfiles, nav botones del post
-// ============================================================
-
-// ── Avatar y nombre del autor clickeables ──────────────────
-.feed-post__avatar-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: opacity 0.2s, transform 0.2s;
-
-  &:hover { opacity: 0.85; transform: scale(1.05); }
-}
-
-.feed-post__autor-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #03192e;
-  text-align: left;
-  transition: color 0.2s;
-
-  &:hover { color: #855324; }
-}
-
-// ── Menú rápido de navegación al perfil ───────────────────
-.feed-post__nav-perfil {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-}
-
-.feed-post__nav-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #8A8279;
-  padding: 6px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(133, 83, 36, 0.08);
-    color: #855324;
+    &.active { background: #855324; color: white; transform: translateY(-4px); box-shadow: 0 4px 16px rgba(133,83,36,0.3); }
   }
 }
 
-// ── Link ver perfil completo al pie del post ──────────────
-.feed-post__ver-perfil {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
+// ── FAB ──
+.feed-fab {
+  position: fixed; bottom: 88px; right: 20px; z-index: v.$z-nav;
+  width: 56px; height: 56px; border-radius: v.$radius-full;
+  background: linear-gradient(135deg, v.$gold, v.$gold-dark);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: v.$primary;
+  box-shadow: v.$shadow-gold, 0 2px 8px rgba(0,0,0,0.3);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &:hover { transform: scale(1.1) translateY(-2px); box-shadow: 0 8px 28px rgba(201,168,76,0.5); }
+  &:active { transform: scale(0.95); }
+
+  @media (min-width: 769px) { bottom: 28px; right: 28px; width: 52px; height: 52px; }
+}
+
+// ── Panel comentarios ──
+.feed-post__comentarios {
+  padding: 0.75rem 1.25rem 1rem;
   border-top: 1px solid rgba(3,25,46,0.06);
-  width: 100%;
-  padding: 8px 0 0;
-  margin-top: 8px;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: #8A8279;
-  cursor: pointer;
-  text-align: left;
-  transition: color 0.2s;
-
-  &:hover { color: #855324; }
+  display: flex; flex-direction: column; gap: 0.75rem;
 }
 
-// ── Galería — autor clickeable ────────────────────────────
-.feed-galeria__autor {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: white;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0;
-  margin-bottom: 6px;
-  transition: opacity 0.2s;
-
-  &:hover { opacity: 0.8; }
-
-  img {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid rgba(255,255,255,0.4);
-  }
+.feed-post__comentarios-lista {
+  display: flex; flex-direction: column; gap: 0.625rem;
+  max-height: 240px; overflow-y: auto;
 }
 
-// ── Cronología — header con autor ────────────────────────
-.feed-crono-item__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+.feed-post__comentario {
+  display: flex; gap: 0.5rem; align-items: flex-start;
 }
 
-.feed-crono-item__autor {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #03192e;
-  padding: 0;
-  transition: color 0.2s;
-
-  &:hover { color: #855324; }
-
-  img {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
+.feed-post__comentario-avatar {
+  width: 28px; height: 28px; border-radius: 9999px; object-fit: cover; flex-shrink: 0;
 }
 
-// ── Mini árbol — items clickeables ───────────────────────
-.feed-mini-tree__item {
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  width: 100%;
-
-  &.activo { cursor: default; }
+.feed-post__comentario-body {
+  background: white; border-radius: 0.875rem; padding: 0.5rem 0.75rem; flex: 1;
 }
 
-// ── Avatar del perfil clickeable ─────────────────────────
-.feed-profile__avatar-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: 50%;
-  display: block;
-  transition: opacity 0.2s;
-
-  &:hover { opacity: 0.9; }
-
-  img {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid white;
-    display: block;
-  }
+.feed-post__comentario-autor {
+  display: block; font-size: 0.72rem; font-weight: 700; color: #03192e; margin-bottom: 2px;
 }
 
-.feed-profile__name-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: 'Newsreader', serif;
-  font-style: italic;
-  font-size: 1.5rem;
-  font-weight: 400;
-  color: #03192e;
-  padding: 0;
-  text-align: left;
-  transition: color 0.2s;
-
-  &:hover { color: #855324; }
+.feed-post__comentario-texto {
+  font-size: 0.8rem; color: #43474d; line-height: 1.5; margin: 0;
 }
 
-// ════════════════════════════════════════════════════════════
-// RESPONSIVE — Feed
-// ════════════════════════════════════════════════════════════
-
-@media (max-width: 900px) {
-  .feed-main {
-    grid-template-columns: 1fr !important;
-    padding: 16px;
-  }
-
-  .feed-sidebar { display: none; }
-
-  .feed-grid {
-    grid-template-columns: 1fr !important;
-  }
+.feed-post__comentario-fecha {
+  display: block; font-size: 0.62rem; color: rgba(3,25,46,0.3); margin-top: 3px;
 }
 
-@media (max-width: 640px) {
-  .feed-root { padding-bottom: 70px; } // espacio bottom nav
-
-  .feed-header {
-    padding: 12px 16px;
-    flex-wrap: wrap; gap: 10px;
-
-    &__titulo { font-size: 1rem; }
-    &__search { width: 100%; order: 3; }
-  }
-
-  .feed-main { padding: 12px; gap: 12px; }
-
-  .feed-profile {
-    flex-direction: column; align-items: center; text-align: center;
-    padding: 16px;
-  }
-
-  .feed-stats { justify-content: center; gap: 16px; }
-
-  .feed-epocas { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
-  .feed-epoca-btn { flex-shrink: 0; }
-
-  .feed-hoy-hace { padding: 12px; }
-
-  .feed-mini-tree { display: none; }
+.feed-post__comentario-input-wrap {
+  display: flex; align-items: center; gap: 0.5rem;
 }
 
-@media (max-width: 380px) {
-  .feed-header { padding: 10px 12px; }
-  .feed-main   { padding: 10px; }
+.feed-post__comentario-input {
+  flex: 1; background: white;
+  border: 1.5px solid rgba(3,25,46,0.08); border-radius: 999px;
+  padding: 0.5rem 1rem; font-family: v.$font-body; font-size: 0.8rem;
+  color: v.$primary; outline: none; transition: border-color 0.2s;
+  &:focus { border-color: #855324; }
+  &::placeholder { color: rgba(3,25,46,0.3); }
+}
+
+.feed-post__comentario-enviar {
+  width: 34px; height: 34px; border-radius: 9999px;
+  background: #855324; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: white; flex-shrink: 0; transition: all 0.2s;
+  &:hover:not(:disabled) { background: #6b421d; transform: scale(1.05); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
 }

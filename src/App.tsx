@@ -1,7 +1,7 @@
 // ============================================
 // LIFE'S — App.tsx con rutas completas
 // ============================================
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import './styles/main.scss';
 
 // ── Contexto ──
@@ -41,7 +41,6 @@ import LifesAdmin        from './pages/LifesAdmin/LifesAdmin/LifesAdmin';
 
 // ── Páginas principales ──
 import Feed              from './pages/Feed/Feed';
-import MuroBiografico    from './pages/MuroBiografico/MuroBiografico';
 import Profile           from './pages/Profile/Profile';
 import Timeline          from './pages/Timeline/Timeline';
 import FamilyTree        from './pages/FamilyTree/FamilyTree';
@@ -60,6 +59,14 @@ import CajaDeValores     from './pages/CajaDeValores/CajaDeValores';
 
 // ── Shared ──
 import NotFound          from './pages/NotFound/NotFound';
+
+// ── Helper: redirige /muro-biografico/:userId → /perfil/:userId ──
+// (Muro Biográfico se unificó con Perfil. Este helper evita romper
+// links viejos guardados o compartidos con la ruta anterior.)
+function RedirectMuroConUserId() {
+  const { userId } = useParams();
+  return <Navigate to={`/perfil/${userId}`} replace />;
+}
 
 function App() {
   return (
@@ -98,12 +105,17 @@ function App() {
           <Route path="/lifes-admin/alta-empresa"   element={<AltaEmpresa />} />
           <Route path="/lifes-admin/alta-empleado"  element={<AltaEmpleado />} />
 
-          {/* ══ PÁGINAS EN DESARROLLO ══ */}
+          {/* ══ PÁGINAS PRINCIPALES ══ */}
           <Route path="/feed"                               element={<Feed />} />
-          <Route path="/muro-biografico"                    element={<MuroBiografico />} />
-          <Route path="/muro-biografico/:userId"            element={<MuroBiografico />} />
+
+          {/* Perfil — unifica Muro Biográfico + Perfil */}
           <Route path="/perfil"                             element={<Profile />} />
           <Route path="/perfil/:userId"                     element={<Profile />} />
+
+          {/* Compatibilidad: rutas viejas de Muro Biográfico redirigen a Perfil */}
+          <Route path="/muro-biografico"                    element={<Navigate to="/perfil" replace />} />
+          <Route path="/muro-biografico/:userId"            element={<RedirectMuroConUserId />} />
+
           <Route path="/linea-de-vida"                      element={<Timeline />} />
           <Route path="/linea-de-vida/:userId"              element={<Timeline />} />
           <Route path="/arbol-genealogico"                  element={<FamilyTree />} />

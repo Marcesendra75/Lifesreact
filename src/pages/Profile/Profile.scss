@@ -51,6 +51,8 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
   font-weight: 400;
   color: $noche;
   margin: 0;
+  display: flex;
+  align-items: center;
 }
 
 .profile-barra-header {
@@ -58,6 +60,8 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .profile-btn-editar-sec {
@@ -254,124 +258,7 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
 }
 
 // ════════════════════════════════════════════════════════════
-// ② BARRA DE VIDA
-// ════════════════════════════════════════════════════════════
-.profile-barra-wrap {
-  max-width: 900px;
-  margin: 40px auto 0;
-  padding: 0 40px;
-
-  @media (max-width: 600px) { padding: 0 20px; }
-}
-
-.profile-barra-anos {
-  display: flex;
-  position: relative;
-  margin-bottom: 6px;
-}
-
-.profile-barra-ano {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: $piedra;
-  letter-spacing: 0.04em;
-  text-align: left;
-
-  &--ultimo {
-    position: absolute;
-    right: 0;
-    width: auto !important;
-  }
-}
-
-.profile-barra {
-  height: 28px;
-  display: flex;
-  border-radius: 20px;
-  overflow: visible;
-  position: relative;
-  gap: 2px;
-
-  &__cap {
-    height: 100%;
-    cursor: pointer;
-    transition: filter 0.2s, transform 0.15s;
-    position: relative;
-
-    &:hover {
-      filter: brightness(1.15);
-      transform: scaleY(1.08);
-    }
-  }
-
-  &__tooltip {
-    position: absolute;
-    bottom: calc(100% + 10px);
-    transform: translateX(-50%);
-    background: $noche;
-    color: white;
-    border-radius: $radius-md;
-    padding: 10px 14px;
-    pointer-events: none;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    white-space: nowrap;
-    box-shadow: $shadow-lg;
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-top-color: $noche;
-    }
-
-    strong {
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    span {
-      font-size: 0.72rem;
-      color: rgba(white, 0.65);
-    }
-  }
-
-  &__tooltip-dur {
-    color: $ambar-light !important;
-    font-weight: 600 !important;
-  }
-}
-
-.profile-barra-leyenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  margin-top: 14px;
-
-  &__item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.72rem;
-    color: $piedra;
-    font-weight: 500;
-  }
-
-  &__dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-}
-
-// ════════════════════════════════════════════════════════════
-// ③ NÚMEROS CON ALMA
+// ② NÚMEROS CON ALMA
 // ════════════════════════════════════════════════════════════
 .profile-numeros {
   display: grid;
@@ -434,6 +321,66 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     font-size: 0.75rem;
     color: $ambar;
     font-weight: 700;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ③ CAPÍTULOS DE VIDA
+// ════════════════════════════════════════════════════════════
+.profile-capitulos-sec {
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 600px) { padding: 0 20px; }
+}
+
+.profile-capitulos {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.profile-capitulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 18px;
+  border-radius: $radius-md;
+  flex-shrink: 0;
+  min-width: 100px;
+  background: white;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: $shadow-card;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-lg;
+  }
+
+  &__emoji {
+    font-size: 1.6rem;
+  }
+
+  &__label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: $noche;
+    text-align: center;
+  }
+
+  &__años {
+    font-size: 0.6rem;
+    color: $piedra;
+    font-weight: 600;
+    letter-spacing: 0.02em;
   }
 }
 
@@ -570,7 +517,78 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
 }
 
 // ════════════════════════════════════════════════════════════
-// ⑥ SOBRE MÍ
+// ⑥ MI LEGADO COMPLETO — hub de secciones
+// ════════════════════════════════════════════════════════════
+.profile-hub-sec {
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 600px) { padding: 0 20px; }
+}
+
+.profile-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+
+  @media (max-width: 700px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 420px) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.profile-hub-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  border-radius: $radius-md;
+  border: 1px solid rgba($noche, 0.06);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-card;
+  }
+
+  &__icon-wrap {
+    position: relative;
+    display: flex;
+  }
+
+  &__lock {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    color: $ambar;
+    display: flex;
+  }
+
+  &__label {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $noche;
+    text-align: center;
+    line-height: 1.25;
+  }
+
+  &__desc {
+    font-size: 0.55rem;
+    color: $piedra;
+    text-align: center;
+    line-height: 1.3;
+    display: none;
+
+    @media (min-width: 500px) { display: block; }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ⑦ SOBRE MÍ
 // ════════════════════════════════════════════════════════════
 .profile-sobre {
   max-width: 900px;
@@ -584,7 +602,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     line-height: 1.75;
     color: #4A4540;
     margin: 0 0 24px;
-    color: #4A4540;
   }
 
   &__datos {
@@ -630,20 +647,16 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
 }
 
 // ════════════════════════════════════════════════════════════
-// ⑦ FRASE DE LEGADO
+// ⑧ FRASE DE LEGADO
 // ════════════════════════════════════════════════════════════
 .profile-legado {
-  max-width: 900px;
-  margin: 48px auto 0;
-  padding: 0 40px;
   background: $noche;
   border-radius: $radius-xl;
   padding: 56px 60px;
   position: relative;
   overflow: hidden;
   text-align: center;
-  margin-left: 40px;
-  margin-right: 40px;
+  margin: 48px 40px 0;
   max-width: calc(900px - 80px);
 
   @media (min-width: 980px) {
@@ -718,7 +731,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     to   { transform: translateX(0); }
   }
 
-  // ── Header ──
   &__header {
     padding: 20px 20px 0;
     border-bottom: 1px solid rgba($noche, 0.08);
@@ -769,7 +781,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     &:hover { background: rgba($noche, 0.06); color: $noche; }
   }
 
-  // ── Body ──
   &__body {
     flex: 1;
     overflow-y: auto;
@@ -834,7 +845,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     gap: 12px;
   }
 
-  // ── Capítulos ──
   &__capitulo {
     background: white;
     border-radius: $radius-md;
@@ -920,7 +930,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     }
   }
 
-  // ── Vínculos ──
   &__vinculo {
     background: white;
     border-radius: $radius-md;
@@ -944,7 +953,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     object-fit: cover;
   }
 
-  // ── Footer ──
   &__footer {
     padding: 16px 20px;
     border-top: 1px solid rgba($noche, 0.08);
@@ -987,51 +995,21 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
   }
 }
 
-// ── Responsive mobile ──────────────────────────────────────
+// ── Responsive general ──────────────────────────────────────
 @media (max-width: 768px) {
-  .profile-barra-wrap,
+  .profile-capitulos-sec,
   .profile-numeros,
   .profile-vinculos-sec,
   .profile-recuerdos-sec,
+  .profile-hub-sec,
   .profile-sobre {
     padding-left: 20px;
     padding-right: 20px;
   }
 }
 
-// ════════════════════════════════════════════════════════════
-// RESPONSIVE — Profile (adicional)
-// ════════════════════════════════════════════════════════════
-// Profile ya tenía 29 media queries — agregamos los faltantes
-
 @media (max-width: 480px) {
-  .profile-root { padding-bottom: 70px; }
-
-  .profile-header {
-    padding: 12px 14px;
-    &__titulo { font-size: 0.9rem; }
-    &__acciones { gap: 4px; }
-    &__btn { padding: 6px 10px; font-size: 0.65rem; }
-  }
-
-  .profile-portada { height: 180px; }
-
-  .profile-avatar-wrap { width: 68px; height: 68px; }
-
-  .profile-nombre { font-size: 1.1rem; }
-
-  .profile-stats { gap: 12px; flex-wrap: wrap; justify-content: center; }
-
-  .profile-tabs { overflow-x: auto; flex-wrap: nowrap;
-    .profile-tab { flex-shrink: 0; } }
-
-  .profile-grid { grid-template-columns: 1fr !important; }
-
-  .profile-hito-img { height: 180px; }
-}
-
-@media (max-width: 360px) {
-  .profile-portada { height: 140px; }
-  .profile-avatar-wrap { width: 56px; height: 56px; }
-  .profile-nombre { font-size: 1rem; }
+  .profile-page { padding-bottom: 70px; }
+  .profile-hero__nombre { font-size: 1.4rem; }
+  .profile-capitulo { min-width: 88px; padding: 12px 14px; }
 }
