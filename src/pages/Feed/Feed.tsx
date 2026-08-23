@@ -1,6 +1,6 @@
 // ============================================
 // LIFE'S — Feed Principal
-// Lucide React | Links a perfiles | with-navbar
+// Sin sidebar — columna única centrada
 // ============================================
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,17 +8,14 @@ import {
   Plus, History, ArrowRight,
   LayoutList, Grid, GitBranch, Camera, Video, Mic,
   Heart, Leaf, BookOpen, Frown, MoreHorizontal,
-  MessageCircle, Share2, Bookmark, Lock,
-  Activity, Shield, Clock, CreditCard,
-  Hourglass, Mail, Zap, ChevronRight, Edit2,
+  MessageCircle, Share2, Bookmark,
+  Activity, Shield, Clock, Zap, ChevronRight, Edit2,
 } from 'lucide-react';
 import './Feed.scss';
 
-// ── Tipos ──
 type Vista = 'feed' | 'galeria' | 'cronologia';
 type Epoca = 'todas' | 'infancia' | 'juventud' | 'familia' | 'logros' | 'hoy';
 
-// ── Reacciones ──
 const REACCIONES = [
   { icon: <Heart    size={18} strokeWidth={1.8} />, label: 'Emocionante',  color: '#e74c3c', key: 'favorite'      },
   { icon: <Leaf     size={18} strokeWidth={1.8} />, label: 'Inspirador',   color: '#27ae60', key: 'eco'           },
@@ -26,7 +23,6 @@ const REACCIONES = [
   { icon: <Frown    size={18} strokeWidth={1.8} />, label: 'Me conmueve',  color: '#735c00', key: 'sentiment_sad' },
 ];
 
-// ── Épocas ──
 const EPOCAS = [
   { id: 'todas',    label: 'Todas'       },
   { id: 'infancia', label: '👶 Infancia' },
@@ -36,18 +32,6 @@ const EPOCAS = [
   { id: 'hoy',      label: '🌿 Hoy'      },
 ];
 
-// ── Navegación sidebar ──
-const NAV_ITEMS = [
-  { icono: <Activity   size={18} strokeWidth={1.8} />, label: 'Línea de Vida',     path: '/linea-de-vida',     vault: false },
-  { icono: <GitBranch  size={18} strokeWidth={1.8} />, label: 'Árbol Genealógico', path: '/arbol-genealogico', vault: false },
-  { icono: <Shield     size={18} strokeWidth={1.8} />, label: 'Caja Fuerte',       path: '/caja-fuerte',       vault: true  },
-  { icono: <Zap        size={18} strokeWidth={1.8} />, label: 'Ecos IA',           path: '/ecos/1',            vault: false },
-  { icono: <CreditCard size={18} strokeWidth={1.8} />, label: 'Mi Tarjeta',        path: '/tarjeta-legado',    vault: false },
-  { icono: <Hourglass  size={18} strokeWidth={1.8} />, label: 'Cápsula del Tiempo',path: '/capsula-del-tiempo',vault: false },
-  { icono: <Mail       size={18} strokeWidth={1.8} />, label: 'Postal Digital',    path: '/postal',            vault: false },
-];
-
-// ── Mock Posts ──
 const MOCK_POSTS = [
   {
     id: 1, autor: 'Julian Valenzuela', userId: '1',
@@ -124,253 +108,195 @@ export default function Feed() {
     <div className="feed-root with-navbar">
 
       <main className="feed-main">
-        <div className="feed-grid">
 
-          {/* ── SIDEBAR ── */}
-          <aside className="feed-sidebar">
-            <div className="feed-sidebar__card">
-              <h3 className="feed-sidebar__title">Navegación</h3>
-              {NAV_ITEMS.map(n => (
-                <button key={n.path} className="feed-sidebar__link" onClick={() => navigate(n.path)}>
-                  <span className="feed-sidebar__link-icon">{n.icono}</span>
-                  <span className="feed-sidebar__link-label">{n.label}</span>
-                  {n.vault && <span className="feed-sidebar__vault-badge"><Lock size={12} strokeWidth={2}/></span>}
-                </button>
-              ))}
+        {/* Hoy hace X años */}
+        <div className="feed-hoy-hace" onClick={() => navigate('/linea-de-vida')}>
+          <div className="feed-hoy-hace__img">
+            <img src={HOY_HACE.imagen} alt="Hoy hace años"/>
+            <div className="feed-hoy-hace__overlay"/>
+          </div>
+          <div className="feed-hoy-hace__text">
+            <div className="feed-hoy-hace__badge">
+              <History size={14} strokeWidth={1.8}/> Hoy hace {HOY_HACE.años} años
             </div>
+            <p className="feed-hoy-hace__titulo">{HOY_HACE.titulo}</p>
+          </div>
+          <ArrowRight size={18} strokeWidth={1.8} className="feed-hoy-hace__arrow"/>
+        </div>
 
-            <div className="feed-sidebar__card">
-              <h3 className="feed-sidebar__title">Sobre mí</h3>
-              <p className="feed-sidebar__bio">
-                Preservando los momentos que definen nuestra historia. Un legado no es lo que
-                dejamos atrás, sino lo que vive en los demás.
-              </p>
-              <button className="feed-sidebar__edit" onClick={() => navigate('/perfil')}>
-                <Edit2 size={14} strokeWidth={1.8}/> Editar perfil
-              </button>
-            </div>
+        {/* Filtros época */}
+        <div className="feed-epocas">
+          {EPOCAS.map(e => (
+            <button key={e.id}
+              className={`feed-epoca-btn ${epoca === e.id ? 'active' : ''}`}
+              onClick={() => setEpoca(e.id as Epoca)}
+            >{e.label}</button>
+          ))}
+        </div>
 
-            <div className="feed-sidebar__card feed-sidebar__card--dark">
-              <h3 className="feed-sidebar__title feed-sidebar__title--light">
-                <GitBranch size={16} strokeWidth={1.8}/> Tu árbol vivo
-              </h3>
-              <div className="feed-mini-tree">
-                {[
-                  { nombre: 'Abuelo Pedro', avatar: 'https://i.pravatar.cc/32?img=70', nivel: 0, userId: '5' },
-                  { nombre: 'Papá Carlos',  avatar: 'https://i.pravatar.cc/32?img=60', nivel: 1, userId: '3' },
-                  { nombre: 'Tú',           avatar: 'https://i.pravatar.cc/32?img=11', nivel: 2, userId: '1', activo: true },
-                  { nombre: 'Hija Sofía',   avatar: 'https://i.pravatar.cc/32?img=20', nivel: 3, userId: '4' },
-                ].map((m, i) => (
-                  <button key={i}
-                    className={`feed-mini-tree__item ${m.activo ? 'activo' : ''}`}
-                    style={{ marginLeft: `${m.nivel * 16}px` }}
-                    onClick={() => !m.activo && irAPerfil(m.userId)}
-                  >
-                    <img src={m.avatar} alt={m.nombre}/>
-                    <span>{m.nombre}</span>
-                    {m.activo && <span className="feed-mini-tree__you">Tú</span>}
-                  </button>
-                ))}
-              </div>
-              <button className="feed-sidebar__link-btn" onClick={() => navigate('/arbol-genealogico')}>
-                Ver árbol completo <ChevronRight size={15} strokeWidth={1.8}/>
-              </button>
-            </div>
-          </aside>
+        {/* Selector vista */}
+        <div className="feed-vista-selector">
+          {([
+            { id: 'feed',       icono: <LayoutList size={18} strokeWidth={1.8}/> },
+            { id: 'galeria',    icono: <Grid       size={18} strokeWidth={1.8}/> },
+            { id: 'cronologia', icono: <Activity   size={18} strokeWidth={1.8}/> },
+          ] as { id: Vista; icono: React.ReactNode }[]).map(v => (
+            <button key={v.id}
+              className={`feed-vista-btn ${vista === v.id ? 'active' : ''}`}
+              onClick={() => setVista(v.id)}
+            >{v.icono}</button>
+          ))}
+          <span className="feed-vista-label">
+            {vista === 'feed' ? 'Lista' : vista === 'galeria' ? 'Galería' : 'Cronología'}
+          </span>
+        </div>
 
-          {/* ── COLUMNA FEED ── */}
-          <div className="feed-content">
-
-            {/* Hoy hace X años */}
-            <div className="feed-hoy-hace" onClick={() => navigate('/linea-de-vida')}>
-              <div className="feed-hoy-hace__img">
-                <img src={HOY_HACE.imagen} alt="Hoy hace años"/>
-                <div className="feed-hoy-hace__overlay"/>
-              </div>
-              <div className="feed-hoy-hace__text">
-                <div className="feed-hoy-hace__badge">
-                  <History size={14} strokeWidth={1.8}/> Hoy hace {HOY_HACE.años} años
-                </div>
-                <p className="feed-hoy-hace__titulo">{HOY_HACE.titulo}</p>
-              </div>
-              <ArrowRight size={18} strokeWidth={1.8} className="feed-hoy-hace__arrow"/>
-            </div>
-
-            {/* Filtros época */}
-            <div className="feed-epocas">
-              {EPOCAS.map(e => (
-                <button key={e.id}
-                  className={`feed-epoca-btn ${epoca === e.id ? 'active' : ''}`}
-                  onClick={() => setEpoca(e.id as Epoca)}
-                >{e.label}</button>
-              ))}
-            </div>
-
-            {/* Selector vista */}
-            <div className="feed-vista-selector">
-              {([
-                { id: 'feed',       icono: <LayoutList size={18} strokeWidth={1.8}/> },
-                { id: 'galeria',    icono: <Grid       size={18} strokeWidth={1.8}/> },
-                { id: 'cronologia', icono: <Activity   size={18} strokeWidth={1.8}/> },
-              ] as { id: Vista; icono: React.ReactNode }[]).map(v => (
-                <button key={v.id}
-                  className={`feed-vista-btn ${vista === v.id ? 'active' : ''}`}
-                  onClick={() => setVista(v.id)}
-                >{v.icono}</button>
-              ))}
-              <span className="feed-vista-label">
-                {vista === 'feed' ? 'Lista' : vista === 'galeria' ? 'Galería' : 'Cronología'}
-              </span>
-            </div>
-
-            {/* Quick create */}
-            <div className="feed-create">
-              <button onClick={() => irAPerfil('1')}>
-                <img src="https://i.pravatar.cc/48?img=11" alt="Yo" className="feed-create__avatar"/>
-              </button>
-              <button className="feed-create__input" onClick={() => navigate('/linea-de-vida')}>
-                ¿Qué momento deseas preservar hoy?
-              </button>
-              <div className="feed-create__actions">
-                <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Camera size={18} strokeWidth={1.8}/></button>
-                <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Video  size={18} strokeWidth={1.8}/></button>
-                <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Mic    size={18} strokeWidth={1.8}/></button>
-              </div>
-            </div>
-
-            {/* ══ VISTA FEED ══ */}
-            {vista === 'feed' && (
-              <div className="feed-posts">
-                {postsFiltrados.map(post => (
-                  <article key={post.id} className="feed-post"
-                    style={{ '--peso': `${post.pesoEmocional}%` } as React.CSSProperties}>
-                    <div className="feed-post__peso" style={{ width: `${post.pesoEmocional}%` }}/>
-                    <div className="feed-post__header">
-                      <button className="feed-post__avatar-btn" onClick={() => irAPerfil(post.userId)}>
-                        <img src={post.avatar} alt={post.autor} className="feed-post__avatar"/>
-                      </button>
-                      <div className="feed-post__meta">
-                        <button className="feed-post__autor-btn" onClick={() => irAPerfil(post.userId)}>
-                          {post.autor}
-                        </button>
-                        <span className="feed-post__tiempo">{post.tiempo} · {post.tipo}</span>
-                      </div>
-                      <div className="feed-post__nav-perfil">
-                        <button className="feed-post__nav-btn" onClick={() => irALinea(post.userId)} title="Línea de vida"><Activity  size={14} strokeWidth={1.8}/></button>
-                        <button className="feed-post__nav-btn" onClick={() => irAArbol(post.userId)} title="Árbol"><GitBranch size={14} strokeWidth={1.8}/></button>
-                        <button className="feed-post__more"><MoreHorizontal size={18} strokeWidth={1.8}/></button>
-                      </div>
-                    </div>
-                    <div className="feed-post__body">
-                      {post.titulo && <h4 className="feed-post__titulo">{post.titulo}</h4>}
-                      {(post as any).esCita
-                        ? <blockquote className="feed-post__cita">{post.texto}</blockquote>
-                        : <p className="feed-post__texto">{post.texto}</p>
-                      }
-                    </div>
-                    {post.imagen && (
-                      <div className="feed-post__img-wrap" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}>
-                        <img src={post.imagen} alt={post.titulo || 'Recuerdo'}/>
-                        <div className="feed-post__img-overlay">
-                          <span className="feed-post__epoca-badge">
-                            {EPOCAS.find(e => e.id === post.epoca)?.label}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="feed-post__footer">
-                      <div className="feed-post__reacciones">
-                        <div className="feed-post__reacciones-wrap">
-                          <button className="feed-post__react-btn"
-                            onClick={() => setReaccionesAbiertas(reaccionesAbiertas === post.id ? null : post.id)}>
-                            <Heart size={16} strokeWidth={1.8}/> <span>Reaccionar</span>
-                          </button>
-                          {reaccionesAbiertas === post.id && (
-                            <div className="feed-reacciones-panel">
-                              {REACCIONES.map(r => (
-                                <button key={r.key} className="feed-reacciones-panel__item"
-                                  onClick={() => setReaccionesAbiertas(null)} style={{color: r.color}}>
-                                  {r.icon}<span>{r.label}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="feed-post__react-counts">
-                          {REACCIONES.map(r => (
-                            <span key={r.key} className="feed-post__react-count" style={{color: r.color}}>
-                              {r.icon}{(post.reacciones as any)[r.key]}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="feed-post__acciones">
-                        <button className="feed-post__accion"><MessageCircle size={16} strokeWidth={1.8}/>{post.comentarios}</button>
-                        <button className="feed-post__accion"><Share2   size={16} strokeWidth={1.8}/></button>
-                        <button className="feed-post__accion" onClick={() => navigate('/postal')}><Bookmark size={16} strokeWidth={1.8}/></button>
-                      </div>
-                    </div>
-                    <button className="feed-post__ver-perfil" onClick={() => irAPerfil(post.userId)}>
-                      Ver perfil completo de {post.autor.split(' ')[0]} <ChevronRight size={13} strokeWidth={1.8}/>
-                    </button>
-                  </article>
-                ))}
-              </div>
-            )}
-
-            {/* ══ VISTA GALERÍA ══ */}
-            {vista === 'galeria' && (
-              <div className="feed-galeria">
-                {postsFiltrados.filter(p => p.imagen).map(post => (
-                  <div key={post.id} className="feed-galeria__item" onClick={() => irALinea(post.userId)}>
-                    <img src={post.imagen!} alt={post.titulo || 'Recuerdo'}/>
-                    <div className="feed-galeria__overlay">
-                      <button className="feed-galeria__autor"
-                        onClick={e => { e.stopPropagation(); irAPerfil(post.userId); }}>
-                        <img src={post.avatar} alt={post.autor}/>{post.autor.split(' ')[0]}
-                      </button>
-                      <p className="feed-galeria__titulo">{post.titulo || post.texto.slice(0,40)+'...'}</p>
-                      <div className="feed-galeria__stats">
-                        <span><Heart size={12} strokeWidth={1.8}/>{post.reacciones.favorite}</span>
-                        <span><MessageCircle size={12} strokeWidth={1.8}/>{post.comentarios}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* ══ VISTA CRONOLOGÍA ══ */}
-            {vista === 'cronologia' && (
-              <div className="feed-cronologia">
-                {postsFiltrados.map((post, i) => (
-                  <div key={post.id} className="feed-crono-item">
-                    <div className="feed-crono-item__dot" onClick={() => irAPerfil(post.userId)}>
-                      {(post as any).esCita ? <BookOpen size={16} strokeWidth={1.8}/> : post.imagen ? <Camera size={16} strokeWidth={1.8}/> : <Edit2 size={16} strokeWidth={1.8}/>}
-                    </div>
-                    {i < postsFiltrados.length - 1 && <div className="feed-crono-item__line"/>}
-                    <div className="feed-crono-item__content">
-                      <div className="feed-crono-item__header">
-                        <button className="feed-crono-item__autor" onClick={() => irAPerfil(post.userId)}>
-                          <img src={post.avatar} alt={post.autor}/>{post.autor.split(' ')[0]}
-                        </button>
-                        <span className="feed-crono-item__tiempo">{post.tiempo}</span>
-                      </div>
-                      <h4 className="feed-crono-item__titulo" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}>
-                        {post.titulo || post.texto.slice(0,60)+'...'}
-                      </h4>
-                      {post.imagen && <img src={post.imagen} alt="" className="feed-crono-item__img" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}/>}
-                    </div>
-                  </div>
-                ))}
-                <button className="feed-crono-more" onClick={() => navigate('/linea-de-vida')}>
-                  <Activity size={16} strokeWidth={1.8}/> Ver línea de vida completa
-                </button>
-              </div>
-            )}
-
+        {/* Quick create */}
+        <div className="feed-create">
+          <button onClick={() => irAPerfil('1')}>
+            <img src="https://i.pravatar.cc/48?img=11" alt="Yo" className="feed-create__avatar"/>
+          </button>
+          <button className="feed-create__input" onClick={() => navigate('/linea-de-vida')}>
+            ¿Qué momento deseas preservar hoy?
+          </button>
+          <div className="feed-create__actions">
+            <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Camera size={18} strokeWidth={1.8}/></button>
+            <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Video  size={18} strokeWidth={1.8}/></button>
+            <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Mic    size={18} strokeWidth={1.8}/></button>
           </div>
         </div>
+
+        {/* ══ VISTA FEED ══ */}
+        {vista === 'feed' && (
+          <div className="feed-posts">
+            {postsFiltrados.map(post => (
+              <article key={post.id} className="feed-post"
+                style={{ '--peso': `${post.pesoEmocional}%` } as React.CSSProperties}>
+                <div className="feed-post__peso" style={{ width: `${post.pesoEmocional}%` }}/>
+                <div className="feed-post__header">
+                  <button className="feed-post__avatar-btn" onClick={() => irAPerfil(post.userId)}>
+                    <img src={post.avatar} alt={post.autor} className="feed-post__avatar"/>
+                  </button>
+                  <div className="feed-post__meta">
+                    <button className="feed-post__autor-btn" onClick={() => irAPerfil(post.userId)}>
+                      {post.autor}
+                    </button>
+                    <span className="feed-post__tiempo">{post.tiempo} · {post.tipo}</span>
+                  </div>
+                  <div className="feed-post__nav-perfil">
+                    <button className="feed-post__nav-btn" onClick={() => irALinea(post.userId)} title="Línea de vida"><Activity  size={14} strokeWidth={1.8}/></button>
+                    <button className="feed-post__nav-btn" onClick={() => irAArbol(post.userId)}  title="Árbol"><GitBranch size={14} strokeWidth={1.8}/></button>
+                    <button className="feed-post__more"><MoreHorizontal size={18} strokeWidth={1.8}/></button>
+                  </div>
+                </div>
+                <div className="feed-post__body">
+                  {post.titulo && <h4 className="feed-post__titulo">{post.titulo}</h4>}
+                  {(post as any).esCita
+                    ? <blockquote className="feed-post__cita">{post.texto}</blockquote>
+                    : <p className="feed-post__texto">{post.texto}</p>
+                  }
+                </div>
+                {post.imagen && (
+                  <div className="feed-post__img-wrap" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}>
+                    <img src={post.imagen} alt={post.titulo || 'Recuerdo'}/>
+                    <div className="feed-post__img-overlay">
+                      <span className="feed-post__epoca-badge">
+                        {EPOCAS.find(e => e.id === post.epoca)?.label}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <div className="feed-post__footer">
+                  <div className="feed-post__reacciones">
+                    <div className="feed-post__reacciones-wrap">
+                      <button className="feed-post__react-btn"
+                        onClick={() => setReaccionesAbiertas(reaccionesAbiertas === post.id ? null : post.id)}>
+                        <Heart size={16} strokeWidth={1.8}/> <span>Reaccionar</span>
+                      </button>
+                      {reaccionesAbiertas === post.id && (
+                        <div className="feed-reacciones-panel">
+                          {REACCIONES.map(r => (
+                            <button key={r.key} className="feed-reacciones-panel__item"
+                              onClick={() => setReaccionesAbiertas(null)} style={{color: r.color}}>
+                              {r.icon}<span>{r.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="feed-post__react-counts">
+                      {REACCIONES.map(r => (
+                        <span key={r.key} className="feed-post__react-count" style={{color: r.color}}>
+                          {r.icon}{(post.reacciones as any)[r.key]}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="feed-post__acciones">
+                    <button className="feed-post__accion"><MessageCircle size={16} strokeWidth={1.8}/>{post.comentarios}</button>
+                    <button className="feed-post__accion"><Share2   size={16} strokeWidth={1.8}/></button>
+                    <button className="feed-post__accion" onClick={() => navigate('/postal')}><Bookmark size={16} strokeWidth={1.8}/></button>
+                  </div>
+                </div>
+                <button className="feed-post__ver-perfil" onClick={() => irAPerfil(post.userId)}>
+                  Ver perfil completo de {post.autor.split(' ')[0]} <ChevronRight size={13} strokeWidth={1.8}/>
+                </button>
+              </article>
+            ))}
+          </div>
+        )}
+
+        {/* ══ VISTA GALERÍA ══ */}
+        {vista === 'galeria' && (
+          <div className="feed-galeria">
+            {postsFiltrados.filter(p => p.imagen).map(post => (
+              <div key={post.id} className="feed-galeria__item" onClick={() => irALinea(post.userId)}>
+                <img src={post.imagen!} alt={post.titulo || 'Recuerdo'}/>
+                <div className="feed-galeria__overlay">
+                  <button className="feed-galeria__autor"
+                    onClick={e => { e.stopPropagation(); irAPerfil(post.userId); }}>
+                    <img src={post.avatar} alt={post.autor}/>{post.autor.split(' ')[0]}
+                  </button>
+                  <p className="feed-galeria__titulo">{post.titulo || post.texto.slice(0,40)+'...'}</p>
+                  <div className="feed-galeria__stats">
+                    <span><Heart size={12} strokeWidth={1.8}/>{post.reacciones.favorite}</span>
+                    <span><MessageCircle size={12} strokeWidth={1.8}/>{post.comentarios}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ══ VISTA CRONOLOGÍA ══ */}
+        {vista === 'cronologia' && (
+          <div className="feed-cronologia">
+            {postsFiltrados.map((post, i) => (
+              <div key={post.id} className="feed-crono-item">
+                <div className="feed-crono-item__dot" onClick={() => irAPerfil(post.userId)}>
+                  {(post as any).esCita ? <BookOpen size={16} strokeWidth={1.8}/> : post.imagen ? <Camera size={16} strokeWidth={1.8}/> : <Edit2 size={16} strokeWidth={1.8}/>}
+                </div>
+                {i < postsFiltrados.length - 1 && <div className="feed-crono-item__line"/>}
+                <div className="feed-crono-item__content">
+                  <div className="feed-crono-item__header">
+                    <button className="feed-crono-item__autor" onClick={() => irAPerfil(post.userId)}>
+                      <img src={post.avatar} alt={post.autor}/>{post.autor.split(' ')[0]}
+                    </button>
+                    <span className="feed-crono-item__tiempo">{post.tiempo}</span>
+                  </div>
+                  <h4 className="feed-crono-item__titulo" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}>
+                    {post.titulo || post.texto.slice(0,60)+'...'}
+                  </h4>
+                  {post.imagen && <img src={post.imagen} alt="" className="feed-crono-item__img" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}/>}
+                </div>
+              </div>
+            ))}
+            <button className="feed-crono-more" onClick={() => navigate('/linea-de-vida')}>
+              <Activity size={16} strokeWidth={1.8}/> Ver línea de vida completa
+            </button>
+          </div>
+        )}
+
       </main>
 
       {/* ── BOTTOM NAV ── */}
