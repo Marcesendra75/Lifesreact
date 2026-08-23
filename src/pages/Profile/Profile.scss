@@ -226,6 +226,57 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     }
   }
 
+  // Botón cámara superpuesto en el avatar (esquina inferior derecha)
+  &__btn-avatar {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $ambar;
+    border: 2px solid $crema;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    z-index: 2;
+
+    &:hover {
+      background: $ambar-light;
+      transform: scale(1.1);
+    }
+  }
+
+  // Botón cambiar portada (esquina superior derecha del banner)
+  &__btn-portada {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(black, 0.38);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(white, 0.2);
+    border-radius: $radius-sm;
+    padding: 6px 12px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: rgba(white, 0.85);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    z-index: 2;
+
+    &:hover {
+      background: rgba(black, 0.55);
+      color: white;
+    }
+  }
+
   &__editar {
     display: flex;
     align-items: center;
@@ -992,6 +1043,65 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     transition: all 0.2s;
 
     &:hover { background: #0a3a5c; }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ⑨ SESIÓN — Volver al inicio + Cerrar sesión
+// ════════════════════════════════════════════════════════════
+.profile-sesion {
+  max-width: 900px;
+  margin: 48px auto 0;
+  padding: 0 40px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+
+  @media (max-width: 600px) {
+    padding: 0 20px;
+    flex-direction: column;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 24px;
+    border-radius: $radius-md;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1.5px solid transparent;
+
+    @media (max-width: 600px) {
+      justify-content: center;
+    }
+
+    &--inicio {
+      background: none;
+      border-color: rgba($noche, 0.18);
+      color: $piedra;
+
+      &:hover {
+        border-color: $noche;
+        color: $noche;
+        background: rgba($noche, 0.04);
+      }
+    }
+
+    &--salir {
+      background: none;
+      border-color: rgba(#c0392b, 0.2);
+      color: rgba(#c0392b, 0.75);
+
+      &:hover {
+        border-color: #c0392b;
+        color: #c0392b;
+        background: rgba(#c0392b, 0.05);
+      }
+    }
   }
 }
 

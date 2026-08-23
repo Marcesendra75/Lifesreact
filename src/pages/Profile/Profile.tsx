@@ -4,12 +4,13 @@
 // + Recuerdos + Mi legado completo (hub) + Sobre mí + Frase
 // Multi-perfil por userId (ruta /perfil/:userId) + persistencia local
 // ============================================================
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Activity, GitBranch, Map, Image, Shield, Coins,
   Film, Zap, Hourglass, Mail, CreditCard, Lock,
   Users, LayoutDashboard, BookOpen, ArrowRight,
+  Camera, LogOut, Home,
 } from 'lucide-react';
 import './Profile.scss';
 
@@ -274,6 +275,10 @@ export default function Profile() {
   const userId = userIdParam || MI_USER_ID;
   const esPropio = userId === MI_USER_ID;
 
+  // ── Refs para file inputs ocultos ──────────────────────
+  const inputAvatarRef  = useRef<HTMLInputElement>(null);
+  const inputPortadaRef = useRef<HTMLInputElement>(null);
+
   const base = obtenerPerfilBase(userId);
 
   const [perfil,    setPerfil]    = useState<DatosPerfil>(base.datos);
@@ -372,6 +377,49 @@ export default function Profile() {
     if (v.userId) navigate(`/perfil/${v.userId}`);
   };
 
+  // ── Cambio de foto de perfil (avatar) ──────────────────
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const nuevoPerfil = { ...perfil, avatar: url };
+    const perfilCompleto: PerfilCompleto = {
+      datos: nuevoPerfil,
+      capitulos: [...capitulos],
+      vinculos:  [...vinculos],
+      recuerdos: [...recuerdos],
+    };
+    setPerfil(nuevoPerfil);
+    guardarPerfilLocal(userId, perfilCompleto);
+    // Limpiar input para permitir re-selección del mismo archivo
+    e.target.value = '';
+  };
+
+  // ── Cambio de foto de portada ───────────────────────────
+  const handlePortadaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const nuevoPerfil = { ...perfil, portada: url };
+    const perfilCompleto: PerfilCompleto = {
+      datos: nuevoPerfil,
+      capitulos: [...capitulos],
+      vinculos:  [...vinculos],
+      recuerdos: [...recuerdos],
+    };
+    setPerfil(nuevoPerfil);
+    guardarPerfilLocal(userId, perfilCompleto);
+    e.target.value = '';
+  };
+
+  // ── Cerrar sesión ───────────────────────────────────────
+  const cerrarSesion = () => {
+    // Limpiar datos de sesión activa y redirigir al ingreso
+    localStorage.removeItem('lifes_session');
+    localStorage.removeItem('lifes_auth');
+    navigate('/');
+  };
+
   const nivelCfg = NIVEL_CONFIG[perfil.nivel];
 
   return (
@@ -380,12 +428,43 @@ export default function Profile() {
       {/* ════════════════════════════════════════════════
           ① HERO
       ════════════════════════════════════════════════ */}
+      {/* ── Inputs ocultos para fotos ── */}
+      {esPropio && (
+        <>
+          <input
+            ref={inputAvatarRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleAvatarChange}
+          />
+          <input
+            ref={inputPortadaRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handlePortadaChange}
+          />
+        </>
+      )}
+
       <div className="profile-hero">
         <div
           className="profile-hero__portada"
           style={{ backgroundImage: `url(${perfil.portada})` }}
         >
           <div className="profile-hero__portada-overlay" />
+          {/* Botón cambiar portada */}
+          {esPropio && (
+            <button
+              className="profile-hero__btn-portada"
+              onClick={() => inputPortadaRef.current?.click()}
+              title="Cambiar foto de portada"
+            >
+              <Camera size={13} strokeWidth={2} />
+              Cambiar portada
+            </button>
+          )}
         </div>
 
         <div className="profile-hero__contenido">
@@ -406,6 +485,16 @@ export default function Profile() {
             >
               {nivelCfg.label}
             </div>
+            {/* Botón cámara sobre el avatar */}
+            {esPropio && (
+              <button
+                className="profile-hero__btn-avatar"
+                onClick={() => inputAvatarRef.current?.click()}
+                title="Cambiar foto de perfil"
+              >
+                <Camera size={14} strokeWidth={2.2} />
+              </button>
+            )}
           </div>
 
           <div className="profile-hero__info">
@@ -688,6 +777,28 @@ export default function Profile() {
         <span className="profile-legado__firma">— {perfil.nombre} {perfil.apellido}</span>
       </section>
 
+
+      {/* ════════════════════════════════════════════════
+          ⑨ SESIÓN (solo perfil propio)
+      ════════════════════════════════════════════════ */}
+      {esPropio && (
+        <section className="profile-sesion">
+          <button
+            className="profile-sesion__btn profile-sesion__btn--inicio"
+            onClick={() => navigate('/feed')}
+          >
+            <Home size={16} strokeWidth={2} />
+            Volver al inicio
+          </button>
+          <button
+            className="profile-sesion__btn profile-sesion__btn--salir"
+            onClick={cerrarSesion}
+          >
+            <LogOut size={16} strokeWidth={2} />
+            Cerrar sesión
+          </button>
+        </section>
+      )}
 
       {/* ════════════════════════════════════════════════
           DRAWER DE EDICIÓN (solo perfil propio)
