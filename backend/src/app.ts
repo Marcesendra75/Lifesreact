@@ -1,22 +1,26 @@
 // ============================================
 // LIFE'S — Backend Express principal
 // ============================================
+// IMPORTANTE: esto tiene que ser el primer import del archivo,
+// así el .env queda cargado antes de que cualquier otro módulo
+// (rutas, controllers, prisma) intente leer process.env
+import 'dotenv/config';
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 
 // Rutas
 import authRoutes from './routes/auth.routes';
+// TODO: descomentar a medida que construyamos cada módulo
 import userRoutes from './routes/user.routes';
 import memoryRoutes from './routes/memory.routes';
 import familyRoutes from './routes/family.routes';
-import capsuleRoutes from './routes/capsule.routes';
-import farewellRoutes from './routes/farewell.routes';
-import echoRoutes from './routes/echo.routes';
-import postalRoutes from './routes/postal.routes';
-import savingsRoutes from './routes/savings.routes';
-
-dotenv.config();
+import connectionRoutes from './routes/connection.routes';
+// import capsuleRoutes from './routes/capsule.routes';
+// import farewellRoutes from './routes/farewell.routes';
+// import echoRoutes from './routes/echo.routes';
+// import postalRoutes from './routes/postal.routes';
+// import savingsRoutes from './routes/savings.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -30,15 +34,16 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ── Rutas ──
-app.use('/api/auth',     authRoutes);
-app.use('/api/users',    userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/memories', memoryRoutes);
-app.use('/api/family',   familyRoutes);
-app.use('/api/capsules', capsuleRoutes);
-app.use('/api/farewells',farewellRoutes);
-app.use('/api/echo',     echoRoutes);
-app.use('/api/postals',  postalRoutes);
-app.use('/api/savings',  savingsRoutes);
+app.use('/api/family', familyRoutes);
+app.use('/api/connections', connectionRoutes);
+// app.use('/api/capsules', capsuleRoutes);
+// app.use('/api/farewells',farewellRoutes);
+// app.use('/api/echo',     echoRoutes);
+// app.use('/api/postals',  postalRoutes);
+// app.use('/api/savings',  savingsRoutes);
 
 // ── Health check ──
 app.get('/health', (_req, res) => {

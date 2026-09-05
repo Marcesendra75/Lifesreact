@@ -1,0 +1,150 @@
+// Configuración de Prisma: generador de cliente + conexión a la base
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Nivel de membresía del usuario (gratis vs. planes pagos)
+enum MembershipLevel {
+  bronze
+  silver
+  gold
+  diamond
+}
+
+model User {
+  id        String   @id @default(uuid())
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  email     String   @unique
+  // acá va el hash de bcrypt, nunca la contraseña en texto plano
+  passwordHash String  @map("password_hash")
+
+  avatarUrl String?  @map("avatar_url")
+  coverUrl  String?  @map("cover_url")
+  bio       String?
+  birthDate DateTime? @map("birth_date") @db.Date
+  country   String?
+  city      String?
+
+  membershipLevel MembershipLevel @default(bronze) @map("membership_level")
+  isVerified      Boolean         @default(false) @map("is_verified")
+  isActive        Boolean         @default(true)  @map("is_active")
+
+  // recuperación de contraseña: token random + vencimiento, nunca guardamos la nueva sin hashear
+  resetToken     String?   @map("reset_token")
+  resetTokenExp  DateTime? @map("reset_token_exp")
+
+  // para el rate limiting / bloqueo por fuerza bruta que pediste
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  // ── relaciones ──
+  memories  Memory[]
+  familyMembers FamilyMember[]
+  connectionsSent     Connection[]   @relation("ConnectionRequester")
+  connectionsReceived Connection[]   @relation("ConnectionAddressee")
+  linkedFamilyNodes   FamilyMember[] @relation("FamilyLinkedUser")
+
+  @@map("users") // el nombre real de la tabla en Postgres queda en minúscula y plural, como ya tenías
+}
+
+enum MediaType {
+  image
+  video
+}
+
+model Memory {
+  id        String  @id @default(uuid())
+  userId    String  @map("user_id")
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  caption   String? @db.Text
+  mediaKey  String? @map("media_key")   // el key que guarda storage.service.ts, no la URL
+  mediaType MediaType? @map("media_type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("memories")
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+model FamilyMember {
+  id        String   @id @default(uuid())
+  ownerId   String   @map("owner_id")
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  firstName String   @map("first_name")
+  lastName  String?  @map("last_name")
+  gender    Gender?
+  birthDate DateTime? @map("birth_date") @db.Date
+  deathDate DateTime? @map("death_date") @db.Date
+  photoKey  String?  @map("photo_key") // reusa el mismo storage.service.ts de Memories
+  bio       String?  @db.Text
+
+  motherId  String?  @map("mother_id")
+  mother    FamilyMember?   @relation("MotherChildren", fields: [motherId], references: [id], onDelete: SetNull)
+  childrenAsMother FamilyMember[] @relation("MotherChildren")
+
+  fatherId  String?  @map("father_id")
+  father    FamilyMember?   @relation("FatherChildren", fields: [fatherId], references: [id], onDelete: SetNull)
+  childrenAsFather FamilyMember[] @relation("FatherChildren")
+
+  partnersA FamilyPartner[] @relation("PartnerA")
+  partnersB FamilyPartner[] @relation("PartnerB")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  linkedUserId String?  @map("linked_user_id")
+  linkedUser   User?    @relation("FamilyLinkedUser", fields: [linkedUserId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@map("family_members")
+}
+
+model FamilyPartner {
+  id        String   @id @default(uuid())
+  memberAId String   @map("member_a_id")
+  memberA   FamilyMember @relation("PartnerA", fields: [memberAId], references: [id], onDelete: Cascade)
+  memberBId String   @map("member_b_id")
+  memberB   FamilyMember @relation("PartnerB", fields: [memberBId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([memberAId, memberBId])
+  @@map("family_partners")
+}
+
+enum ConnectionStatus {
+  pending
+  accepted
+  rejected
+}
+
+model Connection {
+  id          String   @id @default(uuid())
+  requesterId String   @map("requester_id")
+  requester   User     @relation("ConnectionRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addresseeId String   @map("addressee_id")
+  addressee   User     @relation("ConnectionAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  status      ConnectionStatus @default(pending)
+  createdAt   DateTime @default(now()) @map("created_at")
+  respondedAt DateTime? @map("responded_at")
+
+  @@unique([requesterId, addresseeId])
+  @@map("connections")
+}
