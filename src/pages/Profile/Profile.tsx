@@ -4,13 +4,13 @@
 // + Recuerdos + Mi legado completo (hub) + Sobre mí + Frase
 // Multi-perfil por userId (ruta /perfil/:userId) + persistencia local
 // ============================================================
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Activity, GitBranch, Map, Image, Shield, Coins,
   Film, Zap, Hourglass, Mail, CreditCard, Lock,
   Users, LayoutDashboard, BookOpen, ArrowRight,
-  Camera, LogOut, Home,
+  UserPlus, Check, X, Send, Bell,
 } from 'lucide-react';
 import './Profile.scss';
 
@@ -18,7 +18,22 @@ import './Profile.scss';
 type NivelTarjeta = 'plata' | 'oro' | 'diamante' | 'platino';
 type TipoVinculo  =
   | 'pareja' | 'padre' | 'madre' | 'hijo/a'
-  | 'hermano/a' | 'abuelo/a' | 'amigo/a' | 'compañero/a';
+  | 'hermano/a' | 'abuelo/a' | 'amigo/a' | 'compañero/a'
+  | 'familiar' | 'colega' | 'conocido/a' | 'primo/a';
+
+type EstadoSolicitud = 'pendiente' | 'aceptada' | 'rechazada';
+
+interface SolicitudVinculo {
+  id: string;
+  deUserId: string;
+  deNombre: string;
+  deAvatar: string;
+  paraUserId: string;
+  tipo: TipoVinculo;
+  mensaje: string;
+  fecha: string;
+  estado: EstadoSolicitud;
+}
 
 interface Capitulo {
   id: string;
@@ -228,7 +243,40 @@ const COLORES_DISPONIBLES = [
 const TIPOS_VINCULO: TipoVinculo[] = [
   'pareja', 'padre', 'madre', 'hijo/a',
   'hermano/a', 'abuelo/a', 'amigo/a', 'compañero/a',
+  'familiar', 'colega', 'conocido/a', 'primo/a',
 ];
+
+// Íconos y etiquetas por tipo de vínculo
+const VINCULO_CONFIG: Record<TipoVinculo, { emoji: string; label: string; categoria: string }> = {
+  'pareja':     { emoji: '💑', label: 'Pareja',      categoria: 'familiar' },
+  'padre':      { emoji: '👨‍👧', label: 'Padre',       categoria: 'familiar' },
+  'madre':      { emoji: '👩‍👧', label: 'Madre',       categoria: 'familiar' },
+  'hijo/a':     { emoji: '👶', label: 'Hijo/a',      categoria: 'familiar' },
+  'hermano/a':  { emoji: '🧑‍🤝‍🧑', label: 'Hermano/a',  categoria: 'familiar' },
+  'abuelo/a':   { emoji: '👴', label: 'Abuelo/a',    categoria: 'familiar' },
+  'primo/a':    { emoji: '🫂', label: 'Primo/a',     categoria: 'familiar' },
+  'familiar':   { emoji: '👨‍👩‍👧‍👦', label: 'Familiar',   categoria: 'familiar' },
+  'amigo/a':    { emoji: '💛', label: 'Amigo/a',     categoria: 'social'   },
+  'conocido/a': { emoji: '🤝', label: 'Conocido/a',  categoria: 'social'   },
+  'compañero/a':{ emoji: '🙌', label: 'Compañero/a', categoria: 'social'   },
+  'colega':     { emoji: '💼', label: 'Colega',      categoria: 'trabajo'  },
+};
+
+// Clave localStorage para solicitudes
+const SOLICITUDES_KEY = 'lifes_vinculos_solicitudes';
+
+function cargarSolicitudes(): SolicitudVinculo[] {
+  try {
+    const raw = localStorage.getItem(SOLICITUDES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function guardarSolicitudes(sols: SolicitudVinculo[]) {
+  try {
+    localStorage.setItem(SOLICITUDES_KEY, JSON.stringify(sols));
+  } catch {}
+}
 
 const NIVEL_CONFIG = {
   plata:    { label: 'Plata',    color: '#C0C0C0', bg: 'rgba(192,192,192,0.15)' },
@@ -275,10 +323,6 @@ export default function Profile() {
   const userId = userIdParam || MI_USER_ID;
   const esPropio = userId === MI_USER_ID;
 
-  // ── Refs para file inputs ocultos ──────────────────────
-  const inputAvatarRef  = useRef<HTMLInputElement>(null);
-  const inputPortadaRef = useRef<HTMLInputElement>(null);
-
   const base = obtenerPerfilBase(userId);
 
   const [perfil,    setPerfil]    = useState<DatosPerfil>(base.datos);
@@ -295,6 +339,82 @@ export default function Profile() {
     setRecuerdos(nuevoBase.recuerdos);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
+
+  // ── Estado modal solicitud de vínculo ──────────────────────
+  const [modalSolicitud, setModalSolicitud]   = useState(false);
+  const [tipoSolicitud,  setTipoSolicitud]    = useState<TipoVinculo>('conocido/a');
+  const [mensajeSolicitud, setMensajeSolicitud] = useState('');
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
+  const [solicitudes, setSolicitudes]           = useState<SolicitudVinculo[]>(cargarSolicitudes);
+
+  // ── Panel notificaciones ────────────────────────────────────
+  const [panelNotif, setPanelNotif] = useState(false);
+
+  // Solicitudes recibidas para el perfil propio (userId === MI_USER_ID)
+  const solicitudesRecibidas = solicitudes.filter(
+    s => s.paraUserId === MI_USER_ID && s.estado === 'pendiente'
+  );
+
+  // ¿Ya es vínculo o ya envié solicitud?
+  const yaEsVinculo = vinculos.some(v => v.userId === userId);
+  const solicitudPendiente = solicitudes.some(
+    s => s.deUserId === MI_USER_ID && s.paraUserId === userId && s.estado === 'pendiente'
+  );
+
+  // ── Enviar solicitud ────────────────────────────────────────
+  const enviarSolicitud = () => {
+    const nueva: SolicitudVinculo = {
+      id:         Date.now().toString(),
+      deUserId:   MI_USER_ID,
+      deNombre:   PERFILES_DB[MI_USER_ID].datos.nombre + ' ' + PERFILES_DB[MI_USER_ID].datos.apellido,
+      deAvatar:   PERFILES_DB[MI_USER_ID].datos.avatar,
+      paraUserId: userId,
+      tipo:       tipoSolicitud,
+      mensaje:    mensajeSolicitud,
+      fecha:      new Date().toISOString(),
+      estado:     'pendiente',
+    };
+    const nuevas = [...solicitudes, nueva];
+    setSolicitudes(nuevas);
+    guardarSolicitudes(nuevas);
+    setSolicitudEnviada(true);
+    setTimeout(() => {
+      setModalSolicitud(false);
+      setSolicitudEnviada(false);
+      setMensajeSolicitud('');
+    }, 2000);
+  };
+
+  // ── Responder solicitud recibida ────────────────────────────
+  const responderSolicitud = (id: string, accion: 'aceptada' | 'rechazada') => {
+    const actualizadas = solicitudes.map(s =>
+      s.id === id ? { ...s, estado: accion } : s
+    );
+    setSolicitudes(actualizadas);
+    guardarSolicitudes(actualizadas);
+
+    // Si acepta → agregar al listado de vínculos local
+    if (accion === 'aceptada') {
+      const sol = solicitudes.find(s => s.id === id);
+      if (sol) {
+        const nuevoVinculo: Vinculo = {
+          id:     Date.now().toString(),
+          nombre: sol.deNombre,
+          tipo:   sol.tipo,
+          avatar: sol.deAvatar,
+          userId: sol.deUserId,
+        };
+        const nuevosVinculos = [...vinculos, nuevoVinculo];
+        setVinculos(nuevosVinculos);
+        guardarPerfilLocal(MI_USER_ID, {
+          datos: perfil,
+          capitulos,
+          vinculos: nuevosVinculos,
+          recuerdos,
+        });
+      }
+    }
+  };
 
   // Drawer edición
   const [drawerAbierto, setDrawerAbierto] = useState(false);
@@ -377,49 +497,6 @@ export default function Profile() {
     if (v.userId) navigate(`/perfil/${v.userId}`);
   };
 
-  // ── Cambio de foto de perfil (avatar) ──────────────────
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    const nuevoPerfil = { ...perfil, avatar: url };
-    const perfilCompleto: PerfilCompleto = {
-      datos: nuevoPerfil,
-      capitulos: [...capitulos],
-      vinculos:  [...vinculos],
-      recuerdos: [...recuerdos],
-    };
-    setPerfil(nuevoPerfil);
-    guardarPerfilLocal(userId, perfilCompleto);
-    // Limpiar input para permitir re-selección del mismo archivo
-    e.target.value = '';
-  };
-
-  // ── Cambio de foto de portada ───────────────────────────
-  const handlePortadaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    const nuevoPerfil = { ...perfil, portada: url };
-    const perfilCompleto: PerfilCompleto = {
-      datos: nuevoPerfil,
-      capitulos: [...capitulos],
-      vinculos:  [...vinculos],
-      recuerdos: [...recuerdos],
-    };
-    setPerfil(nuevoPerfil);
-    guardarPerfilLocal(userId, perfilCompleto);
-    e.target.value = '';
-  };
-
-  // ── Cerrar sesión ───────────────────────────────────────
-  const cerrarSesion = () => {
-    // Limpiar datos de sesión activa y redirigir al ingreso
-    localStorage.removeItem('lifes_session');
-    localStorage.removeItem('lifes_auth');
-    navigate('/');
-  };
-
   const nivelCfg = NIVEL_CONFIG[perfil.nivel];
 
   return (
@@ -428,43 +505,12 @@ export default function Profile() {
       {/* ════════════════════════════════════════════════
           ① HERO
       ════════════════════════════════════════════════ */}
-      {/* ── Inputs ocultos para fotos ── */}
-      {esPropio && (
-        <>
-          <input
-            ref={inputAvatarRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleAvatarChange}
-          />
-          <input
-            ref={inputPortadaRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handlePortadaChange}
-          />
-        </>
-      )}
-
       <div className="profile-hero">
         <div
           className="profile-hero__portada"
           style={{ backgroundImage: `url(${perfil.portada})` }}
         >
           <div className="profile-hero__portada-overlay" />
-          {/* Botón cambiar portada */}
-          {esPropio && (
-            <button
-              className="profile-hero__btn-portada"
-              onClick={() => inputPortadaRef.current?.click()}
-              title="Cambiar foto de portada"
-            >
-              <Camera size={13} strokeWidth={2} />
-              Cambiar portada
-            </button>
-          )}
         </div>
 
         <div className="profile-hero__contenido">
@@ -485,16 +531,6 @@ export default function Profile() {
             >
               {nivelCfg.label}
             </div>
-            {/* Botón cámara sobre el avatar */}
-            {esPropio && (
-              <button
-                className="profile-hero__btn-avatar"
-                onClick={() => inputAvatarRef.current?.click()}
-                title="Cambiar foto de perfil"
-              >
-                <Camera size={14} strokeWidth={2.2} />
-              </button>
-            )}
           </div>
 
           <div className="profile-hero__info">
@@ -524,15 +560,52 @@ export default function Profile() {
             </div>
           </div>
 
-          {esPropio && (
-            <button
-              className="profile-hero__editar"
-              onClick={() => abrirDrawer('perfil')}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Editar perfil
-            </button>
-          )}
+          <div className="profile-hero__acciones">
+            {esPropio ? (
+              <>
+                {/* Campana de notificaciones */}
+                <button
+                  className="profile-hero__notif-btn"
+                  onClick={() => setPanelNotif(!panelNotif)}
+                >
+                  <Bell size={16} strokeWidth={2} />
+                  {solicitudesRecibidas.length > 0 && (
+                    <span className="profile-hero__notif-badge">
+                      {solicitudesRecibidas.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  className="profile-hero__editar"
+                  onClick={() => abrirDrawer('perfil')}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Editar perfil
+                </button>
+              </>
+            ) : (
+              /* Botón conectar para perfiles ajenos */
+              yaEsVinculo ? (
+                <div className="profile-hero__ya-vinculado">
+                  <Check size={14} strokeWidth={2.5} />
+                  Conectados
+                </div>
+              ) : solicitudPendiente ? (
+                <div className="profile-hero__solicitud-enviada">
+                  <Send size={13} strokeWidth={2} />
+                  Solicitud enviada
+                </div>
+              ) : (
+                <button
+                  className="profile-hero__conectar"
+                  onClick={() => setModalSolicitud(true)}
+                >
+                  <UserPlus size={15} strokeWidth={2} />
+                  Conectar
+                </button>
+              )
+            )}
+          </div>
         </div>
       </div>
 
@@ -779,25 +852,150 @@ export default function Profile() {
 
 
       {/* ════════════════════════════════════════════════
-          ⑨ SESIÓN (solo perfil propio)
+          PANEL DE NOTIFICACIONES (solicitudes recibidas)
       ════════════════════════════════════════════════ */}
-      {esPropio && (
-        <section className="profile-sesion">
-          <button
-            className="profile-sesion__btn profile-sesion__btn--inicio"
-            onClick={() => navigate('/feed')}
-          >
-            <Home size={16} strokeWidth={2} />
-            Volver al inicio
-          </button>
-          <button
-            className="profile-sesion__btn profile-sesion__btn--salir"
-            onClick={cerrarSesion}
-          >
-            <LogOut size={16} strokeWidth={2} />
-            Cerrar sesión
-          </button>
-        </section>
+      {panelNotif && esPropio && (
+        <div className="profile-notif-overlay" onClick={() => setPanelNotif(false)}>
+          <div className="profile-notif-panel" onClick={e => e.stopPropagation()}>
+            <div className="profile-notif-panel__header">
+              <Bell size={16} strokeWidth={2} />
+              <h3>Solicitudes de vínculo</h3>
+              <button onClick={() => setPanelNotif(false)}>
+                <X size={18} strokeWidth={2} />
+              </button>
+            </div>
+
+            {solicitudesRecibidas.length === 0 ? (
+              <div className="profile-notif-panel__empty">
+                <span>🎉</span>
+                <p>No tenés solicitudes pendientes</p>
+              </div>
+            ) : (
+              <div className="profile-notif-panel__lista">
+                {solicitudesRecibidas.map(sol => (
+                  <div key={sol.id} className="profile-notif-item">
+                    <img src={sol.deAvatar} alt={sol.deNombre} className="profile-notif-item__avatar" />
+                    <div className="profile-notif-item__info">
+                      <span className="profile-notif-item__nombre">{sol.deNombre}</span>
+                      <span className="profile-notif-item__tipo">
+                        {VINCULO_CONFIG[sol.tipo]?.emoji} quiere conectar como{' '}
+                        <strong>{VINCULO_CONFIG[sol.tipo]?.label}</strong>
+                      </span>
+                      {sol.mensaje && (
+                        <p className="profile-notif-item__mensaje">"{sol.mensaje}"</p>
+                      )}
+                    </div>
+                    <div className="profile-notif-item__acciones">
+                      <button
+                        className="profile-notif-item__aceptar"
+                        onClick={() => responderSolicitud(sol.id, 'aceptada')}
+                      >
+                        <Check size={14} strokeWidth={2.5} />
+                      </button>
+                      <button
+                        className="profile-notif-item__rechazar"
+                        onClick={() => responderSolicitud(sol.id, 'rechazada')}
+                      >
+                        <X size={14} strokeWidth={2.5} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════
+          MODAL DE SOLICITUD DE VÍNCULO
+      ════════════════════════════════════════════════ */}
+      {modalSolicitud && !esPropio && (
+        <div className="profile-modal-overlay" onClick={() => setModalSolicitud(false)}>
+          <div className="profile-modal-solicitud" onClick={e => e.stopPropagation()}>
+
+            {solicitudEnviada ? (
+              /* ── Estado éxito ── */
+              <div className="profile-modal-solicitud__exito">
+                <div className="profile-modal-solicitud__exito-icon">✅</div>
+                <h3>¡Solicitud enviada!</h3>
+                <p>{perfil.nombre} recibirá tu solicitud de vínculo.</p>
+              </div>
+            ) : (
+              <>
+                {/* Header */}
+                <div className="profile-modal-solicitud__header">
+                  <img
+                    src={perfil.avatar}
+                    alt={perfil.nombre}
+                    className="profile-modal-solicitud__avatar"
+                  />
+                  <div>
+                    <h3>Conectar con {perfil.nombre}</h3>
+                    <p>Elegí cómo te relacionás con esta persona</p>
+                  </div>
+                  <button
+                    className="profile-modal-solicitud__cerrar"
+                    onClick={() => setModalSolicitud(false)}
+                  >
+                    <X size={18} strokeWidth={2} />
+                  </button>
+                </div>
+
+                {/* Selector de tipo */}
+                <div className="profile-modal-solicitud__tipos">
+                  <label className="profile-modal-solicitud__label">Tipo de vínculo</label>
+                  <div className="profile-modal-solicitud__grid">
+                    {(TIPOS_VINCULO).map(tipo => {
+                      const cfg = VINCULO_CONFIG[tipo];
+                      return (
+                        <button
+                          key={tipo}
+                          className={`profile-modal-solicitud__tipo-btn${tipoSolicitud === tipo ? ' active' : ''}`}
+                          onClick={() => setTipoSolicitud(tipo)}
+                        >
+                          <span className="profile-modal-solicitud__tipo-emoji">{cfg.emoji}</span>
+                          <span className="profile-modal-solicitud__tipo-label">{cfg.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Mensaje opcional */}
+                <div className="profile-modal-solicitud__mensaje-wrap">
+                  <label className="profile-modal-solicitud__label">
+                    Mensaje (opcional)
+                  </label>
+                  <textarea
+                    className="profile-modal-solicitud__textarea"
+                    placeholder={`Hola ${perfil.nombre}, me gustaría conectar con vos...`}
+                    value={mensajeSolicitud}
+                    onChange={e => setMensajeSolicitud(e.target.value)}
+                    maxLength={200}
+                    rows={3}
+                  />
+                  <span className="profile-modal-solicitud__contador">
+                    {mensajeSolicitud.length}/200
+                  </span>
+                </div>
+
+                {/* Botón enviar */}
+                <button
+                  className="profile-modal-solicitud__enviar"
+                  onClick={enviarSolicitud}
+                >
+                  <Send size={15} strokeWidth={2} />
+                  Enviar solicitud de vínculo
+                </button>
+
+                <p className="profile-modal-solicitud__nota">
+                  {perfil.nombre} podrá aceptar, rechazar o cambiar el tipo de vínculo.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {/* ════════════════════════════════════════════════

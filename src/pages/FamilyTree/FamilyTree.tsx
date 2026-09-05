@@ -698,7 +698,6 @@ export default function FamilyTree(){
             {n.icono}{n.label}
           </button>
         ))}
-        <button className="ft-bottom-nav__add" onClick={()=>setAddPanelOpen(true)}><UserPlus size={22} strokeWidth={1.8}/></button>
       </nav>
 
       {toast&&<div className="ft-toast"><Check size={14} strokeWidth={1.8}/>{toast}</div>}

@@ -49,6 +49,7 @@ import Settings          from './pages/Settings/Settings';
 import TimeCapsule       from './pages/TimeCapsule/TimeCapsule';
 import CartasPrivadas    from './pages/CartasPrivadas/CartasPrivadas';
 import Postal            from './pages/Postal/Postal';
+import Vinculos          from './pages/Vinculos/Vinculos';
 
 // ── Páginas bóveda ──
 import SafeBox           from './pages/SafeBox/SafeBox';
@@ -125,7 +126,7 @@ function App() {
           <Route path="/capsula-del-tiempo"                 element={<TimeCapsule />} />
           <Route path="/cartas-privadas"                    element={<CartasPrivadas />} />
           <Route path="/postal"                             element={<Postal />} />
-          <Route path="/vinculos"                           element={<Feed />} />
+          <Route path="/vinculos"                           element={<Vinculos />} />
           <Route path="/mapa-linaje"                        element={<Feed />} />
 
           {/* ══ BÓVEDA ══ */}
