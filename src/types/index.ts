@@ -3,6 +3,8 @@
 // ============================================
 
 // --- Niveles de membresía ---
+// NOTA: el backend hoy solo soporta bronze | silver | gold | diamond.
+// gold2 y triple_diamond son ideas a futuro, todavía no existen en la base.
 export type MembershipLevel =
   | 'bronze'
   | 'silver'
@@ -27,8 +29,8 @@ export type PrivacyRole =
 
 // --- Usuario ---
 export interface User {
-  id: number;
-  username: string;
+  id: string;
+  username?: string; // el backend todavía no tiene username, queda opcional
   email: string;
   firstName: string;
   lastName: string;
@@ -40,9 +42,9 @@ export interface User {
   city?: string;
   membershipLevel: MembershipLevel;
   isVerified: boolean;
-  // Seguridad
-  securityLevel: SecurityLevel;   // 'standard' | 'triple'
-  vaultStatus: VaultStatus;       // estado de la tarjeta física
+  // Seguridad (Fase 3, Bóveda — el backend todavía no devuelve estos campos)
+  securityLevel?: SecurityLevel;
+  vaultStatus?: VaultStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -53,9 +55,8 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  // Sesión de bóveda (dura 15 min tras triple verificación)
   vaultSession: boolean;
-  vaultSessionExpiry: number | null; // timestamp ms
+  vaultSessionExpiry: number | null;
 }
 
 export interface LoginCredentials {
@@ -69,15 +70,15 @@ export interface RegisterData {
   email: string;
   password: string;
   birthDate?: string;
-  // Empresa
   companyName?: string;
   cuit?: string;
+  acceptedTerms: boolean;
 }
 
-// --- Tarjeta física (bóveda) ---
+// --- Tarjeta física (bóveda) — Fase 3, no implementado en backend ---
 export interface VaultCard {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   legalName: string;
   dni: string;
   address: string;
@@ -90,7 +91,6 @@ export interface VaultCard {
 }
 
 // --- Rutas protegidas ---
-// Páginas que requieren Triple Seguridad OBLIGATORIA
 export const VAULT_ROUTES = [
   '/caja-fuerte',
   '/caja-de-valores',
@@ -100,13 +100,15 @@ export const VAULT_ROUTES = [
   '/ultimo-tributo',
 ] as const;
 
-// Páginas que pueden tener Triple Seguridad OPCIONAL
 export const OPTIONAL_VAULT_ROUTES = [
   '/capsula-del-tiempo',
   '/postal',
 ] as const;
 
 // --- Memoria / Posts ---
+// NOTA: el backend hoy solo guarda caption + un archivo (mediaKey/mediaType/mediaUrl).
+// Campos como likes, comentarios, tags, privacy, title, location todavía NO existen
+// en la base — son la decisión de producto que hablamos (recortar vs. ampliar).
 export type MemoryType =
   | 'photo'
   | 'video'
@@ -115,8 +117,8 @@ export type MemoryType =
   | 'milestone';
 
 export interface Memory {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   type: MemoryType;
   title: string;
   description?: string;
@@ -132,27 +134,30 @@ export interface Memory {
 }
 
 // --- Árbol genealógico ---
+// NOTA: el backend usa motherId/fatherId + una tabla de parejas aparte,
+// no un solo parentId ni arrays de spouseIds/childIds. Esto se reconcilia
+// cuando reescribamos FamilyTree.tsx para usar datos reales.
 export interface FamilyMember {
-  id: number;
-  userId?: number;
+  id: string;
+  userId?: string;
   firstName: string;
   lastName: string;
   birthDate?: string;
   deathDate?: string;
   avatarUrl?: string;
   relation: string;
-  parentIds?: number[];
-  childIds?: number[];
-  spouseIds?: number[];
+  parentIds?: string[];
+  childIds?: string[];
+  spouseIds?: string[];
   country?: string;
   city?: string;
   bio?: string;
 }
 
-// --- Cápsula del tiempo ---
+// --- Cápsula del tiempo (Fase 3) ---
 export interface TimeCapsule {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   title: string;
   message?: string;
   videoUrl?: string;
@@ -163,10 +168,10 @@ export interface TimeCapsule {
   createdAt: string;
 }
 
-// --- Último tributo ---
+// --- Último tributo (Fase 3) ---
 export interface FarewellVideo {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   title: string;
   videoUrl: string;
   recipientName: string;
@@ -176,10 +181,10 @@ export interface FarewellVideo {
   createdAt: string;
 }
 
-// --- Ahorro forzoso ---
+// --- Ahorro forzoso (Fase 3) ---
 export interface SavingsPlan {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   monthlyAmount: number;
   currency: string;
   startDate: string;
@@ -189,11 +194,11 @@ export interface SavingsPlan {
   isActive: boolean;
 }
 
-// --- Postales ---
+// --- Postales (Fase 3) ---
 export interface DigitalPostal {
-  id: number;
-  userId: number;
-  memoryId: number;
+  id: string;
+  userId: string;
+  memoryId: string;
   recipientName: string;
   recipientAddress: string;
   recipientCountry: string;
@@ -204,33 +209,33 @@ export interface DigitalPostal {
   createdAt: string;
 }
 
-// --- Ecos del Pasado (IA) ---
+// --- Ecos del Pasado (Fase 3) ---
 export interface DigitalEcho {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   question: string;
   answer: string;
   createdAt: string;
 }
 
-// --- Herederos ---
+// --- Herederos (Fase 3) ---
 export interface Heir {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   firstName: string;
   lastName: string;
   email: string;
   phone?: string;
   relation: string;
-  percentage: number; // % de herencia
+  percentage: number;
   isVerified: boolean;
   createdAt: string;
 }
 
-// --- Testamento ---
+// --- Testamento (Fase 3) ---
 export interface Testament {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   content: string;
   videoUrl?: string;
   isLocked: boolean;
@@ -246,11 +251,15 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// Coincide con la forma real que devuelve nuestro backend para listas paginadas
+// (ej: GET /memories) — los items van adentro de "data", no "data" como array directo.
 export interface PaginatedResponse<T> {
   success: boolean;
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  data: {
+    items: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
 }

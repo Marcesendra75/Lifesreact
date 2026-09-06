@@ -3,6 +3,7 @@
 // ============================================
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
   User, Building2, LogIn, ArrowRight, GitBranch,
   Activity, Lock, Zap, Coins, Heart, Shield,
@@ -17,8 +18,10 @@ const PALABRAS = ['recuerdos', 'emociones', 'momentos', 'personas', 'historias',
 export default function Landing() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { login } = useAuth();
 
   const [mode, setMode]             = useState<Mode>('personal');
+  const [loginError, setLoginError] = useState('');
   const [palabra, setPalabra]       = useState(PALABRAS[0]);
   const [palabraAnim, setPalabraAnim] = useState<'in' | 'out' | ''>('');
   const [sliderStyle, setSliderStyle] = useState({ left: '4px', width: '0px' });
@@ -64,10 +67,30 @@ export default function Landing() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogin = (e: React.FormEvent, tipo: 'personal' | 'empresa') => {
+    const handleLogin = async (e: React.FormEvent, tipo: 'personal' | 'empresa') => {
     e.preventDefault();
-    // Ir a triple seguridad (auth real)
-    navigate(`/acceso-seguro?tipo=${tipo}`);
+    setLoginError('');
+
+    // El login de Empresas es Fase 3 (todavía no tiene backend propio)
+    if (tipo === 'empresa') {
+      navigate(`/acceso-seguro?tipo=${tipo}`);
+      return;
+    }
+
+    const email = emailRef.current?.value.trim();
+    const password = passRef.current?.value;
+
+    if (!email || !password) {
+      setLoginError('Completá usuario/email y contraseña.');
+      return;
+    }
+
+    try {
+      await login({ email, password });
+      navigate('/feed');
+    } catch (err: any) {
+      setLoginError(err.message || 'Email o contraseña incorrectos.');
+    }
   };
 
   return (
@@ -121,6 +144,7 @@ export default function Landing() {
             </div>
 
             {/* Formulario */}
+            {loginError && <div className="landing-error">{loginError}</div>}
             <form onSubmit={(e) => handleLogin(e, 'personal')} className="landing-form">
               <input
                 ref={emailRef}

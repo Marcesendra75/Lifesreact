@@ -1,0 +1,61 @@
+@use '../../styles/abstracts/variables' as v;
+
+.lp-root {
+  min-height: 100dvh;
+  background: v.$cream;
+  font-family: v.$font-body;
+  color: v.$text-dark;
+}
+
+.lp-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(196,198,205,0.2);
+
+  &__logo {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: v.$font-display;
+    font-style: italic;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: v.$primary;
+  }
+}
+
+.lp-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.lp-title {
+  font-family: v.$font-display;
+  font-size: 2rem;
+  color: v.$primary;
+  margin-bottom: 0.25rem;
+}
+
+.lp-updated {
+  font-size: 0.8rem;
+  color: v.$mist;
+  margin-bottom: 2rem;
+}
+
+.lp-section {
+  margin-bottom: 1.75rem;
+
+  h2 {
+    font-family: v.$font-display;
+    font-size: 1.15rem;
+    color: v.$primary;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: #43474d;
+    margin-bottom: 0.6rem;
+  }
+}

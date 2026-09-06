@@ -51,6 +51,8 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
   font-weight: 400;
   color: $noche;
   margin: 0;
+  display: flex;
+  align-items: center;
 }
 
 .profile-barra-header {
@@ -58,6 +60,8 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .profile-btn-editar-sec {
@@ -254,124 +258,7 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
 }
 
 // ════════════════════════════════════════════════════════════
-// ② BARRA DE VIDA
-// ════════════════════════════════════════════════════════════
-.profile-barra-wrap {
-  max-width: 900px;
-  margin: 40px auto 0;
-  padding: 0 40px;
-
-  @media (max-width: 600px) { padding: 0 20px; }
-}
-
-.profile-barra-anos {
-  display: flex;
-  position: relative;
-  margin-bottom: 6px;
-}
-
-.profile-barra-ano {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: $piedra;
-  letter-spacing: 0.04em;
-  text-align: left;
-
-  &--ultimo {
-    position: absolute;
-    right: 0;
-    width: auto !important;
-  }
-}
-
-.profile-barra {
-  height: 28px;
-  display: flex;
-  border-radius: 20px;
-  overflow: visible;
-  position: relative;
-  gap: 2px;
-
-  &__cap {
-    height: 100%;
-    cursor: pointer;
-    transition: filter 0.2s, transform 0.15s;
-    position: relative;
-
-    &:hover {
-      filter: brightness(1.15);
-      transform: scaleY(1.08);
-    }
-  }
-
-  &__tooltip {
-    position: absolute;
-    bottom: calc(100% + 10px);
-    transform: translateX(-50%);
-    background: $noche;
-    color: white;
-    border-radius: $radius-md;
-    padding: 10px 14px;
-    pointer-events: none;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    white-space: nowrap;
-    box-shadow: $shadow-lg;
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-top-color: $noche;
-    }
-
-    strong {
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    span {
-      font-size: 0.72rem;
-      color: rgba(white, 0.65);
-    }
-  }
-
-  &__tooltip-dur {
-    color: $ambar-light !important;
-    font-weight: 600 !important;
-  }
-}
-
-.profile-barra-leyenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  margin-top: 14px;
-
-  &__item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.72rem;
-    color: $piedra;
-    font-weight: 500;
-  }
-
-  &__dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-}
-
-// ════════════════════════════════════════════════════════════
-// ③ NÚMEROS CON ALMA
+// ② NÚMEROS CON ALMA
 // ════════════════════════════════════════════════════════════
 .profile-numeros {
   display: grid;
@@ -434,6 +321,66 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     font-size: 0.75rem;
     color: $ambar;
     font-weight: 700;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ③ CAPÍTULOS DE VIDA
+// ════════════════════════════════════════════════════════════
+.profile-capitulos-sec {
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 600px) { padding: 0 20px; }
+}
+
+.profile-capitulos {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.profile-capitulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 18px;
+  border-radius: $radius-md;
+  flex-shrink: 0;
+  min-width: 100px;
+  background: white;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: $shadow-card;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-lg;
+  }
+
+  &__emoji {
+    font-size: 1.6rem;
+  }
+
+  &__label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: $noche;
+    text-align: center;
+  }
+
+  &__años {
+    font-size: 0.6rem;
+    color: $piedra;
+    font-weight: 600;
+    letter-spacing: 0.02em;
   }
 }
 
@@ -570,7 +517,78 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
 }
 
 // ════════════════════════════════════════════════════════════
-// ⑥ SOBRE MÍ
+// ⑥ MI LEGADO COMPLETO — hub de secciones
+// ════════════════════════════════════════════════════════════
+.profile-hub-sec {
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+
+  @media (max-width: 600px) { padding: 0 20px; }
+}
+
+.profile-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+
+  @media (max-width: 700px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 420px) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.profile-hub-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  border-radius: $radius-md;
+  border: 1px solid rgba($noche, 0.06);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-card;
+  }
+
+  &__icon-wrap {
+    position: relative;
+    display: flex;
+  }
+
+  &__lock {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    color: $ambar;
+    display: flex;
+  }
+
+  &__label {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $noche;
+    text-align: center;
+    line-height: 1.25;
+  }
+
+  &__desc {
+    font-size: 0.55rem;
+    color: $piedra;
+    text-align: center;
+    line-height: 1.3;
+    display: none;
+
+    @media (min-width: 500px) { display: block; }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ⑦ SOBRE MÍ
 // ════════════════════════════════════════════════════════════
 .profile-sobre {
   max-width: 900px;
@@ -584,7 +602,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     line-height: 1.75;
     color: #4A4540;
     margin: 0 0 24px;
-    color: #4A4540;
   }
 
   &__datos {
@@ -630,20 +647,16 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
 }
 
 // ════════════════════════════════════════════════════════════
-// ⑦ FRASE DE LEGADO
+// ⑧ FRASE DE LEGADO
 // ════════════════════════════════════════════════════════════
 .profile-legado {
-  max-width: 900px;
-  margin: 48px auto 0;
-  padding: 0 40px;
   background: $noche;
   border-radius: $radius-xl;
   padding: 56px 60px;
   position: relative;
   overflow: hidden;
   text-align: center;
-  margin-left: 40px;
-  margin-right: 40px;
+  margin: 48px 40px 0;
   max-width: calc(900px - 80px);
 
   @media (min-width: 980px) {
@@ -718,7 +731,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     to   { transform: translateX(0); }
   }
 
-  // ── Header ──
   &__header {
     padding: 20px 20px 0;
     border-bottom: 1px solid rgba($noche, 0.08);
@@ -769,7 +781,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     &:hover { background: rgba($noche, 0.06); color: $noche; }
   }
 
-  // ── Body ──
   &__body {
     flex: 1;
     overflow-y: auto;
@@ -834,7 +845,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     gap: 12px;
   }
 
-  // ── Capítulos ──
   &__capitulo {
     background: white;
     border-radius: $radius-md;
@@ -920,7 +930,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     }
   }
 
-  // ── Vínculos ──
   &__vinculo {
     background: white;
     border-radius: $radius-md;
@@ -944,7 +953,6 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
     object-fit: cover;
   }
 
-  // ── Footer ──
   &__footer {
     padding: 16px 20px;
     border-top: 1px solid rgba($noche, 0.08);
@@ -987,51 +995,531 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
   }
 }
 
-// ── Responsive mobile ──────────────────────────────────────
+// ── Responsive general ──────────────────────────────────────
 @media (max-width: 768px) {
-  .profile-barra-wrap,
+  .profile-capitulos-sec,
   .profile-numeros,
   .profile-vinculos-sec,
   .profile-recuerdos-sec,
+  .profile-hub-sec,
   .profile-sobre {
     padding-left: 20px;
     padding-right: 20px;
   }
 }
 
-// ════════════════════════════════════════════════════════════
-// RESPONSIVE — Profile (adicional)
-// ════════════════════════════════════════════════════════════
-// Profile ya tenía 29 media queries — agregamos los faltantes
-
 @media (max-width: 480px) {
-  .profile-root { padding-bottom: 70px; }
-
-  .profile-header {
-    padding: 12px 14px;
-    &__titulo { font-size: 0.9rem; }
-    &__acciones { gap: 4px; }
-    &__btn { padding: 6px 10px; font-size: 0.65rem; }
-  }
-
-  .profile-portada { height: 180px; }
-
-  .profile-avatar-wrap { width: 68px; height: 68px; }
-
-  .profile-nombre { font-size: 1.1rem; }
-
-  .profile-stats { gap: 12px; flex-wrap: wrap; justify-content: center; }
-
-  .profile-tabs { overflow-x: auto; flex-wrap: nowrap;
-    .profile-tab { flex-shrink: 0; } }
-
-  .profile-grid { grid-template-columns: 1fr !important; }
-
-  .profile-hito-img { height: 180px; }
+  .profile-page { padding-bottom: 70px; }
+  .profile-hero__nombre { font-size: 1.4rem; }
+  .profile-capitulo { min-width: 88px; padding: 12px 14px; }
 }
 
-@media (max-width: 360px) {
-  .profile-portada { height: 140px; }
-  .profile-avatar-wrap { width: 56px; height: 56px; }
-  .profile-nombre { font-size: 1rem; }
+// ════════════════════════════════════════════════════════════
+// SISTEMA DE VÍNCULOS — Botón conectar, modal, notificaciones
+// ════════════════════════════════════════════════════════════
+
+// ── Acciones del hero (agrupa editar + campana + conectar) ──
+.profile-hero__acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// ── Campana de notificaciones ───────────────────────────────
+.profile-hero__notif-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 1.5px solid rgba($noche, 0.12);
+  color: $noche;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: $ambar;
+    color: $ambar;
+  }
+}
+
+.profile-hero__notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e74c3c;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid $crema;
+}
+
+// ── Botón conectar ──────────────────────────────────────────
+.profile-hero__conectar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  background: $noche;
+  border: none;
+  border-radius: $radius-md;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: $ambar;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba($ambar, 0.35);
+  }
+}
+
+// ── Estado ya vinculados ─────────────────────────────────────
+.profile-hero__ya-vinculado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: rgba(39, 174, 96, 0.1);
+  border: 1.5px solid rgba(39, 174, 96, 0.3);
+  border-radius: $radius-md;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #27ae60;
+}
+
+// ── Estado solicitud pendiente ───────────────────────────────
+.profile-hero__solicitud-enviada {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: rgba($ambar, 0.08);
+  border: 1.5px solid rgba($ambar, 0.25);
+  border-radius: $radius-md;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $ambar;
+}
+
+// ════════════════════════════════════════════════════════════
+// MODAL DE SOLICITUD DE VÍNCULO
+// ════════════════════════════════════════════════════════════
+.profile-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba($noche, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.profile-modal-solicitud {
+  background: white;
+  border-radius: $radius-lg;
+  width: 100%;
+  max-width: 480px;
+  padding: 28px;
+  box-shadow: $shadow-lg;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 90dvh;
+  overflow-y: auto;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    h3 {
+      font-family: 'Newsreader', serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: $noche;
+      margin: 0 0 3px;
+    }
+
+    p {
+      font-size: 0.75rem;
+      color: $piedra;
+      margin: 0;
+    }
+  }
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__cerrar {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $piedra;
+    display: flex;
+    padding: 4px;
+    flex-shrink: 0;
+    transition: color 0.2s;
+    &:hover { color: $noche; }
+  }
+
+  &__label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $piedra;
+    margin-bottom: 10px;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+
+    @media (max-width: 420px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  &__tipo-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 6px;
+    border: 1.5px solid rgba($noche, 0.1);
+    border-radius: $radius-md;
+    background: $crema;
+    cursor: pointer;
+    transition: all 0.18s;
+
+    &:hover {
+      border-color: $ambar;
+      background: rgba($ambar, 0.06);
+    }
+
+    &.active {
+      border-color: $ambar;
+      background: rgba($ambar, 0.1);
+      box-shadow: 0 0 0 3px rgba($ambar, 0.15);
+    }
+  }
+
+  &__tipo-emoji {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+
+  &__tipo-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: $noche;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  &__mensaje-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+  }
+
+  &__textarea {
+    width: 100%;
+    border: 1.5px solid rgba($noche, 0.12);
+    border-radius: $radius-sm;
+    padding: 12px 14px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.83rem;
+    color: $noche;
+    background: $crema;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+
+    &::placeholder { color: $piedra-light; }
+    &:focus { border-color: $ambar; }
+  }
+
+  &__contador {
+    font-size: 0.65rem;
+    color: $piedra;
+    text-align: right;
+  }
+
+  &__enviar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px;
+    background: $noche;
+    border: none;
+    border-radius: $radius-sm;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: $ambar;
+      box-shadow: 0 4px 16px rgba($ambar, 0.3);
+    }
+  }
+
+  &__nota {
+    font-size: 0.7rem;
+    color: $piedra;
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  // Estado éxito
+  &__exito {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0;
+    text-align: center;
+
+    h3 {
+      font-family: 'Newsreader', serif;
+      font-style: italic;
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: $noche;
+      margin: 0;
+    }
+
+    p {
+      font-size: 0.82rem;
+      color: $piedra;
+      margin: 0;
+    }
+  }
+
+  &__exito-icon {
+    font-size: 2.5rem;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+// ════════════════════════════════════════════════════════════
+// PANEL DE NOTIFICACIONES (solicitudes recibidas)
+// ════════════════════════════════════════════════════════════
+.profile-notif-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+}
+
+.profile-notif-panel {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 360px;
+  max-height: 480px;
+  background: white;
+  border-radius: $radius-lg;
+  border: 0.5px solid rgba($noche, 0.1);
+  box-shadow: $shadow-lg;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 251;
+
+  @media (max-width: 420px) {
+    width: calc(100vw - 40px);
+    right: 20px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px;
+    border-bottom: 0.5px solid rgba($noche, 0.08);
+
+    svg { color: $ambar; flex-shrink: 0; }
+
+    h3 {
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: $noche;
+      margin: 0;
+      flex: 1;
+    }
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: $piedra;
+      display: flex;
+      transition: color 0.2s;
+      &:hover { color: $noche; }
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 40px 20px;
+    text-align: center;
+
+    span { font-size: 2rem; }
+    p {
+      font-size: 0.8rem;
+      color: $piedra;
+      margin: 0;
+    }
+  }
+
+  &__lista {
+    overflow-y: auto;
+    flex: 1;
+  }
+}
+
+.profile-notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 0.5px solid rgba($noche, 0.06);
+  transition: background 0.15s;
+
+  &:hover { background: rgba($crema, 0.6); }
+  &:last-child { border-bottom: none; }
+
+  &__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__nombre {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: $noche;
+  }
+
+  &__tipo {
+    font-size: 0.75rem;
+    color: $piedra;
+    line-height: 1.4;
+
+    strong { color: $ambar; font-weight: 600; }
+  }
+
+  &__mensaje {
+    font-size: 0.72rem;
+    color: $piedra;
+    font-style: italic;
+    margin: 4px 0 0;
+    line-height: 1.4;
+    background: rgba($noche, 0.04);
+    padding: 6px 8px;
+    border-radius: $radius-sm;
+    border-left: 2px solid $ambar;
+  }
+
+  &__acciones {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  &__aceptar, &__rechazar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s;
+  }
+
+  &__aceptar {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    &:hover {
+      background: #27ae60;
+      color: white;
+      transform: scale(1.1);
+    }
+  }
+
+  &__rechazar {
+    background: rgba(192, 57, 43, 0.08);
+    color: #c0392b;
+    &:hover {
+      background: #c0392b;
+      color: white;
+      transform: scale(1.1);
+    }
+  }
+}
+
+// ── Responsive: modal en mobile ─────────────────────────────
+@media (max-width: 480px) {
+  .profile-modal-solicitud {
+    padding: 20px 16px;
+    &__grid { grid-template-columns: repeat(3, 1fr); }
+  }
 }

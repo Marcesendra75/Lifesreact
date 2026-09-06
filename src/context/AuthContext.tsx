@@ -2,11 +2,12 @@
 // LIFE'S — AuthContext con soporte de bóveda
 // ============================================
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { User, AuthState, LoginCredentials, RegisterData } from '../types';
+import type { AuthState, LoginCredentials, RegisterData } from '../types';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<{ message: string }>;
+  verifyEmail: (token: string) => Promise<void>;
   logout: () => void;
   // Bóveda
   openVaultSession: () => void;   // llamar tras triple verificación exitosa
@@ -88,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const register = async (formData: RegisterData) => {
+    const register = async (formData: RegisterData) => {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -96,6 +97,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Error al registrarse');
+    // OJO: ya no logueamos automáticamente acá — la cuenta queda pendiente
+    // hasta que confirme el email, así que no hay token todavía.
+    return { message: data.message as string };
+  };
+
+  const verifyEmail = async (token: string) => {
+    const res = await fetch(`${API_URL}/auth/verify-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error al verificar el email');
     localStorage.setItem('lifes_token', data.data.token);
     setState(prev => ({
       ...prev,
@@ -145,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...state,
       login,
       register,
+      verifyEmail,
       logout,
       openVaultSession,
       closeVaultSession,

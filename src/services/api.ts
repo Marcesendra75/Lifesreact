@@ -8,7 +8,7 @@ function getToken(): string | null {
   return localStorage.getItem('lifes_token');
 }
 
-function headers(withAuth = true): HeadersInit {
+function jsonHeaders(withAuth = true): HeadersInit {
   const h: HeadersInit = { 'Content-Type': 'application/json' };
   if (withAuth) {
     const token = getToken();
@@ -17,6 +17,14 @@ function headers(withAuth = true): HeadersInit {
   return h;
 }
 
+function authHeaderOnly(): HeadersInit {
+  const h: HeadersInit = {};
+  const token = getToken();
+  if (token) (h as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+  return h;
+}
+
+// Para endpoints con body JSON (todo lo que no sube un archivo)
 async function request<T>(
   endpoint: string,
   method: string = 'GET',
@@ -25,8 +33,27 @@ async function request<T>(
 ): Promise<T> {
   const res = await fetch(`${API_URL}${endpoint}`, {
     method,
-    headers: headers(withAuth),
+    headers: jsonHeaders(withAuth),
     body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error en la solicitud');
+  return data;
+}
+
+// Para endpoints que suben un archivo (avatar, portada, recuerdos, familiares con foto).
+// OJO: nunca le pongas Content-Type manual acá — el navegador tiene que generar
+// el boundary del multipart solo, igual que vimos en Postman.
+async function requestFormData<T>(
+  endpoint: string,
+  method: string,
+  formData: FormData
+): Promise<T> {
+  const res = await fetch(`${API_URL}${endpoint}`, {
+    method,
+    headers: authHeaderOnly(),
+    body: formData,
   });
 
   const data = await res.json();
@@ -41,82 +68,131 @@ export const authService = {
   register: (data: unknown) =>
     request('/auth/register', 'POST', data, false),
   me: () => request('/auth/me'),
-  forgotPassword: (email: string) =>
+   forgotPassword: (email: string) =>
     request('/auth/forgot-password', 'POST', { email }, false),
+  resetPassword: (token: string, newPassword: string) =>
+    request('/auth/reset-password', 'POST', { token, newPassword }, false),
+  verifyEmail: (token: string) =>
+    request('/auth/verify-email', 'POST', { token }, false),
+  resendVerification: (email: string) =>
+    request('/auth/resend-verification', 'POST', { email }, false),
 };
 
 // --- Memorias ---
+// NOTA: getByUser (ver recuerdos de otra persona) todavía no existe en el backend,
+// hoy /memories siempre devuelve los del usuario logueado. Lo sumamos cuando
+// decidamos cómo se comparten recuerdos entre conectados.
 export const memoryService = {
-  getAll: (page = 1, limit = 12) =>
-    request(`/memories?page=${page}&limit=${limit}`),
-  getById: (id: number) =>
+  getAll: (page = 1, pageSize = 20) =>
+    request(`/memories?page=${page}&pageSize=${pageSize}`),
+  getById: (id: string) =>
     request(`/memories/${id}`),
-  getByUser: (userId: number, page = 1) =>
-    request(`/memories/user/${userId}?page=${page}`),
-  create: (data: unknown) =>
-    request('/memories', 'POST', data),
-  update: (id: number, data: unknown) =>
-    request(`/memories/${id}`, 'PUT', data),
-  delete: (id: number) =>
+  create: (caption: string | undefined, file?: File) => {
+    const fd = new FormData();
+    if (caption) fd.append('caption', caption);
+    if (file) fd.append('file', file);
+    return requestFormData('/memories', 'POST', fd);
+  },
+  update: (id: string, caption: string) =>
+    request(`/memories/${id}`, 'PATCH', { caption }),
+  delete: (id: string) =>
     request(`/memories/${id}`, 'DELETE'),
 };
 
 // --- Árbol genealógico ---
 export const familyService = {
-  getTree: (userId?: number) =>
-    request(`/family${userId ? `?userId=${userId}` : ''}`),
-  addMember: (data: unknown) =>
-    request('/family', 'POST', data),
-  updateMember: (id: number, data: unknown) =>
-    request(`/family/${id}`, 'PUT', data),
-  deleteMember: (id: number) =>
-    request(`/family/${id}`, 'DELETE'),
+  getTree: () => request('/family/tree'),
+  listMembers: () => request('/family/members'),
+  getMember: (id: string) => request(`/family/members/${id}`),
+  createMember: (fields: Record<string, string>, file?: File) => {
+    const fd = new FormData();
+    Object.entries(fields).forEach(([key, value]) => fd.append(key, value));
+    if (file) fd.append('file', file);
+    return requestFormData('/family/members', 'POST', fd);
+  },
+  updateMember: (id: string, fields: Record<string, string>, file?: File) => {
+    const fd = new FormData();
+    Object.entries(fields).forEach(([key, value]) => fd.append(key, value));
+    if (file) fd.append('file', file);
+    return requestFormData(`/family/members/${id}`, 'PATCH', fd);
+  },
+  deleteMember: (id: string) =>
+    request(`/family/members/${id}`, 'DELETE'),
+  addPartner: (memberAId: string, memberBId: string) =>
+    request('/family/partners', 'POST', { memberAId, memberBId }),
+  removePartner: (id: string) =>
+    request(`/family/partners/${id}`, 'DELETE'),
+  getMyPlacements: () => request('/family/my-placements'),
+  linkMember: (id: string, userId: string) =>
+    request(`/family/members/${id}/link`, 'PATCH', { userId }),
+  unlinkMember: (id: string) =>
+    request(`/family/members/${id}/link`, 'DELETE'),
 };
 
-// --- Cápsulas del tiempo ---
+// --- Conexiones (invitar / aceptar / rechazar) ---
+export const connectionService = {
+  sendRequest: (addresseeEmail: string) =>
+    request('/connections', 'POST', { addresseeEmail }),
+  list: (status?: 'pending' | 'accepted' | 'rejected') =>
+    request(`/connections${status ? `?status=${status}` : ''}`),
+  accept: (id: string) =>
+    request(`/connections/${id}/accept`, 'PATCH'),
+  reject: (id: string) =>
+    request(`/connections/${id}/reject`, 'PATCH'),
+  remove: (id: string) =>
+    request(`/connections/${id}`, 'DELETE'),
+};
+
+// --- Usuario ---
+// NOTA: ver el perfil de OTRA persona y buscar usuarios por nombre todavía no
+// existen en el backend — hoy solo hay endpoints para "mi" perfil.
+export const userService = {
+  getMyProfile: () => request('/auth/me'),
+  updateProfile: (data: { bio?: string; country?: string; city?: string; birthDate?: string }) =>
+    request('/users/me', 'PATCH', data),
+  uploadAvatar: (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return requestFormData('/users/me/avatar', 'POST', fd);
+  },
+  uploadCover: (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return requestFormData('/users/me/cover', 'POST', fd);
+  },
+};
+
+// --- Cápsulas del tiempo, Último tributo, Ecos, Postales, Ahorro ---
+// Estos módulos son de Fase 3 (Bóveda) — el backend todavía no existe.
+// Las pantallas (TimeCapsule, FarewellVideo, DigitalEcho, Postal, Savings)
+// siguen ahí pero van a fallar si intentan pegarle a la API hasta que
+// construyamos esos módulos más adelante.
 export const capsuleService = {
   getAll: () => request('/capsules'),
   create: (data: unknown) => request('/capsules', 'POST', data),
-  delete: (id: number) => request(`/capsules/${id}`, 'DELETE'),
+  delete: (id: string) => request(`/capsules/${id}`, 'DELETE'),
 };
 
-// --- Último tributo ---
 export const farewellService = {
   getAll: () => request('/farewells'),
   create: (data: unknown) => request('/farewells', 'POST', data),
-  delete: (id: number) => request(`/farewells/${id}`, 'DELETE'),
+  delete: (id: string) => request(`/farewells/${id}`, 'DELETE'),
 };
 
-// --- Ecos del pasado ---
 export const echoService = {
-  ask: (userId: number, question: string) =>
+  ask: (userId: string, question: string) =>
     request('/echo/ask', 'POST', { userId, question }),
-  getHistory: (userId: number) =>
-    request(`/echo/history/${userId}`),
+  getHistory: (userId: string) => request(`/echo/history/${userId}`),
 };
 
-// --- Postales ---
 export const postalService = {
   getAll: () => request('/postals'),
   create: (data: unknown) => request('/postals', 'POST', data),
-  getStatus: (id: number) => request(`/postals/${id}/status`),
+  getStatus: (id: string) => request(`/postals/${id}/status`),
 };
 
-// --- Ahorro forzoso ---
 export const savingsService = {
   get: () => request('/savings'),
   create: (data: unknown) => request('/savings', 'POST', data),
   getHistory: () => request('/savings/history'),
-};
-
-// --- Usuario ---
-export const userService = {
-  getProfile: (userId?: number) =>
-    request(`/users${userId ? `/${userId}` : '/me'}`),
-  updateProfile: (data: unknown) =>
-    request('/users/me', 'PUT', data),
-  updateAvatar: (data: unknown) =>
-    request('/users/me/avatar', 'PUT', data),
-  search: (query: string) =>
-    request(`/users/search?q=${encodeURIComponent(query)}`),
 };

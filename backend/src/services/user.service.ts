@@ -68,7 +68,7 @@ export async function uploadCover(userId: string, file: Express.Multer.File) {
 // reemplaza el key guardado en la base por una URL firmada temporal,
 // y saca los campos sensibles antes de mandar el usuario al frontend
 export async function attachSignedUrls(user: any) {
-  const { passwordHash, resetToken, resetTokenExp, failedLoginAttempts, lockedUntil, ...safe } = user;
+    const { passwordHash, resetToken, resetTokenExp, verificationToken, verificationTokenExp, failedLoginAttempts, lockedUntil, ...safe } = user;
 
   return {
     ...safe,

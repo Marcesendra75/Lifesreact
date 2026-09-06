@@ -3,6 +3,7 @@
 // ============================================
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './CrearCuenta.scss';
 
 interface FormData {
@@ -14,6 +15,7 @@ interface FormData {
   birthDate: string;
   companyName?: string;
   cuit?: string;
+  acceptedTerms: boolean;
 }
 
 function getPasswordStrength(pass: string): { level: number; label: string; color: string } {
@@ -27,16 +29,18 @@ function getPasswordStrength(pass: string): { level: number; label: string; colo
 
 export default function CrearCuenta() {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [searchParams] = useSearchParams();
   const isEmpresa = searchParams.get('tipo') === 'empresa';
 
-  const [form, setForm] = useState<FormData>({
+    const [form, setForm] = useState<FormData>({
     firstName: '', lastName: '', email: '',
     password: '', confirmPassword: '', birthDate: '',
-    companyName: '', cuit: '',
+    companyName: '', cuit: '', acceptedTerms: false,
   });
-  const [error, setError]     = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError]         = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [registered, setRegistered] = useState(false);
 
   const strength = getPasswordStrength(form.password);
 
@@ -60,16 +64,47 @@ export default function CrearCuenta() {
       setError('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
-    setLoading(true);
+    if (!form.acceptedTerms) {
+      setError('Tenés que aceptar los Términos y la Política de Privacidad para continuar.');
+      return;
+    }
+
+      setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 1000));
-      navigate('/acceso-seguro');
-    } catch {
-      setError('Error al crear la cuenta. Intentá de nuevo.');
+      await register({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password,
+        birthDate: form.birthDate || undefined,
+        acceptedTerms: form.acceptedTerms,
+      });
+      setRegistered(true); // mostramos "revisá tu email" en vez de navegar
+    } catch (err: any) {
+      setError(err.message || 'Error al crear la cuenta. Intentá de nuevo.');
     } finally {
       setLoading(false);
     }
   };
+
+    if (registered) {
+    return (
+      <div className="cc-root">
+        <main className="cc-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="cc-form-card" style={{ textAlign: 'center', maxWidth: 480 }}>
+            <h1 className="cc-form-card__title">¡Ya casi está!</h1>
+            <p className="cc-form-card__subtitle">
+              Te mandamos un email a <strong>{form.email}</strong> con un link para confirmar tu cuenta.
+              Revisá tu bandeja (y la carpeta de spam, por las dudas).
+            </p>
+            <button className="cc-btn-submit" onClick={() => navigate('/login')}>
+              Ir a Iniciar Sesión
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="cc-root">
@@ -202,7 +237,21 @@ export default function CrearCuenta() {
                   )}
                 </div>
 
-                <button type="submit" className="cc-btn-submit" disabled={loading}>
+                                <label className="cc-terms">
+                  <input
+                    type="checkbox"
+                    checked={form.acceptedTerms}
+                    onChange={(e) => setForm({ ...form, acceptedTerms: e.target.checked })}
+                  />
+                  <span>
+                    Leí y acepto los{' '}
+                    <a href="/terminos" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a>
+                    {' '}y la{' '}
+                    <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>
+                  </span>
+                </label>
+
+                <button type="submit" className="cc-btn-submit" disabled={loading || !form.acceptedTerms}>
                   {loading ? 'Creando tu legado...' : 'Comenzar mi Legado'}
                 </button>
 

@@ -237,6 +237,17 @@
   &::placeholder { color: rgba(3,25,46,0.32); font-size: 0.85rem; }
 }
 
+.landing-error {
+  background: #ffdad6;
+  color: #ba1a1a;
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
 // ── Botones ──
 .landing-btn {
   width: 100%;

@@ -1,0 +1,221 @@
+// ============================================
+// LIFE'S — Login SCSS
+// ============================================
+@use '../../styles/abstracts/variables' as v;
+@use '../../styles/abstracts/mixins' as m;
+
+.lg-root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: v.$cream;
+  font-family: v.$font-body;
+  color: v.$text-dark;
+}
+
+.lg-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  background: rgba(251, 249, 245, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(196, 198, 205, 0.2);
+
+  &__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  &__img {
+    height: 36px;
+    width: 36px;
+    object-fit: contain;
+  }
+
+  &__name {
+    font-family: v.$font-display;
+    font-style: italic;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: v.$primary;
+    letter-spacing: -0.02em;
+  }
+}
+
+.lg-main {
+  flex: 1;
+  @include m.flex-center;
+  padding: 6rem 1.5rem 3rem;
+}
+
+.lg-card {
+  width: 100%;
+  max-width: 420px;
+  background: v.$surface-alt;
+  border-radius: 0.75rem;
+  padding: 2.5rem;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(196,198,205,0.1);
+
+  @include m.mobile { padding: 1.5rem; }
+
+  &__header {
+    margin-bottom: 1.75rem;
+  }
+
+  &__title {
+    font-family: v.$font-display;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: v.$primary;
+    margin-bottom: 0.25rem;
+  }
+
+  &__subtitle {
+    font-size: 0.85rem;
+    color: v.$mist;
+  }
+}
+
+.lg-error {
+  background: #ffdad6;
+  color: #ba1a1a;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.lg-resend-btn {
+  display: block;
+  margin-top: 0.6rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #855324;
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:disabled {
+    color: #84878c;
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+}
+
+.lg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.lg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &__label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #43474d;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #e4e2de;
+    border: none;
+    border-radius: 0.5rem;
+    font-family: v.$font-body;
+    font-size: 0.9rem;
+    color: v.$text-dark;
+    outline: none;
+    transition: box-shadow 0.2s;
+
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(133, 83, 36, 0.4);
+    }
+  }
+}
+
+.lg-forgot {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: v.$mist;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+  margin-top: -0.5rem;
+
+  &:hover { color: v.$gold-dark; }
+}
+
+.lg-btn-submit {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: v.$primary;
+  color: white;
+  font-family: v.$font-display;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(3,25,46,0.2);
+  margin-top: 0.5rem;
+
+  &:hover:not(:disabled) {
+    background: #1a2e44;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(3,25,46,0.28);
+  }
+
+  &:active:not(:disabled) { transform: scale(0.98); }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.lg-signup-link {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.82rem;
+  color: v.$mist;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &__btn {
+    background: none;
+    border: none;
+    color: v.$gold-dark;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover { text-decoration: underline; }
+  }
+}

@@ -457,3 +457,24 @@
   .cc-card   { padding: 18px 14px; }
   .cc-titulo { font-size: 1.2rem; }
 }
+
+.cc-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #43474d;
+  cursor: pointer;
+  margin-top: -0.5rem;
+
+  input[type="checkbox"] {
+    margin-top: 0.15rem;
+    accent-color: #855324;
+  }
+
+  a {
+    color: #855324;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+}

@@ -5,6 +5,8 @@ import crypto from 'crypto';
 import prisma from '../config/prisma';
 import type { AuthRequest } from '../middleware/auth.middleware';
 import { attachSignedUrls } from '../services/user.service';
+import { registerSchema, loginSchema } from '../validators/auth.validator';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email.service';
 
 const JWT_SECRET  = process.env.JWT_SECRET  || 'lifes_secret';
 const JWT_EXPIRES = process.env.JWT_EXPIRES || '7d';
@@ -24,10 +26,11 @@ function generateToken(userId: string, email: string) {
 // ── Login ──
 export async function login(req: Request, res: Response) {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Email y contraseña requeridos' });
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, error: parsed.error.issues[0].message });
     }
+    const { email, password } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
 
@@ -35,6 +38,13 @@ export async function login(req: Request, res: Response) {
     // para no darle pistas a quien intenta adivinar cuentas registradas
     if (!user || !user.isActive) {
       return res.status(401).json({ success: false, error: 'Credenciales incorrectas' });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        error: 'Tenés que confirmar tu email antes de ingresar. Revisá tu bandeja de entrada.',
+      });
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
@@ -81,18 +91,41 @@ export async function login(req: Request, res: Response) {
 // ── Register ──
 export async function register(req: Request, res: Response) {
   try {
-    const { firstName, lastName, email, password, birthDate } = req.body;
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ success: false, error: 'Todos los campos son requeridos' });
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, error: parsed.error.issues[0].message });
     }
+      const { firstName, lastName, email, password, birthDate } = parsed.data;
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+       const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return res.status(409).json({ success: false, error: 'El email ya está registrado' });
+      if (existing.isVerified) {
+        return res.status(409).json({ success: false, error: 'El email ya está registrado' });
+      }
+
+      // existe pero nunca confirmó: le reenviamos un token nuevo en vez de bloquearlo
+      const newToken = crypto.randomBytes(32).toString('hex');
+      const newTokenExp = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: { verificationToken: newToken, verificationTokenExp: newTokenExp },
+      });
+
+      await sendVerificationEmail(existing.email, existing.firstName, newToken);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Ya tenías una cuenta pendiente de confirmar. Te reenviamos el email de activación.',
+      });
     }
 
     // 12 rounds de salt: buen balance entre seguridad y tiempo de cómputo
-    const passwordHash = await bcrypt.hash(password, 12);
+      const passwordHash = await bcrypt.hash(password, 12);
+
+    // token de verificación de email, válido por 24 horas
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExp = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const newUser = await prisma.user.create({
       data: {
@@ -101,11 +134,19 @@ export async function register(req: Request, res: Response) {
         email,
         passwordHash,
         birthDate: birthDate ? new Date(birthDate) : null,
+        termsAcceptedAt: new Date(),
+        verificationToken,
+        verificationTokenExp,
       },
     });
 
-    const token = generateToken(newUser.id, newUser.email);
-    res.status(201).json({ success: true, data: { token, user: await attachSignedUrls(newUser) } });
+    await sendVerificationEmail(newUser.email, newUser.firstName, verificationToken);
+
+    // ojo: no devolvemos token acá — la cuenta queda pendiente hasta que confirme el email
+    res.status(201).json({
+      success: true,
+      message: 'Cuenta creada. Revisá tu email para activarla antes de poder ingresar.',
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Error al registrar usuario' });
@@ -147,8 +188,7 @@ export async function forgotPassword(req: Request, res: Response) {
         data: { resetToken, resetTokenExp },
       });
 
-      // acá va el envío del mail con el link (/reset-password?token=resetToken)
-      // lo conectamos cuando armemos el módulo de mail
+      await sendPasswordResetEmail(user.email, user.firstName, resetToken);
     }
 
     res.json({
@@ -194,5 +234,68 @@ export async function resetPassword(req: Request, res: Response) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Error al restablecer la contraseña' });
+  }
+}
+
+// ── Verificar email ──
+export async function verifyEmail(req: Request, res: Response) {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'Token requerido' });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { verificationToken: token, verificationTokenExp: { gt: new Date() } },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Token inválido o vencido' });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { isVerified: true, verificationToken: null, verificationTokenExp: null },
+    });
+
+    // al confirmar, lo dejamos logueado directo — mejor experiencia que pedirle loguearse de nuevo
+    const token2 = generateToken(updated.id, updated.email);
+    res.json({ success: true, data: { token: token2, user: await attachSignedUrls(updated) } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Error al verificar el email' });
+  }
+}
+
+// ── Reenviar verificación ──
+export async function resendVerification(req: Request, res: Response) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'Email requerido' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // mismo mensaje siempre, exista o no la cuenta, y si ya está verificada, por privacidad
+    if (user && !user.isVerified) {
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const verificationTokenExp = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { verificationToken, verificationTokenExp },
+      });
+
+      await sendVerificationEmail(user.email, user.firstName, verificationToken);
+    }
+
+    res.json({
+      success: true,
+      message: 'Si la cuenta existe y todavía no está verificada, te reenviamos el email',
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Error al reenviar la verificación' });
   }
 }

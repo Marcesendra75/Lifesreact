@@ -33,10 +33,14 @@ model User {
   membershipLevel MembershipLevel @default(bronze) @map("membership_level")
   isVerified      Boolean         @default(false) @map("is_verified")
   isActive        Boolean         @default(true)  @map("is_active")
+  termsAcceptedAt DateTime?       @map("terms_accepted_at")
 
   // recuperación de contraseña: token random + vencimiento, nunca guardamos la nueva sin hashear
   resetToken     String?   @map("reset_token")
   resetTokenExp  DateTime? @map("reset_token_exp")
+
+  verificationToken    String?   @map("verification_token")
+  verificationTokenExp DateTime? @map("verification_token_exp")
 
   // para el rate limiting / bloqueo por fuerza bruta que pediste
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")

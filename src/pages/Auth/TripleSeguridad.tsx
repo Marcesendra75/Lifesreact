@@ -5,7 +5,7 @@
 // Paso 2: Código QR de la tarjeta (+ botón cámara futuro)
 // Paso 3: PIN de 6 dígitos
 // ============================================================
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Shield, Lock, Eye, EyeOff, QrCode, Camera,
@@ -79,8 +79,16 @@ function QRVisual({ codigo, color }: { codigo: string; color: string }) {
 export default function TripleSeguridad() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const destino = searchParams.get('destino') || '/feed';
+  const tipo = searchParams.get('tipo'); // 'personal' | 'empresa' | null
   const nivelRequerido = searchParams.get('nivel') || 'Personal';
+
+  // Destino calculado una vez y reactivo a searchParams
+  const destino = useMemo(() => {
+    const destinoExplicito = searchParams.get('destino');
+    if (destinoExplicito) return destinoExplicito;
+    if (searchParams.get('tipo') === 'empresa') return '/empresas/perfil';
+    return '/feed';
+  }, [searchParams]);
 
   const [paso, setPaso]       = useState(1);
   const [usuario, setUsuario] = useState<typeof USUARIOS[0] | null>(null);
@@ -114,7 +122,7 @@ export default function TripleSeguridad() {
         }
       }
     }
-  }, []);
+  }, [destino]);
 
   const verificarPaso1 = () => {
     setError('');
@@ -212,23 +220,28 @@ export default function TripleSeguridad() {
     ? NIVEL_CONFIG[usuario.nivel as keyof typeof NIVEL_CONFIG]
     : NIVEL_CONFIG[nivelRequerido as keyof typeof NIVEL_CONFIG] || NIVEL_CONFIG.Personal;
 
+  // Config visual según tipo de acceso
+  const esEmpresa = tipo === 'empresa';
+  const accentColor = esEmpresa ? '#3a6ea8' : '#C9932A';
+  const tipoLabel   = esEmpresa ? '🏢 Acceso Empresas' : '👤 Acceso Personal';
+
   const pasoLabels = ['Identidad', 'Tarjeta QR', 'PIN secreto'];
 
   return (
-    <div className="ts-page">
+    <div className={`ts-page${esEmpresa ? ' ts-page--empresa' : ''}`}>
       <div className="ts-bg"/>
 
       <div className="ts-wrap">
 
         {/* Logo */}
         <div className="ts-logo">
-          <div className="ts-logo__shield">
+          <div className="ts-logo__shield" style={{ color: accentColor }}>
             <Shield size={28} strokeWidth={1.4}/>
           </div>
           <div>
             <span className="ts-logo__lifes">Life's</span>
-            <span className="ts-logo__badge">
-              {nivelCfg.icono} {nivelCfg.label}
+            <span className="ts-logo__badge" style={{ color: accentColor }}>
+              {tipoLabel}
             </span>
           </div>
         </div>
@@ -257,7 +270,7 @@ export default function TripleSeguridad() {
         {paso === 1 && (
           <div className="ts-card">
             <div className="ts-card__header">
-              <Lock size={20} strokeWidth={1.6} style={{color:'#C9932A'}}/>
+              <Lock size={20} strokeWidth={1.6} style={{color: accentColor}}/>
               <div>
                 <h2>Verificá tu identidad</h2>
                 <p>Paso 1 de {nivelCfg.pasos} · Email y contraseña</p>
@@ -338,7 +351,7 @@ export default function TripleSeguridad() {
         {paso === 2 && usuario && (
           <div className="ts-card">
             <div className="ts-card__header">
-              <QrCode size={20} strokeWidth={1.6} style={{color:'#C9932A'}}/>
+              <QrCode size={20} strokeWidth={1.6} style={{color: accentColor}}/>
               <div>
                 <h2>Tarjeta Life's</h2>
                 <p>Paso 2 de {nivelCfg.pasos} · Verificá con tu tarjeta</p>
@@ -424,7 +437,7 @@ export default function TripleSeguridad() {
         {paso === 3 && usuario && (
           <div className="ts-card">
             <div className="ts-card__header">
-              <Key size={20} strokeWidth={1.6} style={{color:'#C9932A'}}/>
+              <Key size={20} strokeWidth={1.6} style={{color: accentColor}}/>
               <div>
                 <h2>PIN secreto</h2>
                 <p>Paso 3 de {nivelCfg.pasos} · Último nivel de seguridad</p>
