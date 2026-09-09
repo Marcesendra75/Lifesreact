@@ -1,138 +1,254 @@
 // ============================================
 // LIFE'S — Feed Principal
-// Sin sidebar — columna única centrada
+// Conectado al backend real: tus recuerdos + los de tus conexiones aceptadas
 // ============================================
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Plus, History, ArrowRight,
-  LayoutList, Grid, GitBranch, Camera, Video, Mic,
-  Heart, Leaf, BookOpen, Frown, MoreHorizontal,
-  MessageCircle, Share2, Bookmark,
-  Activity, Shield, Clock, Zap, ChevronRight, Edit2,
+  Plus,
+  LayoutList, Grid, Activity, Camera,
+  Heart, MessageCircle, Edit2, MoreHorizontal, Trash2, Share2,
 } from 'lucide-react';
+import { memoryService, chapterService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import CrearRecuerdoModal from '../../components/CrearRecuerdoModal/CrearRecuerdoModal';
+import FotoViewerModal from '../../components/FotoViewerModal/FotoViewerModal';
+import ReactionButton from '../../components/ReactionButton/ReactionButton';
+import ReactionResumen from '../../components/ReactionButton/ReactionResumen';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './Feed.scss';
 
 type Vista = 'feed' | 'galeria' | 'cronologia';
-type Epoca = 'todas' | 'infancia' | 'juventud' | 'familia' | 'logros' | 'hoy';
 
-const REACCIONES = [
-  { icon: <Heart    size={18} strokeWidth={1.8} />, label: 'Emocionante',  color: '#e74c3c', key: 'favorite'      },
-  { icon: <Leaf     size={18} strokeWidth={1.8} />, label: 'Inspirador',   color: '#27ae60', key: 'eco'           },
-  { icon: <BookOpen size={18} strokeWidth={1.8} />, label: 'Lo recordaré', color: '#855324', key: 'menu_book'     },
-  { icon: <Frown    size={18} strokeWidth={1.8} />, label: 'Me conmueve',  color: '#735c00', key: 'sentiment_sad' },
-];
+interface Chapter {
+  id: string;
+  nombre: string;
+  emoji: string;
+}
 
-const EPOCAS = [
-  { id: 'todas',    label: 'Todas'       },
-  { id: 'infancia', label: '👶 Infancia' },
-  { id: 'juventud', label: '🎓 Juventud' },
-  { id: 'familia',  label: '❤️ Familia'  },
-  { id: 'logros',   label: '🏆 Logros'   },
-  { id: 'hoy',      label: '🌿 Hoy'      },
-];
+interface FeedItem {
+  id: string;
+  userId: string;
+  caption?: string | null;
+  mediaUrl?: string | null;
+  mediaType?: string | null;
+  chapterId?: string | null;
+  reactionCounts: Record<string, number>;
+  miReaccion: string | null;
+  commentsCount: number;
+  createdAt: string;
+  user: { id: string; firstName: string; lastName: string; avatarUrl?: string | null };
+}
 
-const MOCK_POSTS = [
-  {
-    id: 1, autor: 'Julian Valenzuela', userId: '1',
-    avatar: 'https://i.pravatar.cc/40?img=11', tiempo: 'hace 4 horas',
-    tipo: 'Recuerdo Destacado', epoca: 'familia',
-    titulo: 'La vieja casa de campo en Segovia',
-    texto: 'Recuerdo perfectamente el olor a pino y tierra mojada. Fue el último verano que pasamos todos juntos antes de que la ciudad nos absorbiera.',
-    imagen: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80',
-    reacciones: { favorite: 12, eco: 5, menu_book: 8, sentiment_sad: 3 },
-    comentarios: 4, pesoEmocional: 85,
-  },
-  {
-    id: 2, autor: 'Julian Valenzuela', userId: '1',
-    avatar: 'https://i.pravatar.cc/40?img=11', tiempo: 'ayer a las 18:30',
-    tipo: 'Reflexión', epoca: 'logros', titulo: null,
-    texto: '"La sabiduría no es un destino, es el hilo con el que tejemos el manto de nuestra familia."',
-    imagen: null,
-    reacciones: { favorite: 24, eco: 18, menu_book: 31, sentiment_sad: 7 },
-    comentarios: 9, pesoEmocional: 95, esCita: true,
-  },
-  {
-    id: 3, autor: 'María Valenzuela', userId: '2',
-    avatar: 'https://i.pravatar.cc/40?img=5', tiempo: 'hace 2 días',
-    tipo: 'Recuerdo Familiar', epoca: 'infancia',
-    titulo: 'El primer día de escuela',
-    texto: 'Nunca olvidaré cuando papá me llevó de la mano hasta el aula. Tenía tanto miedo y él me dijo: "El conocimiento es el único legado que nadie te puede quitar."',
-    imagen: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
-    reacciones: { favorite: 45, eco: 12, menu_book: 19, sentiment_sad: 28 },
-    comentarios: 15, pesoEmocional: 92,
-  },
-  {
-    id: 4, autor: 'Julian Valenzuela', userId: '1',
-    avatar: 'https://i.pravatar.cc/40?img=11', tiempo: 'hace 5 días',
-    tipo: 'Hito de Vida', epoca: 'juventud',
-    titulo: 'Graduación — Universidad de Salamanca, 1987',
-    texto: 'Treinta y siete años después, aún puedo sentir el peso de ese diploma en mis manos.',
-    imagen: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
-    reacciones: { favorite: 67, eco: 34, menu_book: 52, sentiment_sad: 11 },
-    comentarios: 22, pesoEmocional: 78,
-  },
-  {
-    id: 5, autor: 'Marcelo García', userId: '3',
-    avatar: 'https://i.pravatar.cc/40?img=68', tiempo: 'hace 1 semana',
-    tipo: 'Recuerdo Familiar', epoca: 'familia',
-    titulo: 'El día que nació Sofía',
-    texto: 'No hay palabras para describir lo que sentí al sostenerla por primera vez. Ese instante cambió para siempre la forma en la que entiendo el amor.',
-    imagen: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=800&q=80',
-    reacciones: { favorite: 89, eco: 22, menu_book: 15, sentiment_sad: 4 },
-    comentarios: 31, pesoEmocional: 97,
-  },
-];
-
-const HOY_HACE = {
-  años: 15,
-  titulo: 'Primer viaje a Patagonia',
-  imagen: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=80',
-};
+function tiempoRelativo(iso: string): string {
+  const fecha = new Date(iso);
+  const diffMs = Date.now() - fecha.getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'recién';
+  if (min < 60) return `hace ${min} min`;
+  const horas = Math.floor(min / 60);
+  if (horas < 24) return `hace ${horas} h`;
+  const dias = Math.floor(horas / 24);
+  if (dias === 1) return 'ayer';
+  if (dias < 7) return `hace ${dias} días`;
+  return fecha.toLocaleDateString('es-AR');
+}
 
 export default function Feed() {
   const navigate = useNavigate();
-  const [vista,  setVista]  = useState<Vista>('feed');
-  const [epoca,  setEpoca]  = useState<Epoca>('todas');
-  const [reaccionesAbiertas, setReaccionesAbiertas] = useState<number | null>(null);
+  const { user } = useAuth();
+  const { memoryId: memoryIdDeLink } = useParams();
 
-  const postsFiltrados = epoca === 'todas'
-    ? MOCK_POSTS
-    : MOCK_POSTS.filter(p => p.epoca === epoca);
+  const [items, setItems] = useState<FeedItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [cargando, setCargando] = useState(true);
+  const [cargandoMas, setCargandoMas] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const irAPerfil = (userId: string) => navigate(`/perfil/${userId}`);
-  const irALinea  = (userId: string) => navigate(`/linea-de-vida/${userId}`);
-  const irAArbol  = (userId: string) => navigate(`/arbol-genealogico/${userId}`);
+  const [vista, setVista] = useState<Vista>('feed');
+  const [misCapitulos, setMisCapitulos] = useState<Chapter[]>([]);
+  const [capituloFiltro, setCapituloFiltro] = useState('');
+
+  const [crearAbierto, setCrearAbierto] = useState(false);
+  const [viendoPost, setViendoPost] = useState<FeedItem | null>(null);
+
+  const [menuAbiertoId, setMenuAbiertoId] = useState<string | null>(null);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [editCaption, setEditCaption] = useState('');
+  const [eliminandoId, setEliminandoId] = useState<string | null>(null);
+  const [toast, setToast] = useState('');
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+
+  useEffect(() => {
+    cargarFeed(1);
+    chapterService.list().then((res: any) => setMisCapitulos(res.data)).catch(() => {});
+  }, []);
+
+  // si entraste por un link directo a un recuerdo puntual, lo abrimos solo
+  useEffect(() => {
+    if (!memoryIdDeLink) return;
+    memoryService.getById(memoryIdDeLink).then((res: any) => {
+      setViendoPost({
+        id: res.data.id,
+        userId: res.data.userId,
+        caption: res.data.caption,
+        mediaUrl: res.data.mediaUrl,
+        mediaType: res.data.mediaType,
+        chapterId: res.data.chapterId,
+        reactionCounts: res.data.reactionCounts,
+        miReaccion: res.data.miReaccion,
+        commentsCount: res.data.commentsCount,
+        createdAt: res.data.createdAt,
+        user: { id: res.data.userId, firstName: '', lastName: '', avatarUrl: null },
+      });
+    }).catch(() => showToast('⚠️ Ese recuerdo no existe o no tenés permiso para verlo'));
+  }, [memoryIdDeLink]);
+
+  useEffect(() => {
+    const onNavRefresh = (e: Event) => {
+      if ((e as CustomEvent).detail !== '/feed') return;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      cargarFeed(1);
+    };
+    window.addEventListener('lifes:nav-refresh', onNavRefresh);
+    return () => window.removeEventListener('lifes:nav-refresh', onNavRefresh);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (eliminandoId) { setEliminandoId(null); return; }
+      if (editandoId) { setEditandoId(null); return; }
+      if (menuAbiertoId) { setMenuAbiertoId(null); return; }
+      if (crearAbierto) { setCrearAbierto(false); return; }
+      if (viendoPost) { setViendoPost(null); return; }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [eliminandoId, editandoId, menuAbiertoId, crearAbierto, viendoPost]);
+
+  async function cargarFeed(pagina: number) {
+    if (pagina === 1) setCargando(true); else setCargandoMas(true);
+    try {
+      const res: any = await memoryService.getFeed(pagina, 15);
+      setItems(pagina === 1 ? res.data.items : [...items, ...res.data.items]);
+      setTotalPages(res.data.totalPages);
+      setPage(pagina);
+    } catch (err) {
+      console.error('Error al cargar el feed:', err);
+    } finally {
+      setCargando(false);
+      setCargandoMas(false);
+    }
+  }
+
+  const itemsFiltrados = capituloFiltro
+    ? items.filter(i => i.chapterId === capituloFiltro)
+    : items;
+  
+    // Scroll infinito: cuando el "centinela" invisible del final de la lista
+  // entra en pantalla, pedimos la página siguiente sola, sin botón.
+  const cargarMasRef = useRef(() => {});
+  cargarMasRef.current = () => {
+    if (!cargando && !cargandoMas && page < totalPages) {
+      cargarFeed(page + 1);
+    }
+  };
+
+  useEffect(() => {
+    const nodo = sentinelRef.current;
+    if (!nodo) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) cargarMasRef.current();
+      },
+      { rootMargin: '400px' } // dispara un poco antes de que se vea, para que no espere al usuario
+    );
+
+    observer.observe(nodo);
+    return () => observer.disconnect();
+  }, []);
+
+  const compartir = async (id: string) => {
+    const link = `${window.location.origin}/feed/${id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast('✓ Link copiado — funcionará una vez que Life\'s esté en un dominio real');
+    } catch {
+      showToast('⚠️ No se pudo copiar el link');
+    }
+  };
+
+  const reaccionar = async (id: string, type: string) => {
+    try {
+      const res: any = await memoryService.setReaction(id, type);
+      setItems(items.map(i => i.id === id ? { ...i, miReaccion: res.data.miReaccion, reactionCounts: res.data.reactionCounts } : i));
+    } catch {
+      // si falla la reacción, no rompemos la pantalla
+    }
+  };
+
+  const irAPerfil = (userId: string) => {
+    if (user && userId === user.id) navigate('/perfil');
+    else navigate(`/perfil/${userId}`);
+  };
+
+  const iniciarEdicion = (post: FeedItem) => {
+    setEditandoId(post.id);
+    setEditCaption(post.caption || '');
+    setMenuAbiertoId(null);
+  };
+
+  const guardarEdicion = async () => {
+    if (!editandoId) return;
+    try {
+      await memoryService.update(editandoId, editCaption.trim());
+      setItems(items.map(i => i.id === editandoId ? { ...i, caption: editCaption.trim() } : i));
+      setEditandoId(null);
+    } catch (err: any) {
+      alert(err.message || 'Error al guardar los cambios');
+    }
+  };
+
+  const confirmarEliminar = async () => {
+    if (!eliminandoId) return;
+    try {
+      await memoryService.delete(eliminandoId);
+      setItems(items.filter(i => i.id !== eliminandoId));
+      setEliminandoId(null);
+    } catch (err: any) {
+      alert(err.message || 'Error al eliminar');
+    }
+  };
 
   return (
     <div className="feed-root with-navbar">
 
       <main className="feed-main">
 
-        {/* Hoy hace X años */}
-        <div className="feed-hoy-hace" onClick={() => navigate('/linea-de-vida')}>
-          <div className="feed-hoy-hace__img">
-            <img src={HOY_HACE.imagen} alt="Hoy hace años"/>
-            <div className="feed-hoy-hace__overlay"/>
+        {/* Filtros por capítulo (reemplaza las "épocas" fijas de antes) */}
+        {misCapitulos.length > 0 && (
+          <div className="feed-epocas">
+            <button
+              className={`feed-epoca-btn ${capituloFiltro === '' ? 'active' : ''}`}
+              onClick={() => setCapituloFiltro('')}
+            >
+              Todas
+            </button>
+            {misCapitulos.map(c => (
+              <button
+                key={c.id}
+                className={`feed-epoca-btn ${capituloFiltro === c.id ? 'active' : ''}`}
+                onClick={() => setCapituloFiltro(capituloFiltro === c.id ? '' : c.id)}
+              >
+                {c.emoji} {c.nombre}
+              </button>
+            ))}
           </div>
-          <div className="feed-hoy-hace__text">
-            <div className="feed-hoy-hace__badge">
-              <History size={14} strokeWidth={1.8}/> Hoy hace {HOY_HACE.años} años
-            </div>
-            <p className="feed-hoy-hace__titulo">{HOY_HACE.titulo}</p>
-          </div>
-          <ArrowRight size={18} strokeWidth={1.8} className="feed-hoy-hace__arrow"/>
-        </div>
-
-        {/* Filtros época */}
-        <div className="feed-epocas">
-          {EPOCAS.map(e => (
-            <button key={e.id}
-              className={`feed-epoca-btn ${epoca === e.id ? 'active' : ''}`}
-              onClick={() => setEpoca(e.id as Epoca)}
-            >{e.label}</button>
-          ))}
-        </div>
+        )}
 
         {/* Selector vista */}
         <div className="feed-vista-selector">
@@ -153,114 +269,132 @@ export default function Feed() {
 
         {/* Quick create */}
         <div className="feed-create">
-          <button onClick={() => irAPerfil('1')}>
-            <img src="https://i.pravatar.cc/48?img=11" alt="Yo" className="feed-create__avatar"/>
+          <button onClick={() => navigate('/perfil')}>
+            {user?.avatarUrl
+              ? <img src={user.avatarUrl} alt="Yo" className="feed-create__avatar"/>
+              : <div className="feed-create__avatar feed-create__avatar--vacio">{user?.firstName?.[0]}</div>
+            }
           </button>
-          <button className="feed-create__input" onClick={() => navigate('/linea-de-vida')}>
+          <button className="feed-create__input" onClick={() => setCrearAbierto(true)}>
             ¿Qué momento deseas preservar hoy?
           </button>
-          <div className="feed-create__actions">
-            <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Camera size={18} strokeWidth={1.8}/></button>
-            <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Video  size={18} strokeWidth={1.8}/></button>
-            <button className="feed-create__action" onClick={() => navigate('/linea-de-vida')}><Mic    size={18} strokeWidth={1.8}/></button>
-          </div>
+          <button className="feed-create__action" onClick={() => setCrearAbierto(true)}>
+            <Camera size={18} strokeWidth={1.8}/>
+          </button>
         </div>
 
+        {cargando && <p className="feed-vacio">Cargando tu feed...</p>}
+
+        {!cargando && itemsFiltrados.length === 0 && (
+          <div className="feed-vacio-wrap">
+            <p className="feed-vacio">Todavía no hay recuerdos acá. ¡Publicá el primero!</p>
+          </div>
+        )}
+
         {/* ══ VISTA FEED ══ */}
-        {vista === 'feed' && (
+        {!cargando && vista === 'feed' && (
           <div className="feed-posts">
-            {postsFiltrados.map(post => (
-              <article key={post.id} className="feed-post"
-                style={{ '--peso': `${post.pesoEmocional}%` } as React.CSSProperties}>
-                <div className="feed-post__peso" style={{ width: `${post.pesoEmocional}%` }}/>
+            {itemsFiltrados.map(post => (
+              <article key={post.id} className="feed-post">
                 <div className="feed-post__header">
                   <button className="feed-post__avatar-btn" onClick={() => irAPerfil(post.userId)}>
-                    <img src={post.avatar} alt={post.autor} className="feed-post__avatar"/>
+                    {post.user.avatarUrl
+                      ? <img src={post.user.avatarUrl} alt={post.user.firstName} className="feed-post__avatar"/>
+                      : <div className="feed-post__avatar feed-post__avatar--vacio">{post.user.firstName[0]}</div>
+                    }
                   </button>
                   <div className="feed-post__meta">
                     <button className="feed-post__autor-btn" onClick={() => irAPerfil(post.userId)}>
-                      {post.autor}
+                      {post.user.firstName} {post.user.lastName}
                     </button>
-                    <span className="feed-post__tiempo">{post.tiempo} · {post.tipo}</span>
+                    <span className="feed-post__tiempo">{tiempoRelativo(post.createdAt)}</span>
                   </div>
-                  <div className="feed-post__nav-perfil">
-                    <button className="feed-post__nav-btn" onClick={() => irALinea(post.userId)} title="Línea de vida"><Activity  size={14} strokeWidth={1.8}/></button>
-                    <button className="feed-post__nav-btn" onClick={() => irAArbol(post.userId)}  title="Árbol"><GitBranch size={14} strokeWidth={1.8}/></button>
-                    <button className="feed-post__more"><MoreHorizontal size={18} strokeWidth={1.8}/></button>
-                  </div>
+                  {user && post.userId === user.id && (
+                    <div className="feed-post__menu-wrap">
+                      <button className="feed-post__more" onClick={() => setMenuAbiertoId(menuAbiertoId === post.id ? null : post.id)}>
+                        <MoreHorizontal size={18} strokeWidth={1.8}/>
+                      </button>
+                      {menuAbiertoId === post.id && (
+                        <>
+                          <div className="feed-post__menu-backdrop" onClick={() => setMenuAbiertoId(null)} />
+                          <div className="feed-post__menu">
+                            <button onClick={() => iniciarEdicion(post)}><Edit2 size={14} strokeWidth={1.8}/> Editar</button>
+                            <button className="feed-post__menu-eliminar" onClick={() => { setEliminandoId(post.id); setMenuAbiertoId(null); }}>
+                              <Trash2 size={14} strokeWidth={1.8}/> Eliminar
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="feed-post__body">
-                  {post.titulo && <h4 className="feed-post__titulo">{post.titulo}</h4>}
-                  {(post as any).esCita
-                    ? <blockquote className="feed-post__cita">{post.texto}</blockquote>
-                    : <p className="feed-post__texto">{post.texto}</p>
-                  }
-                </div>
-                {post.imagen && (
-                  <div className="feed-post__img-wrap" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}>
-                    <img src={post.imagen} alt={post.titulo || 'Recuerdo'}/>
-                    <div className="feed-post__img-overlay">
-                      <span className="feed-post__epoca-badge">
-                        {EPOCAS.find(e => e.id === post.epoca)?.label}
-                      </span>
+                  {editandoId === post.id ? (
+                    <div className="feed-post__edit">
+                      <textarea value={editCaption} onChange={(e) => setEditCaption(e.target.value)} rows={3} autoFocus/>
+                      <div className="feed-post__edit-btns">
+                        <button onClick={() => setEditandoId(null)}>Cancelar</button>
+                        <button className="feed-post__edit-guardar" onClick={guardarEdicion}>Guardar</button>
+                      </div>
                     </div>
+                  ) : (
+                    post.caption && <p className="feed-post__texto">{post.caption}</p>
+                  )}
+                </div>
+                {post.mediaUrl && (
+                  <div className="feed-post__img-wrap" onClick={() => setViendoPost(post)} style={{cursor:'pointer'}}>
+                    {post.mediaType === 'video'
+                      ? <video src={post.mediaUrl} controls />
+                      : <img src={post.mediaUrl} alt={post.caption || 'Recuerdo'}/>
+                    }
                   </div>
                 )}
                 <div className="feed-post__footer">
-                  <div className="feed-post__reacciones">
-                    <div className="feed-post__reacciones-wrap">
-                      <button className="feed-post__react-btn"
-                        onClick={() => setReaccionesAbiertas(reaccionesAbiertas === post.id ? null : post.id)}>
-                        <Heart size={16} strokeWidth={1.8}/> <span>Reaccionar</span>
-                      </button>
-                      {reaccionesAbiertas === post.id && (
-                        <div className="feed-reacciones-panel">
-                          {REACCIONES.map(r => (
-                            <button key={r.key} className="feed-reacciones-panel__item"
-                              onClick={() => setReaccionesAbiertas(null)} style={{color: r.color}}>
-                              {r.icon}<span>{r.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="feed-post__react-counts">
-                      {REACCIONES.map(r => (
-                        <span key={r.key} className="feed-post__react-count" style={{color: r.color}}>
-                          {r.icon}{(post.reacciones as any)[r.key]}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="feed-post__acciones">
-                    <button className="feed-post__accion"><MessageCircle size={16} strokeWidth={1.8}/>{post.comentarios}</button>
-                    <button className="feed-post__accion"><Share2   size={16} strokeWidth={1.8}/></button>
-                    <button className="feed-post__accion" onClick={() => navigate('/postal')}><Bookmark size={16} strokeWidth={1.8}/></button>
-                  </div>
+                  <ReactionButton
+                    reactionCounts={post.reactionCounts}
+                    miReaccion={post.miReaccion}
+                    onReact={(type) => reaccionar(post.id, type)}
+                  />
+                  <button className="feed-post__accion" onClick={() => setViendoPost(post)}>
+                    <MessageCircle size={16} strokeWidth={1.8}/> {post.commentsCount}
+                  </button>
+                  <button className="feed-post__accion" onClick={() => compartir(post.id)}>
+                    <Share2 size={16} strokeWidth={1.8}/>
+                  </button>
+                  <ReactionResumen memoryId={post.id} reactionCounts={post.reactionCounts} />
                 </div>
-                <button className="feed-post__ver-perfil" onClick={() => irAPerfil(post.userId)}>
-                  Ver perfil completo de {post.autor.split(' ')[0]} <ChevronRight size={13} strokeWidth={1.8}/>
-                </button>
               </article>
             ))}
+
+            {page < totalPages && (
+              <div ref={sentinelRef} className="feed-scroll-sentinel">
+                {cargandoMas && <span className="feed-cargar-mas-texto">Cargando más recuerdos...</span>}
+              </div>
+            )}
           </div>
         )}
 
         {/* ══ VISTA GALERÍA ══ */}
-        {vista === 'galeria' && (
+        {!cargando && vista === 'galeria' && (
           <div className="feed-galeria">
-            {postsFiltrados.filter(p => p.imagen).map(post => (
-              <div key={post.id} className="feed-galeria__item" onClick={() => irALinea(post.userId)}>
-                <img src={post.imagen!} alt={post.titulo || 'Recuerdo'}/>
+            {itemsFiltrados.filter(p => p.mediaUrl).map(post => (
+              <div key={post.id} className="feed-galeria__item" onClick={() => setViendoPost(post)}>
+                {post.mediaType === 'video'
+                  ? <video src={post.mediaUrl!} muted />
+                  : <img src={post.mediaUrl!} alt={post.caption || 'Recuerdo'}/>
+                }
                 <div className="feed-galeria__overlay">
-                  <button className="feed-galeria__autor"
-                    onClick={e => { e.stopPropagation(); irAPerfil(post.userId); }}>
-                    <img src={post.avatar} alt={post.autor}/>{post.autor.split(' ')[0]}
-                  </button>
-                  <p className="feed-galeria__titulo">{post.titulo || post.texto.slice(0,40)+'...'}</p>
+                  <span className="feed-galeria__autor">
+                    {post.user.avatarUrl
+                      ? <img src={post.user.avatarUrl} alt={post.user.firstName}/>
+                      : <div className="feed-galeria__avatar-vacio">{post.user.firstName[0]}</div>
+                    }
+                    {post.user.firstName}
+                  </span>
+                  {post.caption && <p className="feed-galeria__titulo">{post.caption.slice(0, 40)}{post.caption.length > 40 ? '...' : ''}</p>}
                   <div className="feed-galeria__stats">
-                    <span><Heart size={12} strokeWidth={1.8}/>{post.reacciones.favorite}</span>
-                    <span><MessageCircle size={12} strokeWidth={1.8}/>{post.comentarios}</span>
+                    <span><Heart size={12} strokeWidth={1.8}/>{Object.values(post.reactionCounts || {}).reduce((a, b) => a + b, 0)}</span>
+                    <span><MessageCircle size={12} strokeWidth={1.8}/>{post.commentsCount}</span>
                   </div>
                 </div>
               </div>
@@ -269,56 +403,78 @@ export default function Feed() {
         )}
 
         {/* ══ VISTA CRONOLOGÍA ══ */}
-        {vista === 'cronologia' && (
+        {!cargando && vista === 'cronologia' && (
           <div className="feed-cronologia">
-            {postsFiltrados.map((post, i) => (
+            {itemsFiltrados.map((post, i) => (
               <div key={post.id} className="feed-crono-item">
                 <div className="feed-crono-item__dot" onClick={() => irAPerfil(post.userId)}>
-                  {(post as any).esCita ? <BookOpen size={16} strokeWidth={1.8}/> : post.imagen ? <Camera size={16} strokeWidth={1.8}/> : <Edit2 size={16} strokeWidth={1.8}/>}
+                  {post.mediaUrl ? <Camera size={16} strokeWidth={1.8}/> : <Edit2 size={16} strokeWidth={1.8}/>}
                 </div>
-                {i < postsFiltrados.length - 1 && <div className="feed-crono-item__line"/>}
+                {i < itemsFiltrados.length - 1 && <div className="feed-crono-item__line"/>}
                 <div className="feed-crono-item__content">
                   <div className="feed-crono-item__header">
                     <button className="feed-crono-item__autor" onClick={() => irAPerfil(post.userId)}>
-                      <img src={post.avatar} alt={post.autor}/>{post.autor.split(' ')[0]}
+                      {post.user.avatarUrl
+                        ? <img src={post.user.avatarUrl} alt={post.user.firstName}/>
+                        : <div className="feed-galeria__avatar-vacio">{post.user.firstName[0]}</div>
+                      }
+                      {post.user.firstName}
                     </button>
-                    <span className="feed-crono-item__tiempo">{post.tiempo}</span>
+                    <span className="feed-crono-item__tiempo">{tiempoRelativo(post.createdAt)}</span>
                   </div>
-                  <h4 className="feed-crono-item__titulo" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}>
-                    {post.titulo || post.texto.slice(0,60)+'...'}
+                  <h4 className="feed-crono-item__titulo" onClick={() => setViendoPost(post)} style={{cursor:'pointer'}}>
+                    {post.caption ? (post.caption.slice(0, 60) + (post.caption.length > 60 ? '...' : '')) : 'Recuerdo'}
                   </h4>
-                  {post.imagen && <img src={post.imagen} alt="" className="feed-crono-item__img" onClick={() => irALinea(post.userId)} style={{cursor:'pointer'}}/>}
+                  {post.mediaUrl && post.mediaType !== 'video' && (
+                    <img src={post.mediaUrl} alt="" className="feed-crono-item__img" onClick={() => setViendoPost(post)} style={{cursor:'pointer'}}/>
+                  )}
                 </div>
               </div>
             ))}
-            <button className="feed-crono-more" onClick={() => navigate('/linea-de-vida')}>
-              <Activity size={16} strokeWidth={1.8}/> Ver línea de vida completa
-            </button>
           </div>
         )}
 
       </main>
 
-      {/* ── BOTTOM NAV ── */}
-      <nav className="feed-bottom-nav">
-        {[
-          { icono: <Activity  size={22} strokeWidth={1.6}/>, label: 'Línea',  path: '/linea-de-vida',     active: false },
-          { icono: <GitBranch size={22} strokeWidth={1.6}/>, label: 'Árbol',  path: '/arbol-genealogico', active: false },
-          { icono: <Clock     size={22} strokeWidth={1.6}/>, label: 'Feed',   path: '/feed',              active: true  },
-          { icono: <Shield    size={22} strokeWidth={1.6}/>, label: 'Bóveda', path: '/caja-fuerte',       active: false },
-          { icono: <Zap       size={22} strokeWidth={1.6}/>, label: 'Ecos',   path: '/ecos/1',            active: false },
-        ].map(n => (
-          <button key={n.path}
-            className={`feed-bottom-nav__item ${n.active ? 'active' : ''}`}
-            onClick={() => navigate(n.path)}
-          >{n.icono}{n.label}</button>
-        ))}
-      </nav>
-
       {/* ── FAB ── */}
-      <button className="feed-fab" onClick={() => navigate('/linea-de-vida')} title="Nuevo recuerdo">
+      <button className="feed-fab" onClick={() => setCrearAbierto(true)} title="Nuevo recuerdo">
         <Plus size={24} strokeWidth={2}/>
       </button>
+
+      {crearAbierto && (
+        <CrearRecuerdoModal
+          onClose={() => setCrearAbierto(false)}
+          onCreado={() => cargarFeed(1)}
+        />
+      )}
+
+      {viendoPost && (
+        <FotoViewerModal
+          memoryId={viendoPost.id}
+          imageUrl={viendoPost.mediaUrl || ''}
+          titulo={viendoPost.caption || `Recuerdo de ${viendoPost.user.firstName}`}
+          onClose={(actualizado) => {
+            if (actualizado) {
+              setItems(items.map(i => i.id === viendoPost.id ? { ...i, ...actualizado } : i));
+            }
+            setViendoPost(null);
+            if (memoryIdDeLink) navigate('/feed', { replace: true });
+          }}
+        />
+      )}
+
+      {eliminandoId && (
+        <ConfirmModal
+          titulo="Eliminar publicación"
+          mensaje="¿Eliminar esta publicación? Esta acción no se puede deshacer."
+          textoConfirmar="Sí, eliminar"
+          peligroso
+          onConfirm={confirmarEliminar}
+          onCancel={() => setEliminandoId(null)}
+        />
+      )}
+
+      {toast && <div className="feed-toast">{toast}</div>}
 
     </div>
   );

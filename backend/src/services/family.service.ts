@@ -71,11 +71,16 @@ export async function getFamilyMember(id: string, ownerId: string) {
 export async function updateFamilyMember(id: string, ownerId: string, data: Omit<MemberInput, 'ownerId'>) {
   await assertOwnedMember(id, ownerId);
 
-  if (data.motherId) await assertOwnedMember(data.motherId, ownerId);
-  if (data.fatherId) await assertOwnedMember(data.fatherId, ownerId);
+  // '' significa "quitar este vínculo" → lo convertimos a null;
+  // undefined (el campo ni se mandó) queda undefined, así Prisma no lo toca
+  const motherIdValue = data.motherId === '' ? null : data.motherId;
+  const fatherIdValue = data.fatherId === '' ? null : data.fatherId;
+
+  if (motherIdValue) await assertOwnedMember(motherIdValue, ownerId);
+  if (fatherIdValue) await assertOwnedMember(fatherIdValue, ownerId);
 
   // nadie puede ser su propio padre o madre
-  if (data.motherId === id || data.fatherId === id) {
+  if (motherIdValue === id || fatherIdValue === id) {
     throw new Error('Un familiar no puede ser su propio padre o madre');
   }
 
@@ -94,8 +99,8 @@ export async function updateFamilyMember(id: string, ownerId: string, data: Omit
       birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
       deathDate: data.deathDate ? new Date(data.deathDate) : undefined,
       bio: data.bio,
-      motherId: data.motherId,
-      fatherId: data.fatherId,
+      motherId: motherIdValue,
+      fatherId: fatherIdValue,
       ...(photoKey ? { photoKey } : {}),
     },
   });
@@ -149,13 +154,34 @@ export async function deletePartner(id: string, ownerId: string) {
 }
 
 export async function getFullTree(ownerId: string) {
+  // si todavía no existe tu propio nodo en el árbol, lo creamos la primera vez
+  // que pedís el árbol, usando tus datos reales de usuario
+  let yo = await prisma.familyMember.findFirst({
+    where: { ownerId, linkedUserId: ownerId },
+  });
+
+  if (!yo) {
+    const user = await prisma.user.findUnique({ where: { id: ownerId } });
+    if (user) {
+      yo = await prisma.familyMember.create({
+        data: {
+          ownerId,
+          linkedUserId: ownerId,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          photoKey: user.avatarUrl,
+        },
+      });
+    }
+  }
+
   const [members, partners] = await Promise.all([
-    prisma.familyMember.findMany({ where: { ownerId } }),
+    prisma.familyMember.findMany({ where: { ownerId }, orderBy: { createdAt: 'asc' } }),
     prisma.familyPartner.findMany({ where: { memberA: { ownerId } } }),
   ]);
 
   const membersWithUrls = await Promise.all(members.map(attachPhotoUrl));
-  return { members: membersWithUrls, partners };
+  return { members: membersWithUrls, partners, yoId: yo?.id ?? null };
 }
 
 async function attachPhotoUrl(member: any) {
@@ -188,6 +214,14 @@ export async function unlinkFamilyMember(memberId: string, ownerId: string) {
   return prisma.familyMember.update({
     where: { id: memberId },
     data: { linkedUserId: null },
+  });
+}
+
+export async function updateMemberPosition(memberId: string, ownerId: string, posX: number, posY: number) {
+  await assertOwnedMember(memberId, ownerId);
+  return prisma.familyMember.update({
+    where: { id: memberId },
+    data: { posX, posY },
   });
 }
 

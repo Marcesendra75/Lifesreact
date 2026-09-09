@@ -4,7 +4,7 @@
   "description": "Life's — Backend API REST",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "nodemon src/app.ts",
+    "dev": "npx kill-port 3001 && nodemon src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js"
   },
@@ -33,6 +33,7 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^20.19.43",
     "@types/pg": "^8.21.0",
+    "kill-port": "^2.0.1",
     "nodemon": "^3.0.1",
     "prisma": "^7.9.1",
     "ts-node": "^10.9.1",

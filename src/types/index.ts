@@ -42,6 +42,8 @@ export interface User {
   city?: string;
   membershipLevel: MembershipLevel;
   isVerified: boolean;
+  isPrivate: boolean;
+  commentPrivacy: 'everyone' | 'connections' | 'nobody';
   // Seguridad (Fase 3, Bóveda — el backend todavía no devuelve estos campos)
   securityLevel?: SecurityLevel;
   vaultStatus?: VaultStatus;

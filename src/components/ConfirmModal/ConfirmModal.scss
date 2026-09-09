@@ -1,0 +1,75 @@
+.confirm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 25, 46, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.confirm-modal {
+  width: 100%;
+  max-width: 380px;
+  background: #fbf9f5;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+
+  &__titulo {
+    font-family: 'Newsreader', serif;
+    font-size: 1.15rem;
+    color: #03192e;
+    margin: 0 0 8px;
+  }
+
+  &__mensaje {
+    font-size: 0.88rem;
+    color: #43474d;
+    line-height: 1.5;
+    margin: 0 0 20px;
+  }
+
+  &__botones {
+    display: flex;
+    gap: 10px;
+  }
+
+  &__cancelar {
+    flex: 1;
+    padding: 11px;
+    background: none;
+    border: 1.5px solid rgba(3, 25, 46, 0.15);
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #43474d;
+    cursor: pointer;
+
+    &:hover { background: rgba(3, 25, 46, 0.04); }
+  }
+
+  &__confirmar {
+    flex: 1;
+    padding: 11px;
+    background: #03192e;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover { background: #1a2e44; }
+
+    &.peligroso {
+      background: #ba1a1a;
+      &:hover { background: #94140f; }
+    }
+  }
+}

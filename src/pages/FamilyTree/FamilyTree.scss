@@ -114,6 +114,7 @@
 .ft-wrap {
   position: relative; height: 62dvh; min-height: 340px; max-height: 600px;
   overflow: hidden; background: #fbf9f5; cursor: grab; flex-shrink: 0;
+  user-select: none;
   &--dragging { cursor: grabbing; }
   &::after {
     content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
@@ -125,29 +126,43 @@
 
 .ft-bg-tree {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 0; opacity: 0.14;
+  object-fit: contain; object-position: center bottom;
+  pointer-events: none; z-index: 0; opacity: 0.16;
   animation: leafSway 8s ease-in-out infinite;
+}
+
+.ft-capa-arbol {
+  position: absolute; inset: 0; transition: transform 0.05s linear;
+  &.ft-capa-arbol--zoom-suave { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
 }
 
 .ft-svg {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  overflow: visible; z-index: 2; transition: transform 0.05s linear;
+  overflow: visible; z-index: 2;
 }
 
 .ft-branch {
-  stroke-dasharray: 800; stroke-dashoffset: 800;
-  animation: drawBranch 0.8s ease both;
   &--highlight { filter: drop-shadow(0 0 4px rgba(201,168,76,0.6)); }
 }
 
 .ft-nodes {
-  position: absolute; inset: 0; z-index: 4; transition: transform 0.05s linear;
+  position: absolute; inset: 0; z-index: 4;
 }
 
 .ft-node {
   position: absolute; transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center;
-  gap: 5px; cursor: pointer; z-index: 10;
+  gap: 5px; cursor: grab; z-index: 10;
+
+    &--arrastrando {
+    cursor: grabbing;
+    z-index: 30;
+    transition: none;
+  }
+
+  &--sin-entrada {
+    animation: none;
+  }
   animation: nodeIn 0.5s cubic-bezier(0.34,1.4,0.64,1) both;
   transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1), opacity 0.3s;
 
@@ -182,7 +197,34 @@
   &__candle { position: absolute; top: -8px; right: -4px; font-size: 14px; animation: candleFlicker 2s ease-in-out infinite; filter: drop-shadow(0 0 4px rgba(255,165,0,0.5)); }
   &__flag { position: absolute; bottom: -4px; right: -4px; font-size: 12px; background: white; border-radius: 9999px; padding: 1px 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
   &__name { font-family: v.$font-display; font-weight: 700; font-size: 11px; color: v.$primary; text-align: center; line-height: 1.1; white-space: nowrap; text-shadow: 0 1px 4px rgba(251,249,245,0.95), 0 0 8px rgba(251,249,245,1); transition: color 0.3s; }
-  &__role { font-family: v.$font-body; font-size: 8px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #74777d; text-shadow: 0 1px 4px rgba(251,249,245,0.95); }
+   &__role { font-family: v.$font-body; font-size: 8px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #74777d; text-shadow: 0 1px 4px rgba(251,249,245,0.95); }
+
+    &__tarjeta {
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 180px;
+    animation: nodeIn 0.2s ease both;
+  }
+
+  &__tarjeta-label {
+    font-family: v.$font-body;
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #a89a7a;
+    text-shadow: 0 1px 4px rgba(251,249,245,0.95);
+  }
+
+  &__tarjeta-nombres {
+    font-family: v.$font-display;
+    font-style: italic;
+    font-size: 10px;
+    font-weight: 500;
+    color: #74777d;
+    text-shadow: 0 1px 4px rgba(251,249,245,0.95);
+  }
 }
 
 .ft-zoom {
@@ -310,8 +352,10 @@
   background: #fbf9f5; border-radius: 1.5rem;
   max-width: 440px; width: 100%; max-height: 90dvh; overflow-y: auto;
   animation: modalIn 0.38s cubic-bezier(0.34,1.2,0.64,1) both;
+  user-select: none;
 
-  &__banner { height: 110px; position: relative; overflow: hidden; border-radius: 1.5rem 1.5rem 0 0; }
+  &__banner { height: 110px; position: relative; }
+  &__banner-bg { position: absolute; inset: 0; overflow: hidden; border-radius: 1.5rem 1.5rem 0 0; }
   &__dead-overlay { position: absolute; inset: 0; background: rgba(30,30,30,0.4); }
   &__close {
     position: absolute; top: 0.75rem; right: 0.75rem;
@@ -347,7 +391,7 @@
   &__data-label { font-size: 8px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #74777d; margin-bottom: 1px; }
   &__data-val { font-family: v.$font-display; font-size: 0.82rem; font-weight: 700; color: v.$primary; }
   &__desc { font-family: v.$font-display; font-style: italic; font-size: 0.9rem; color: #43474d; line-height: 1.6; text-align: center; padding: 0.5rem 0 1rem; }
-  &__actions { display: flex; gap: 0.5rem; }
+  &__actions { display: flex; gap: 0.75rem; margin-bottom: 0.5rem; }
 
   &__btn-primary {
     flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
@@ -365,12 +409,20 @@
     &:hover { background: #f5f3ef; }
   }
 
-  &__btn-icon {
+   &__btn-icon {
     width: 42px; height: 42px; border-radius: 0.875rem; flex-shrink: 0;
     background: #f5f3ef; border: none; cursor: pointer; color: v.$primary;
     display: flex; align-items: center; justify-content: center; transition: background 0.2s;
     svg { width: 18px; height: 18px; }
     &:hover { background: #e4e2de; }
+  }
+
+  &__btn-eliminar {
+    width: 100%; margin-top: 0.6rem; padding: 0.7rem;
+    background: none; border: 1.5px solid rgba(186,26,26,0.3); border-radius: 0.875rem;
+    color: #ba1a1a; cursor: pointer;
+    font-family: v.$font-body; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    &:hover { background: rgba(186,26,26,0.06); }
   }
 }
 
@@ -393,8 +445,8 @@
     button { background: none; border: none; cursor: pointer; color: #43474d; padding: 0.25rem; border-radius: 9999px; transition: background 0.2s; svg { width: 18px; height: 18px; } &:hover { background: #f5f3ef; } }
   }
 
-  &__body { padding: 1rem 1.25rem; max-height: 55dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 0.875rem; }
-  &__btns { display: flex; gap: 0.5rem; padding-top: 0.25rem; }
+    &__body { padding: 1rem 1.25rem; max-height: 55dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 0.875rem; }
+  &__btns { display: flex; gap: 0.75rem; padding-top: 0.5rem; }
 
   &__cancel {
     flex: 1; padding: 0.875rem; border-radius: 0.875rem;
@@ -432,10 +484,17 @@
 
 .ft-add-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 
+.ft-checklist-wrap {
+  display: flex; flex-direction: column; gap: 0.4rem;
+  > label { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #43474d; }
+}
+
 .ft-add-check {
   display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #43474d; cursor: pointer;
-  input[type="checkbox"] { width: 16px; height: 16px; accent-color: v.$primary; cursor: pointer; }
-  label { cursor: pointer; }
+  input[type="checkbox"] {
+    appearance: auto; width: 16px; height: 16px; padding: 0; background: none;
+    border-radius: 3px; accent-color: v.$primary; cursor: pointer;
+  }
 }
 
 .ft-bottom-nav {

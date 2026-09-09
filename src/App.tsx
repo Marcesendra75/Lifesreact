@@ -16,14 +16,13 @@ import NavbarEmpresa     from './components/NavBarEmpresa/NavbarEmpresa';
 // ── Páginas públicas ──
 import Landing           from './pages/Landing/Landing';
 import CrearCuenta       from './pages/Auth/CrearCuenta';
-import Login             from './pages/Auth/Login';
 import TripleSeguridad   from './pages/Auth/TripleSeguridad';
 import ForgotPassword    from './pages/Auth/ForgotPassword';
 import TarjetaPendiente  from './pages/Auth/TarjetaPendiente';
 import TarjetaLegado     from './pages/Auth/TarjetaLegado';
+import VerificarEmail    from './pages/Auth/VerificarEmail';
 import Terminos          from './pages/Legal/Terminos';
 import Privacidad        from './pages/Legal/Privacidad';
-import VerificarEmail    from './pages/Auth/VerificarEmail';
 
 // ── Empresas ──
 import EmpresasLanding   from './pages/Empresas/EmpresasLanding';
@@ -44,6 +43,7 @@ import LifesAdmin        from './pages/LifesAdmin/LifesAdmin/LifesAdmin';
 
 // ── Páginas principales ──
 import Feed              from './pages/Feed/Feed';
+import Personas          from './pages/Personas/Personas';
 import Profile           from './pages/Profile/Profile';
 import Timeline          from './pages/Timeline/Timeline';
 import FamilyTree        from './pages/FamilyTree/FamilyTree';
@@ -85,12 +85,13 @@ function App() {
           {/* ══ RUTAS PÚBLICAS ══ */}
           <Route path="/"                  element={<Landing />} />
           <Route path="/crear-cuenta"      element={<CrearCuenta />} />
-          <Route path="/login"             element={<Login />} />
+          {/* /login quedó reemplazado por el toggle Personal/Empresas de Landing en "/" */}
+          <Route path="/login"             element={<Navigate to="/" replace />} />
           <Route path="/acceso-seguro"     element={<TripleSeguridad />} />
           <Route path="/recuperar"         element={<ForgotPassword />} />
+          <Route path="/verificar-email"   element={<VerificarEmail />} />
           <Route path="/terminos"          element={<Terminos />} />
           <Route path="/privacidad"        element={<Privacidad />} />
-          <Route path="/verificar-email"   element={<VerificarEmail />} />
           <Route path="/tarjeta-pendiente" element={<TarjetaPendiente />} />
           <Route path="/tarjeta-legado"    element={<TarjetaLegado />} />
 
@@ -112,9 +113,11 @@ function App() {
           <Route path="/lifes-admin/alta-empresa"   element={<AltaEmpresa />} />
           <Route path="/lifes-admin/alta-empleado"  element={<AltaEmpleado />} />
 
-                    {/* ══ PÁGINAS PRINCIPALES — requieren estar logueado ══ */}
+          {/* ══ PÁGINAS PRINCIPALES — requieren estar logueado ══ */}
           <Route element={<PrivateRoute />}>
             <Route path="/feed"                               element={<Feed />} />
+            <Route path="/feed/:memoryId"                     element={<Feed />} />
+            <Route path="/personas"                           element={<Personas />} />
 
             {/* Perfil — unifica Muro Biográfico + Perfil */}
             <Route path="/perfil"                             element={<Profile />} />

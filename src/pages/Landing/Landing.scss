@@ -26,6 +26,7 @@
 
 // ── Root ──
 .landing-root {
+  user-select: none;
   font-family: v.$font-body;
   background: v.$cream;
   color: v.$primary;
@@ -145,7 +146,7 @@
 
   &__wrap {
     width: 100%; height: 100%;
-    background: white;
+    background: #0B1726;
     border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(3,25,46,0.14);
@@ -650,4 +651,28 @@
   .landing-titulo { font-size: 1.7rem; }
   .landing-tag    { display: none; }
   .landing-tags .landing-tag:nth-child(-n+3) { display: flex; }
+}
+
+.landing-field-pass-wrap {
+  position: relative;
+  display: flex;
+
+  .landing-field { width: 100%; padding-right: 40px; }
+}
+
+.landing-field-pass-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(3, 25, 46, 0.4);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  transition: color 0.2s;
+
+  &:hover { color: #855324; }
 }

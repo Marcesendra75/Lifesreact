@@ -21,5 +21,6 @@ router.delete('/partners/:id', familyController.removePartner);
 router.get('/my-placements', familyController.getMyPlacements);
 router.patch('/members/:id/link', familyController.linkMember);
 router.delete('/members/:id/link', familyController.unlinkMember);
+router.patch('/members/:id/position', familyController.updatePosition);
 
 export default router;

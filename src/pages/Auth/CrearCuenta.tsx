@@ -3,7 +3,9 @@
 // ============================================
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/logo.webp';
 import './CrearCuenta.scss';
 
 interface FormData {
@@ -20,11 +22,11 @@ interface FormData {
 
 function getPasswordStrength(pass: string): { level: number; label: string; color: string } {
   if (pass.length === 0) return { level: 0, label: '', color: '' };
-  if (pass.length < 6)   return { level: 1, label: 'Débil',   color: '#ba1a1a' };
-  if (pass.length < 10)  return { level: 2, label: 'Regular', color: '#e67e22' };
+  if (pass.length < 6) return { level: 1, label: 'Débil', color: '#ba1a1a' };
+  if (pass.length < 10) return { level: 2, label: 'Regular', color: '#e67e22' };
   if (!/[A-Z]/.test(pass) || !/[0-9]/.test(pass))
-                          return { level: 3, label: 'Buena',   color: '#735c00' };
-  return                         { level: 4, label: 'Óptima',  color: '#27ae60' };
+    return { level: 3, label: 'Buena', color: '#735c00' };
+  return { level: 4, label: 'Óptima', color: '#27ae60' };
 }
 
 export default function CrearCuenta() {
@@ -33,14 +35,16 @@ export default function CrearCuenta() {
   const [searchParams] = useSearchParams();
   const isEmpresa = searchParams.get('tipo') === 'empresa';
 
-    const [form, setForm] = useState<FormData>({
+  const [form, setForm] = useState<FormData>({
     firstName: '', lastName: '', email: '',
     password: '', confirmPassword: '', birthDate: '',
     companyName: '', cuit: '', acceptedTerms: false,
   });
-  const [error, setError]         = useState('');
-  const [loading, setLoading]     = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
+  const [verPass, setVerPass] = useState(false);
+  const [verConfirmPass, setVerConfirmPass] = useState(false);
 
   const strength = getPasswordStrength(form.password);
 
@@ -69,7 +73,7 @@ export default function CrearCuenta() {
       return;
     }
 
-      setLoading(true);
+    setLoading(true);
     try {
       await register({
         firstName: form.firstName,
@@ -79,7 +83,7 @@ export default function CrearCuenta() {
         birthDate: form.birthDate || undefined,
         acceptedTerms: form.acceptedTerms,
       });
-      setRegistered(true); // mostramos "revisá tu email" en vez de navegar
+      setRegistered(true);
     } catch (err: any) {
       setError(err.message || 'Error al crear la cuenta. Intentá de nuevo.');
     } finally {
@@ -87,7 +91,7 @@ export default function CrearCuenta() {
     }
   };
 
-    if (registered) {
+  if (registered) {
     return (
       <div className="cc-root">
         <main className="cc-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -113,7 +117,7 @@ export default function CrearCuenta() {
       <header className="cc-header">
         <div className="cc-header__inner">
           <button className="cc-header__logo" onClick={() => navigate('/')}>
-            <img src="/images/landing.png" alt="Life's" className="cc-header__img" />
+            <img src={logo} alt="Life's" className="cc-header__img" />
             <span className="cc-header__name">Life's</span>
           </button>
         </div>
@@ -207,8 +211,13 @@ export default function CrearCuenta() {
 
                 <div className="cc-field">
                   <label className="cc-field__label">Contraseña</label>
-                  <input className="cc-field__input" name="password" type="password"
-                    placeholder="Mínimo 6 caracteres" value={form.password} onChange={handleChange} />
+                  <div className="cc-field-pass-wrap">
+                    <input className="cc-field__input" name="password" type={verPass ? 'text' : 'password'}
+                      placeholder="Mínimo 6 caracteres" value={form.password} onChange={handleChange} />
+                    <button type="button" className="cc-field-pass-toggle" onClick={() => setVerPass(v => !v)} tabIndex={-1}>
+                      {verPass ? <EyeOff size={16} strokeWidth={1.8} /> : <Eye size={16} strokeWidth={1.8} />}
+                    </button>
+                  </div>
                   {form.password.length > 0 && (
                     <div className="cc-strength">
                       <div className="cc-strength__header">
@@ -216,7 +225,7 @@ export default function CrearCuenta() {
                         <span className="cc-strength__label" style={{ color: strength.color }}>{strength.label}</span>
                       </div>
                       <div className="cc-strength__bars">
-                        {[1,2,3,4].map(i => (
+                        {[1, 2, 3, 4].map(i => (
                           <div key={i} className="cc-strength__bar"
                             style={{ background: i <= strength.level ? strength.color : '#e4e2de' }} />
                         ))}
@@ -227,17 +236,22 @@ export default function CrearCuenta() {
 
                 <div className="cc-field">
                   <label className="cc-field__label">Confirmar Contraseña</label>
-                  <input
-                    className={`cc-field__input${form.confirmPassword && form.password !== form.confirmPassword ? ' cc-field__input--error' : ''}`}
-                    name="confirmPassword" type="password"
-                    placeholder="Repetí tu contraseña"
-                    value={form.confirmPassword} onChange={handleChange} />
+                  <div className="cc-field-pass-wrap">
+                    <input
+                      className={`cc-field__input${form.confirmPassword && form.password !== form.confirmPassword ? ' cc-field__input--error' : ''}`}
+                      name="confirmPassword" type={verConfirmPass ? 'text' : 'password'}
+                      placeholder="Repetí tu contraseña"
+                      value={form.confirmPassword} onChange={handleChange} />
+                    <button type="button" className="cc-field-pass-toggle" onClick={() => setVerConfirmPass(v => !v)} tabIndex={-1}>
+                      {verConfirmPass ? <EyeOff size={16} strokeWidth={1.8} /> : <Eye size={16} strokeWidth={1.8} />}
+                    </button>
+                  </div>
                   {form.confirmPassword && form.password !== form.confirmPassword && (
                     <span className="cc-field__error-msg">Las contraseñas no coinciden</span>
                   )}
                 </div>
 
-                                <label className="cc-terms">
+                <label className="cc-terms">
                   <input
                     type="checkbox"
                     checked={form.acceptedTerms}
@@ -272,9 +286,9 @@ export default function CrearCuenta() {
             {/* Sellos de confianza */}
             <div className="cc-trust">
               {[
-                { icon: 'lock',          label: 'Encriptación Vitalicia' },
+                { icon: 'lock', label: 'Encriptación Vitalicia' },
                 { icon: 'verified_user', label: 'Privacidad Absoluta' },
-                { icon: 'auto_awesome',  label: 'Soporte Multigeneracional' },
+                { icon: 'auto_awesome', label: 'Soporte Multigeneracional' },
               ].map(t => (
                 <div key={t.label} className="cc-trust__item">
                   <span className="material-symbols-outlined cc-trust__icon">{t.icon}</span>
@@ -294,9 +308,9 @@ export default function CrearCuenta() {
             <p className="cc-footer__copy">© 2025 Life's. Preservando historias con dignidad.</p>
           </div>
           <div className="cc-footer__links">
-            <button className="cc-footer__link">Privacidad</button>
-            <button className="cc-footer__link">Términos</button>
-            <button className="cc-footer__link">Ayuda</button>
+            <button className="cc-footer__link" onClick={() => navigate('/privacidad')}>Privacidad</button>
+            <button className="cc-footer__link" onClick={() => navigate('/terminos')}>Términos</button>
+            <button className="cc-footer__link" onClick={() => window.location.href = 'mailto:soporte@lifes.com'}>Ayuda</button>
           </div>
         </div>
       </footer>

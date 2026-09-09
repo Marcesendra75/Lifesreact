@@ -34,7 +34,7 @@ $transition:      0.28s cubic-bezier(0.4, 0, 0.2, 1);
   transition: width $transition;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
 
-  &:hover {
+    &.expandido {
     width: $rail-width-exp;
 
     .navbar-rail__logo-text,
@@ -56,21 +56,28 @@ $transition:      0.28s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
   }
 
-  &__logo-icon {
+   &__toggle {
     width: 28px;
     height: 28px;
     border-radius: 8px;
     background: linear-gradient(135deg, $ambar, $ambar-light);
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Newsreader', serif;
-    font-style: italic;
-    font-size: 1rem;
-    font-weight: 600;
-    color: white;
+    color: $noche;
+    transition: background 0.2s;
+
+    &:hover { background: linear-gradient(135deg, $ambar-light, $ambar); }
+  }
+
+  &__logo-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba($ambar, 0.35);
   }
 
   &__logo-text {
@@ -267,5 +274,377 @@ $transition:      0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
   @media (max-width: 768px) {
     padding-bottom: calc(#{$bottom-h} + env(safe-area-inset-bottom));
+  }
+}
+
+.navbar-rail__icon, .navbar-bottom__icon {
+  position: relative;
+  display: inline-flex;
+}
+
+.navbar-rail__badge, .navbar-bottom__badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #ba1a1a;
+  color: white;
+  font-size: 9px;
+  font-weight: 800;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+// ════════════════════════════════════════════════════════════
+// BARRA SUPERIOR FIJA — buscador + notificaciones + avatar
+// ════════════════════════════════════════════════════════════
+.navbar-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: rgba($crema, 0.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 20px;
+  transition: left $transition;
+
+  @media (min-width: 769px) {
+    left: $rail-width-col;
+  }
+
+  &--expandido {
+    @media (min-width: 769px) {
+      left: $rail-width-exp;
+    }
+  }
+
+  &__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba($noche, 0.06);
+    border-radius: 999px;
+    padding: 8px 14px;
+    color: rgba($noche, 0.4);
+    width: 100%;
+    max-width: 320px;
+
+    input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: $noche;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.82rem;
+
+      &::placeholder { color: rgba($noche, 0.35); }
+    }
+  }
+
+  &__resultados {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 280px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: $noche-medio;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    padding: 6px;
+    z-index: 91;
+  }
+
+  &__resultados-vacio {
+    font-size: 0.78rem;
+    color: rgba($crema, 0.4);
+    text-align: center;
+    padding: 12px;
+    margin: 0;
+  }
+
+  &__resultado {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    text-align: left;
+    transition: background 0.15s;
+
+    &:hover { background: $blanco-suave; }
+
+    img, &-vacio {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    &-vacio {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $ambar;
+      color: $noche;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    span {
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.82rem;
+      color: $crema;
+    }
+  }
+
+  &__acciones {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  &__icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba($noche, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover { background: rgba($noche, 0.06); color: $noche; }
+  }
+
+  &__avatar-wrap {
+    position: relative;
+  }
+
+  &__avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba($noche, 0.55);
+    padding: 2px 4px 2px 2px;
+    border-radius: 999px;
+    transition: background 0.2s;
+
+    &:hover { background: rgba($noche, 0.06); }
+  }
+
+  &__avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+
+    &--vacio {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $ambar;
+      color: $noche;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+  }
+
+  &__menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 92;
+  }
+
+  &__menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 93;
+    background: $noche-medio;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+    overflow: hidden;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 11px 14px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.82rem;
+      color: $crema;
+      text-align: left;
+      transition: background 0.15s;
+
+      &:hover { background: $blanco-suave; }
+    }
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    text-decoration: none;
+    cursor: pointer;
+
+    @media (max-width: 768px) {
+      display: none; // en mobile el rail no existe, no hace falta duplicar el logo acá
+    }
+  }
+
+  &__brand-logo {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
+
+  &__brand-text {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: $noche;
+    white-space: nowrap;
+    line-height: 1;
+    position: relative;
+    top: 3px;
+  }
+}
+
+// El contenido de cada página se corre hacia abajo para no quedar tapado
+.with-navbar {
+  padding-top: 56px;
+}
+
+.navbar-top__notif-wrap {
+  position: relative;
+}
+
+.navbar-top__notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ba1a1a;
+  color: white;
+  font-size: 9px;
+  font-weight: 800;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+.navbar-top__notif-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 93;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: $noche-medio;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  padding: 6px;
+}
+
+.navbar-top__notif-header {
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: rgba($crema, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 10px 6px;
+}
+
+.navbar-top__notif-vacio {
+  font-size: 0.78rem;
+  color: rgba($crema, 0.4);
+  text-align: center;
+  padding: 16px;
+  margin: 0;
+}
+
+.navbar-top__notif-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  text-align: left;
+  transition: background 0.15s;
+
+  &:hover { background: $blanco-suave; }
+  &.sin-leer { background: rgba($ambar, 0.08); }
+
+  img, &-vacio {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &-vacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $ambar;
+    color: $noche;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+
+  span {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem;
+    color: $crema;
+    line-height: 1.35;
   }
 }

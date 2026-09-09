@@ -1,0 +1,98 @@
+{
+  "common": {
+    "appName": "Life's",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "back": "Volver",
+    "close": "Cerrar"
+  },
+  "auth": {
+    "login": {
+      "welcomeTitle": "Bienvenido de nuevo",
+      "welcomeSubtitle": "Accedé a tu archivo personal",
+      "emailLabel": "Correo Electrónico",
+      "emailPlaceholder": "archivo@legado.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Tu contraseña",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "submit": "Ingresar",
+      "submitLoading": "Ingresando...",
+      "noAccount": "¿Todavía no sos custodio de tu historia?",
+      "createAccount": "Creá tu cuenta",
+      "resendVerification": "Reenviar email de confirmación",
+      "resendCooldown": "Reenviar en {{seconds}}s",
+      "errorRequiredFields": "Completá email y contraseña.",
+      "errorInvalidCredentials": "Email o contraseña incorrectos."
+    },
+    "register": {
+      "title": "Crear Cuenta",
+      "subtitle": "Inicie su Archivo Personal",
+      "firstNameLabel": "Nombre",
+      "lastNameLabel": "Apellido",
+      "emailLabel": "Correo Electrónico",
+      "birthDateLabel": "Fecha de Nacimiento",
+      "passwordLabel": "Contraseña",
+      "confirmPasswordLabel": "Confirmar Contraseña",
+      "passwordStrength": "Fuerza de Seguridad",
+      "termsPrefix": "Leí y acepto los",
+      "termsLink": "Términos y Condiciones",
+      "termsAnd": "y la",
+      "privacyLink": "Política de Privacidad",
+      "submit": "Comenzar mi Legado",
+      "submitLoading": "Creando tu legado...",
+      "successTitle": "¡Ya casi está!",
+      "successSubtitle": "Te mandamos un email a {{email}} con un link para confirmar tu cuenta. Revisá tu bandeja (y la carpeta de spam, por las dudas).",
+      "goToLogin": "Ir a Iniciar Sesión",
+      "errorRequiredFields": "Completá todos los campos obligatorios.",
+      "errorPasswordMismatch": "Las contraseñas no coinciden.",
+      "errorTermsRequired": "Tenés que aceptar los Términos y la Política de Privacidad para continuar."
+    },
+    "verifyEmail": {
+      "loadingTitle": "Confirmando tu cuenta...",
+      "loadingSubtitle": "Un momento, por favor.",
+      "successTitle": "¡Cuenta confirmada!",
+      "successSubtitle": "Ya podés empezar a guardar tus recuerdos.",
+      "goToFeed": "Ir a mi Feed",
+      "errorTitle": "No pudimos confirmar tu cuenta",
+      "errorMissingToken": "Falta el token de verificación en el link.",
+      "errorInvalidToken": "El link es inválido o ya venció.",
+      "backToLogin": "Volver al inicio de sesión"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "tabs": {
+      "privacy": "Privacidad",
+      "blocked": "Bloqueados"
+    },
+    "privacy": {
+      "profileLabel": "Perfil privado",
+      "profileHint": "Solo tus conexiones aceptadas van a poder ver tus capítulos, recuerdos y vínculos.",
+      "commentsLabel": "¿Quién puede comentar tus publicaciones?",
+      "commentsEveryone": "Cualquiera",
+      "commentsConnections": "Solo mis conexiones",
+      "commentsNobody": "Nadie"
+    },
+    "blocked": {
+      "empty": "No bloqueaste a nadie.",
+      "unblock": "Desbloquear",
+      "confirmUnblock": "¿Desbloquear a {{name}}? Va a poder volver a encontrarte y enviarte solicitudes."
+    }
+  },
+  "block": {
+    "action": "Bloquear",
+    "confirm": "¿Bloquear a {{name}}? Ya no van a poder verse los perfiles ni conectarse, y se elimina cualquier conexión que tuvieran.",
+    "success": "Usuario bloqueado",
+    "error": "No se pudo bloquear al usuario"
+  },
+  "legal": {
+    "terms": {
+      "title": "Términos y Condiciones"
+    },
+    "privacy": {
+      "title": "Política de Privacidad"
+    },
+    "lastUpdated": "Última actualización: {{year}}"
+  }
+}

@@ -29,6 +29,7 @@ export default function VerificarEmail() {
         setStatus('error');
         setError(err.message || 'El link es inválido o ya venció.');
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   return (

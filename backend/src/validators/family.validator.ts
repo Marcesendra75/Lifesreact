@@ -9,8 +9,8 @@ export const createFamilyMemberSchema = z.object({
   birthDate: z.string().optional(),
   deathDate: z.string().optional(),
   bio: z.string().trim().max(2000).optional(),
-  motherId: z.string().uuid('motherId inválido').optional(),
-  fatherId: z.string().uuid('fatherId inválido').optional(),
+  motherId: z.union([z.string().uuid('motherId inválido'), z.literal('')]).optional(),
+  fatherId: z.union([z.string().uuid('fatherId inválido'), z.literal('')]).optional(),
 });
 
 export const updateFamilyMemberSchema = createFamilyMemberSchema.partial();
@@ -22,4 +22,9 @@ export const createPartnerSchema = z.object({
 
 export const linkMemberSchema = z.object({
   userId: z.string().uuid('userId inválido'),
+});
+
+export const positionSchema = z.object({
+  posX: z.number(),
+  posY: z.number(),
 });

@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware';
-import { createFamilyMemberSchema, updateFamilyMemberSchema, createPartnerSchema, linkMemberSchema } from '../validators/family.validator';
+import { createFamilyMemberSchema, updateFamilyMemberSchema, createPartnerSchema, linkMemberSchema, positionSchema } from '../validators/family.validator';
 import * as familyService from '../services/family.service';
 
 export async function createMember(req: AuthRequest, res: Response) {
@@ -128,6 +128,19 @@ export async function unlinkMember(req: AuthRequest, res: Response) {
     res.json({ success: true, data: member });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message || 'Error al desvincular' });
+  }
+}
+
+export async function updatePosition(req: AuthRequest, res: Response) {
+  try {
+    const parsed = positionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, error: parsed.error.issues[0].message });
+    }
+    const member = await familyService.updateMemberPosition(req.params.id, req.userId as string, parsed.data.posX, parsed.data.posY);
+    res.json({ success: true, data: member });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al guardar la posición' });
   }
 }
 

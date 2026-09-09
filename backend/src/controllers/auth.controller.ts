@@ -177,11 +177,10 @@ export async function forgotPassword(req: Request, res: Response) {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // siempre devolvemos el mismo mensaje exista o no el email,
-    // para no revelar qué emails están registrados en el sistema
     if (user) {
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const resetTokenExp = new Date(Date.now() + 30 * 60 * 1000);
+      // código de 6 dígitos en vez de un token largo, para que coincida con la UX ya armada
+      const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+      const resetTokenExp = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
 
       await prisma.user.update({
         where: { id: user.id },
@@ -193,7 +192,7 @@ export async function forgotPassword(req: Request, res: Response) {
 
     res.json({
       success: true,
-      message: 'Si el email existe, vas a recibir instrucciones para recuperar tu contraseña',
+      message: 'Si el email existe, vas a recibir un código para recuperar tu contraseña',
     });
   } catch (err) {
     console.error(err);
@@ -201,20 +200,43 @@ export async function forgotPassword(req: Request, res: Response) {
   }
 }
 
-// ── Reset Password ──
-export async function resetPassword(req: Request, res: Response) {
+// ── Verificar código (sin consumirlo todavía) ──
+export async function verifyResetCode(req: Request, res: Response) {
   try {
-    const { token, newPassword } = req.body;
-    if (!token || !newPassword) {
-      return res.status(400).json({ success: false, error: 'Token y nueva contraseña requeridos' });
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ success: false, error: 'Email y código requeridos' });
     }
 
     const user = await prisma.user.findFirst({
-      where: { resetToken: token, resetTokenExp: { gt: new Date() } },
+      where: { email, resetToken: code, resetTokenExp: { gt: new Date() } },
     });
 
     if (!user) {
-      return res.status(400).json({ success: false, error: 'Token inválido o vencido' });
+      return res.status(400).json({ success: false, error: 'Código incorrecto o vencido' });
+    }
+
+    res.json({ success: true, message: 'Código válido' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Error al verificar el código' });
+  }
+}
+
+// ── Reset Password ──
+export async function resetPassword(req: Request, res: Response) {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ success: false, error: 'Faltan datos' });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { email, resetToken: code, resetTokenExp: { gt: new Date() } },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Código inválido o vencido' });
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 12);

@@ -1,516 +1,453 @@
 // ============================================================
 // LIFE'S — Profile.tsx
-// Perfil unificado: Hero + Capítulos de vida + Números + Vínculos
-// + Recuerdos + Mi legado completo (hub) + Sobre mí + Frase
-// Multi-perfil por userId (ruta /perfil/:userId) + persistencia local
+// Perfil real, conectado al backend: identidad + capítulos +
+// vínculos (conexiones aceptadas) + recuerdos recientes + hub
 // ============================================================
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Activity, GitBranch, Map, Image, Shield, Coins,
   Film, Zap, Hourglass, Mail, CreditCard, Lock,
-  Users, LayoutDashboard, BookOpen, ArrowRight,
-  UserPlus, Check, X, Send, Bell,
+  Users, LayoutDashboard, BookOpen, Heart, MessageCircle,
+  ChevronDown, UserX, Flag, Settings as SettingsIcon, MoreHorizontal,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { userService, chapterService, memoryService, connectionService, blockService } from '../../services/api';
+import ImageCropModal from '../../components/ImageCropModal/ImageCropModal';
+import FotoViewerModal from '../../components/FotoViewerModal/FotoViewerModal';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './Profile.scss';
 
 // ── Tipos ──────────────────────────────────────────────────
-type NivelTarjeta = 'plata' | 'oro' | 'diamante' | 'platino';
-type TipoVinculo  =
-  | 'pareja' | 'padre' | 'madre' | 'hijo/a'
-  | 'hermano/a' | 'abuelo/a' | 'amigo/a' | 'compañero/a'
-  | 'familiar' | 'colega' | 'conocido/a' | 'primo/a';
-
-type EstadoSolicitud = 'pendiente' | 'aceptada' | 'rechazada';
-
-interface SolicitudVinculo {
-  id: string;
-  deUserId: string;
-  deNombre: string;
-  deAvatar: string;
-  paraUserId: string;
-  tipo: TipoVinculo;
-  mensaje: string;
-  fecha: string;
-  estado: EstadoSolicitud;
-}
-
-interface Capitulo {
+interface Chapter {
   id: string;
   nombre: string;
   desde: number;
   hasta: number;
   color: string;
+  emoji: string;
 }
 
-interface Vinculo {
+interface MemoryItem {
   id: string;
-  nombre: string;
-  tipo: TipoVinculo;
-  avatar: string;
-  userId?: string;
+  caption?: string;
+  mediaUrl?: string | null;
+  reactionCounts: Record<string, number>;
+  commentsCount: number;
+  createdAt: string;
 }
 
-interface Recuerdo {
+interface ConnectionItem {
   id: string;
-  titulo: string;
-  foto: string;
-  fecha: string;
-  lugar: string;
+  requesterId: string;
+  addresseeId: string;
+  requester: { id: string; firstName: string; lastName: string; avatarUrl?: string | null };
+  addressee: { id: string; firstName: string; lastName: string; avatarUrl?: string | null };
 }
 
-interface DatosPerfil {
-  nombre: string;
-  apellido: string;
-  fraseDeLegado: string;
-  bio: string;
-  fechaNacimiento: string;
-  ciudad: string;
-  pais: string;
-  trabajo: string;
-  origen: string;
-  nivel: NivelTarjeta;
-  portada: string;
-  avatar: string;
-  aniosVividos: number;
-  recuerdosTotal: number;
-  paises: number;
-  generaciones: number;
-  vinculos: number;
-  hitos: number;
+interface PerfilAjeno {
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string | null;
+  coverUrl?: string | null;
+  bio?: string | null;
+  city?: string | null;
+  country?: string | null;
+  membershipLevel: string;
+  isPrivate: boolean;
+  esUnoMismo: boolean;
+  estaConectado: boolean;
+  connectionId: string | null;
+  puedeVerContenido: boolean;
+  estadoConexion: 'ninguna' | 'pendiente_enviada' | 'conectado' | 'rechazada';
+  diasRestantes: number | null;
 }
 
-interface PerfilCompleto {
-  datos: DatosPerfil;
-  capitulos: Capitulo[];
-  vinculos: Vinculo[];
-  recuerdos: Recuerdo[];
-}
+const NIVEL_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  bronze: { label: 'Bronce', color: '#855324', bg: 'rgba(133,83,36,0.12)' },
+  silver: { label: 'Plata', color: '#6b7280', bg: 'rgba(107,114,128,0.12)' },
+  gold: { label: 'Oro', color: '#C9932A', bg: 'rgba(201,147,42,0.14)' },
+  diamond: { label: 'Diamante', color: '#3a5a8a', bg: 'rgba(58,90,138,0.12)' },
+};
 
-// ── ID por defecto (perfil "propio" cuando no hay :userId) ──
-const MI_USER_ID = '1';
-
-// ── Emojis para capítulos (se ciclan por índice) ────────────
 const EMOJIS_CAPITULO = ['👶', '🎓', '💼', '🏆', '🌿', '⭐', '🌟', '💫'];
+const COLORES_DISPONIBLES = ['#7EC8E3', '#A8D8A8', '#C9932A', '#E8847A', '#855324', '#3a5a8a'];
 
-// ── Mi legado completo — hub de secciones (idéntico al Muro) ──
+// ── Hub de secciones (navegación estática) ──────────────────
 const SECCIONES = [
-  { icono: <Activity   size={22} strokeWidth={1.6} />, label: 'Línea de Vida',      desc: 'Tu historia día a día',        path: '/linea-de-vida',     vault: false, color: '#855324', bg: 'rgba(133,83,36,0.08)'  },
-  { icono: <GitBranch  size={22} strokeWidth={1.6} />, label: 'Árbol Genealógico',  desc: 'Tu linaje y raíces',           path: '/arbol-genealogico', vault: false, color: '#03192e', bg: 'rgba(3,25,46,0.06)'    },
-  { icono: <Map        size={22} strokeWidth={1.6} />, label: 'Mapa del Linaje',    desc: 'Lugares de tu historia',       path: '/mapa-linaje',       vault: false, color: '#735c00', bg: 'rgba(115,92,0,0.08)'   },
-  { icono: <Image      size={22} strokeWidth={1.6} />, label: 'Recuerdos',          desc: 'Fotos, videos y momentos',     path: '/feed',              vault: false, color: '#855324', bg: 'rgba(133,83,36,0.06)'  },
-  { icono: <Shield     size={22} strokeWidth={1.6} />, label: 'Caja Fuerte',        desc: 'Documentos privados',          path: '/caja-fuerte',       vault: true,  color: '#C9A84C', bg: 'rgba(201,168,76,0.1)'  },
-  { icono: <Coins      size={22} strokeWidth={1.6} />, label: 'Caja de Valores',    desc: 'Ahorro y herencia',            path: '/caja-de-valores',   vault: true,  color: '#C9A84C', bg: 'rgba(201,168,76,0.08)' },
-  { icono: <Film       size={22} strokeWidth={1.6} />, label: 'Último Tributo',     desc: 'Tu video de despedida',        path: '/ultimo-tributo',    vault: true,  color: '#03192e', bg: 'rgba(3,25,46,0.06)'    },
-  { icono: <Zap        size={22} strokeWidth={1.6} />, label: 'Ecos IA',            desc: 'Tu yo digital para el futuro', path: '/ecos/1',            vault: false, color: '#735c00', bg: 'rgba(115,92,0,0.06)'   },
-  { icono: <Hourglass  size={22} strokeWidth={1.6} />, label: 'Cápsula del Tiempo', desc: 'Mensajes al futuro',           path: '/capsula-del-tiempo',vault: false, color: '#855324', bg: 'rgba(133,83,36,0.06)'  },
-  { icono: <Mail       size={22} strokeWidth={1.6} />, label: 'Postal Digital',     desc: 'Enviar recuerdos físicos',     path: '/postal',            vault: false, color: '#03192e', bg: 'rgba(3,25,46,0.05)'    },
-  { icono: <Users      size={22} strokeWidth={1.6} />, label: 'Vínculos',           desc: 'Seguidores y familia',         path: '/vinculos',          vault: false, color: '#855324', bg: 'rgba(133,83,36,0.06)'  },
-  { icono: <CreditCard size={22} strokeWidth={1.6} />, label: 'Tarjeta del Legado', desc: 'Tu nivel y beneficios',        path: '/tarjeta-legado',    vault: false, color: '#C9A84C', bg: 'rgba(201,168,76,0.08)' },
+  { icono: <Activity size={22} strokeWidth={1.6} />, label: 'Línea de Vida', desc: 'Tu historia día a día', path: '/linea-de-vida', vault: false, color: '#855324', bg: 'rgba(133,83,36,0.08)' },
+  { icono: <GitBranch size={22} strokeWidth={1.6} />, label: 'Árbol Genealógico', desc: 'Tu linaje y raíces', path: '/arbol-genealogico', vault: false, color: '#03192e', bg: 'rgba(3,25,46,0.06)' },
+  { icono: <Map size={22} strokeWidth={1.6} />, label: 'Mapa del Linaje', desc: 'Lugares de tu historia', path: '/mapa-linaje', vault: false, color: '#735c00', bg: 'rgba(115,92,0,0.08)' },
+  { icono: <Image size={22} strokeWidth={1.6} />, label: 'Recuerdos', desc: 'Fotos, videos y momentos', path: '/feed', vault: false, color: '#855324', bg: 'rgba(133,83,36,0.06)' },
+  { icono: <Shield size={22} strokeWidth={1.6} />, label: 'Caja Fuerte', desc: 'Documentos privados', path: '/caja-fuerte', vault: true, color: '#C9A84C', bg: 'rgba(201,168,76,0.1)' },
+  { icono: <Coins size={22} strokeWidth={1.6} />, label: 'Caja de Valores', desc: 'Ahorro y herencia', path: '/caja-de-valores', vault: true, color: '#C9A84C', bg: 'rgba(201,168,76,0.08)' },
+  { icono: <Film size={22} strokeWidth={1.6} />, label: 'Último Tributo', desc: 'Tu video de despedida', path: '/ultimo-tributo', vault: true, color: '#03192e', bg: 'rgba(3,25,46,0.06)' },
+  { icono: <Zap size={22} strokeWidth={1.6} />, label: 'Ecos IA', desc: 'Tu yo digital para el futuro', path: '/ecos/me', vault: false, color: '#735c00', bg: 'rgba(115,92,0,0.06)' },
+  { icono: <Hourglass size={22} strokeWidth={1.6} />, label: 'Cápsula del Tiempo', desc: 'Mensajes al futuro', path: '/capsula-del-tiempo', vault: false, color: '#855324', bg: 'rgba(133,83,36,0.06)' },
+  { icono: <Mail size={22} strokeWidth={1.6} />, label: 'Postal Digital', desc: 'Enviar recuerdos físicos', path: '/postal', vault: false, color: '#03192e', bg: 'rgba(3,25,46,0.05)' },
+  { icono: <Users size={22} strokeWidth={1.6} />, label: 'Vínculos', desc: 'Seguidores y familia', path: '/vinculos', vault: false, color: '#855324', bg: 'rgba(133,83,36,0.06)' },
+  { icono: <CreditCard size={22} strokeWidth={1.6} />, label: 'Tarjeta del Legado', desc: 'Tu nivel y beneficios', path: '/tarjeta-legado', vault: false, color: '#C9A84C', bg: 'rgba(201,168,76,0.08)' },
 ];
 
-// ── Base de datos de perfiles ──────────────────────────────
-const PERFILES_DB: Record<string, PerfilCompleto> = {
-
-  // ── Julian Valenzuela (perfil propio / dueño de la cuenta) ──
-  '1': {
-    datos: {
-      nombre:          'Julian',
-      apellido:        'Valenzuela',
-      fraseDeLegado:   'Preservar los momentos que definen nuestra historia, uno a la vez.',
-      bio:              'Archivista de recuerdos familiares. Convertí la memoria de mi familia en un legado ordenado y vivo, para que nadie olvide de dónde venimos.',
-      fechaNacimiento: '1989-03-22',
-      ciudad:          'Mendoza',
-      pais:            'Argentina',
-      trabajo:         'Archivista de Recuerdos Familiares',
-      origen:          'Mendoza, Argentina',
-      nivel:           'oro',
-      portada:         'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=1400&q=80',
-      avatar:          'https://i.pravatar.cc/200?img=11',
-      aniosVividos:    36,
-      recuerdosTotal:  482,
-      paises:          6,
-      generaciones:    3,
-      vinculos:        124,
-      hitos:           28,
-    },
-    capitulos: [
-      { id: '1', nombre: 'Infancia',    desde: 1989, hasta: 2001, color: '#7EC8E3' },
-      { id: '2', nombre: 'Adolescencia',desde: 2002, hasta: 2007, color: '#A8D8A8' },
-      { id: '3', nombre: 'Universidad', desde: 2008, hasta: 2013, color: '#C9932A' },
-      { id: '4', nombre: 'Vida adulta', desde: 2014, hasta: 2025, color: '#E8847A' },
-    ],
-    vinculos: [
-      { id: '1', nombre: 'María Valenzuela', tipo: 'hermano/a', avatar: 'https://i.pravatar.cc/100?img=5',  userId: '2' },
-      { id: '2', nombre: 'Marcelo García',   tipo: 'amigo/a',   avatar: 'https://i.pravatar.cc/100?img=68', userId: '3' },
-      { id: '3', nombre: 'Abuelo Pedro',     tipo: 'abuelo/a',  avatar: 'https://i.pravatar.cc/100?img=70' },
-      { id: '4', nombre: 'Papá Carlos',      tipo: 'padre',     avatar: 'https://i.pravatar.cc/100?img=60' },
-    ],
-    recuerdos: [
-      { id: '1', titulo: 'La vieja casa de campo en Segovia', foto: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80', fecha: '2010', lugar: 'Segovia' },
-      { id: '2', titulo: 'Graduación en Salamanca',           foto: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&q=80', fecha: '2013', lugar: 'Salamanca' },
-      { id: '3', titulo: 'Primer archivo familiar digitalizado',foto:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80', fecha: '2020', lugar: 'Mendoza' },
-    ],
-  },
-
-  // ── María Valenzuela ──
-  '2': {
-    datos: {
-      nombre:          'María',
-      apellido:        'Valenzuela',
-      fraseDeLegado:   'El conocimiento es el único legado que nadie te puede quitar.',
-      bio:              'Docente y guardiana de los recuerdos de infancia de la familia. Creo que cada pequeño momento merece ser contado con cariño.',
-      fechaNacimiento: '1992-11-08',
-      ciudad:          'Mendoza',
-      pais:            'Argentina',
-      trabajo:         'Docente de Educación Primaria',
-      origen:          'Mendoza, Argentina',
-      nivel:           'plata',
-      portada:         'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1400&q=80',
-      avatar:          'https://i.pravatar.cc/200?img=5',
-      aniosVividos:    33,
-      recuerdosTotal:  215,
-      paises:          3,
-      generaciones:    3,
-      vinculos:        87,
-      hitos:           16,
-    },
-    capitulos: [
-      { id: '1', nombre: 'Infancia',    desde: 1992, hasta: 2004, color: '#7EC8E3' },
-      { id: '2', nombre: 'Adolescencia',desde: 2005, hasta: 2010, color: '#A8D8A8' },
-      { id: '3', nombre: 'Docencia',    desde: 2011, hasta: 2025, color: '#9B8EC4' },
-    ],
-    vinculos: [
-      { id: '1', nombre: 'Julian Valenzuela', tipo: 'hermano/a', avatar: 'https://i.pravatar.cc/100?img=11', userId: '1' },
-      { id: '2', nombre: 'Papá Carlos',       tipo: 'padre',     avatar: 'https://i.pravatar.cc/100?img=60' },
-    ],
-    recuerdos: [
-      { id: '1', titulo: 'El primer día de escuela',       foto: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80', fecha: '1998', lugar: 'Mendoza' },
-      { id: '2', titulo: 'Mi primer aula como docente',    foto: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&q=80', fecha: '2015', lugar: 'Mendoza' },
-    ],
-  },
-
-  // ── Marcelo García ──
-  '3': {
-    datos: {
-      nombre:          'Marcelo',
-      apellido:        'García',
-      fraseDeLegado:   'Viví cada momento como si fuera el último, amé como si fuera el primero.',
-      bio:              'Padre, emprendedor y eterno curioso. Construí mi vida ladrillo a ladrillo, viajé por 12 países y aprendí que lo único que importa son las personas que elegís a tu lado.',
-      fechaNacimiento: '1975-08-14',
-      ciudad:          'Mendoza',
-      pais:            'Argentina',
-      trabajo:         'Broker de Seguros · Tu Seguro Salud',
-      origen:          'Mendoza, Argentina',
-      nivel:           'oro',
-      portada:         'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=80',
-      avatar:          'https://i.pravatar.cc/200?img=68',
-      aniosVividos:    50,
-      recuerdosTotal:  847,
-      paises:          12,
-      generaciones:    4,
-      vinculos:        238,
-      hitos:           34,
-    },
-    capitulos: [
-      { id: '1', nombre: 'Infancia',     desde: 1975, hasta: 1987, color: '#7EC8E3' },
-      { id: '2', nombre: 'Adolescencia', desde: 1988, hasta: 1993, color: '#A8D8A8' },
-      { id: '3', nombre: 'Juventud',     desde: 1994, hasta: 2002, color: '#C9932A' },
-      { id: '4', nombre: 'Adultez',      desde: 2003, hasta: 2018, color: '#E8847A' },
-      { id: '5', nombre: 'Madurez',      desde: 2019, hasta: 2025, color: '#9B8EC4' },
-    ],
-    vinculos: [
-      { id: '1', nombre: 'Elena García',      tipo: 'pareja',    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80' },
-      { id: '2', nombre: 'Sofía García',      tipo: 'hijo/a',    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80' },
-      { id: '3', nombre: 'Lucas García',      tipo: 'hijo/a',    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80' },
-      { id: '4', nombre: 'Roberto García',    tipo: 'padre',     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80' },
-      { id: '5', nombre: 'Ana García',        tipo: 'hermano/a', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80' },
-      { id: '6', nombre: 'Julian Valenzuela', tipo: 'amigo/a',   avatar: 'https://i.pravatar.cc/100?img=11', userId: '1' },
-    ],
-    recuerdos: [
-      { id: '1', titulo: 'El día que nació Sofía', foto: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=600&q=80', fecha: '2001', lugar: 'Mendoza' },
-      { id: '2', titulo: 'Viaje a Patagonia',      foto: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=80', fecha: '2018', lugar: 'Patagonia' },
-      { id: '3', titulo: 'Primer negocio propio',  foto: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80', fecha: '2005', lugar: 'Mendoza' },
-    ],
-  },
-};
-
-const COLORES_DISPONIBLES = [
-  '#7EC8E3', '#A8D8A8', '#C9932A', '#E8847A',
-  '#9B8EC4', '#F6C90E', '#4ECDC4', '#FF6B6B',
-];
-
-const TIPOS_VINCULO: TipoVinculo[] = [
-  'pareja', 'padre', 'madre', 'hijo/a',
-  'hermano/a', 'abuelo/a', 'amigo/a', 'compañero/a',
-  'familiar', 'colega', 'conocido/a', 'primo/a',
-];
-
-// Íconos y etiquetas por tipo de vínculo
-const VINCULO_CONFIG: Record<TipoVinculo, { emoji: string; label: string; categoria: string }> = {
-  'pareja':     { emoji: '💑', label: 'Pareja',      categoria: 'familiar' },
-  'padre':      { emoji: '👨‍👧', label: 'Padre',       categoria: 'familiar' },
-  'madre':      { emoji: '👩‍👧', label: 'Madre',       categoria: 'familiar' },
-  'hijo/a':     { emoji: '👶', label: 'Hijo/a',      categoria: 'familiar' },
-  'hermano/a':  { emoji: '🧑‍🤝‍🧑', label: 'Hermano/a',  categoria: 'familiar' },
-  'abuelo/a':   { emoji: '👴', label: 'Abuelo/a',    categoria: 'familiar' },
-  'primo/a':    { emoji: '🫂', label: 'Primo/a',     categoria: 'familiar' },
-  'familiar':   { emoji: '👨‍👩‍👧‍👦', label: 'Familiar',   categoria: 'familiar' },
-  'amigo/a':    { emoji: '💛', label: 'Amigo/a',     categoria: 'social'   },
-  'conocido/a': { emoji: '🤝', label: 'Conocido/a',  categoria: 'social'   },
-  'compañero/a':{ emoji: '🙌', label: 'Compañero/a', categoria: 'social'   },
-  'colega':     { emoji: '💼', label: 'Colega',      categoria: 'trabajo'  },
-};
-
-// Clave localStorage para solicitudes
-const SOLICITUDES_KEY = 'lifes_vinculos_solicitudes';
-
-function cargarSolicitudes(): SolicitudVinculo[] {
-  try {
-    const raw = localStorage.getItem(SOLICITUDES_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+function calcularAniosVividos(birthDate?: string | null): number {
+  if (!birthDate) return 0;
+  const nacimiento = new Date(birthDate);
+  const hoy = new Date();
+  let anios = hoy.getFullYear() - nacimiento.getFullYear();
+  const m = hoy.getMonth() - nacimiento.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) anios--;
+  return anios;
 }
 
-function guardarSolicitudes(sols: SolicitudVinculo[]) {
-  try {
-    localStorage.setItem(SOLICITUDES_KEY, JSON.stringify(sols));
-  } catch {}
-}
-
-const NIVEL_CONFIG = {
-  plata:    { label: 'Plata',    color: '#C0C0C0', bg: 'rgba(192,192,192,0.15)' },
-  oro:      { label: 'Oro',      color: '#C9932A', bg: 'rgba(201,147,42,0.15)'  },
-  diamante: { label: 'Diamante', color: '#7EC8E3', bg: 'rgba(126,200,227,0.15)' },
-  platino:  { label: 'Platino',  color: '#9B8EC4', bg: 'rgba(155,142,196,0.15)' },
-};
-
-// ── Persistencia local ──────────────────────────────────────
-const STORAGE_KEY = 'lifes_perfiles';
-
-function cargarPerfilGuardado(userId: string): PerfilCompleto | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const todos = JSON.parse(raw);
-    return todos[userId] || null;
-  } catch {
-    return null;
-  }
-}
-
-function guardarPerfilLocal(userId: string, perfil: PerfilCompleto) {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const todos = raw ? JSON.parse(raw) : {};
-    todos[userId] = perfil;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-  } catch {
-    // localStorage no disponible — falla silenciosa
-  }
-}
-
-function obtenerPerfilBase(userId: string): PerfilCompleto {
-  const guardado = cargarPerfilGuardado(userId);
-  if (guardado) return guardado;
-  return PERFILES_DB[userId] || PERFILES_DB[MI_USER_ID];
-}
-
-// ── Componente principal ───────────────────────────────────
 export default function Profile() {
   const navigate = useNavigate();
-  const { userId: userIdParam } = useParams<{ userId?: string }>();
-  const userId = userIdParam || MI_USER_ID;
-  const esPropio = userId === MI_USER_ID;
+  const { userId: paramUserId } = useParams();
+  const { user, logout } = useAuth();
+  const esOtroPerfil = !!paramUserId && paramUserId !== user?.id;
 
-  const base = obtenerPerfilBase(userId);
+  const [perfilAjeno, setPerfilAjeno] = useState<PerfilAjeno | null>(null);
+  const [cargandoAjeno, setCargandoAjeno] = useState(esOtroPerfil);
+  const [estadoConexion, setEstadoConexion] = useState<'ninguna' | 'enviada'>('ninguna');
+  const [tooltipRechazoAbierto, setTooltipRechazoAbierto] = useState(false);
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const [confirmandoBloqueo, setConfirmandoBloqueo] = useState(false);
 
-  const [perfil,    setPerfil]    = useState<DatosPerfil>(base.datos);
-  const [capitulos, setCapitulos] = useState<Capitulo[]>(base.capitulos);
-  const [vinculos,  setVinculos]  = useState<Vinculo[]>(base.vinculos);
-  const [recuerdos, setRecuerdos] = useState<Recuerdo[]>(base.recuerdos);
-
-  // Recargar datos cuando cambia el userId de la URL
+  // cerrar el menú desplegable con Escape
   useEffect(() => {
-    const nuevoBase = obtenerPerfilBase(userId);
-    setPerfil(nuevoBase.datos);
-    setCapitulos(nuevoBase.capitulos);
-    setVinculos(nuevoBase.vinculos);
-    setRecuerdos(nuevoBase.recuerdos);
+    if (!menuAbierto) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuAbierto(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menuAbierto]);
+
+
+  const [bio, setBio] = useState(user?.bio || '');
+  const [city, setCity] = useState(user?.city || '');
+  const [country, setCountry] = useState(user?.country || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
+  const [coverUrl, setCoverUrl] = useState(user?.coverUrl || '');
+
+  // Precarga del avatar del hero — hasta que no termine de bajar la imagen
+  // (o confirmemos que no hay ninguna), no mostramos el Hero real: se ve
+  // el esqueleto, y recién cuando todo está listo aparece todo junto.
+  const [avatarListo, setAvatarListo] = useState(false);
+  const avatarUrlDelHero = esOtroPerfil ? perfilAjeno?.avatarUrl : avatarUrl;
+
+  useEffect(() => {
+    setAvatarListo(false);
+    if (!avatarUrlDelHero) {
+      setAvatarListo(true);
+      return;
+    }
+    const img = new window.Image();
+    img.onload = () => setAvatarListo(true);
+    img.onerror = () => setAvatarListo(true); // si falla, no nos quedamos trabados esperando
+    img.src = avatarUrlDelHero;
+  }, [avatarUrlDelHero]);
+
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [memories, setMemories] = useState<MemoryItem[]>([]);
+  const [memoriesTotal, setMemoriesTotal] = useState(0);
+  const [connections, setConnections] = useState<ConnectionItem[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [memoriesAjenas, setMemoriesAjenas] = useState<MemoryItem[]>([]);
+  const [cargandoMemoriesAjenas, setCargandoMemoriesAjenas] = useState(false);
+
+  const [drawerAbierto, setDrawerAbierto] = useState(false);
+  const [drawerSeccion, setDrawerSeccion] = useState<'perfil' | 'capitulos'>('perfil');
+  const [guardando, setGuardando] = useState(false);
+  const [guardadoOk, setGuardadoOk] = useState(false);
+  const [subiendoAvatar, setSubiendoAvatar] = useState(false);
+  const [subiendoPortada, setSubiendoPortada] = useState(false);
+  const [avatarPendiente, setAvatarPendiente] = useState<File | null>(null);
+  const [portadaPendiente, setPortadaPendiente] = useState<File | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const portadaInputRef = useRef<HTMLInputElement>(null);
+  const [avatarMemoryId, setAvatarMemoryId] = useState<string | null>(null);
+  const [coverMemoryId, setCoverMemoryId] = useState<string | null>(null);
+  const [viendoFoto, setViendoFoto] = useState<'avatar' | 'portada' | null>(null);
+  const [viendoRecuerdoAjeno, setViendoRecuerdoAjeno] = useState<MemoryItem | null>(null);
+
+  // Form del capítulo nuevo/editado
+  const [chapterEditId, setChapterEditId] = useState<string | null>(null);
+  const [chapterForm, setChapterForm] = useState({ nombre: '', desde: '', hasta: '', color: COLORES_DISPONIBLES[0], emoji: EMOJIS_CAPITULO[0] });
+
+  useEffect(() => {
+    if (!user) return;
+    if (esOtroPerfil) {
+      cargarPerfilAjeno();
+    } else {
+      cargarTodo();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [paramUserId]);
 
-  // ── Estado modal solicitud de vínculo ──────────────────────
-  const [modalSolicitud, setModalSolicitud]   = useState(false);
-  const [tipoSolicitud,  setTipoSolicitud]    = useState<TipoVinculo>('conocido/a');
-  const [mensajeSolicitud, setMensajeSolicitud] = useState('');
-  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
-  const [solicitudes, setSolicitudes]           = useState<SolicitudVinculo[]>(cargarSolicitudes);
+  async function cargarPerfilAjeno() {
+    setCargandoAjeno(true);
+    setEstadoConexion('ninguna');
+    try {
+      const res: any = await userService.getById(paramUserId as string);
+      setPerfilAjeno(res.data);
+      if (res.data.puedeVerContenido) {
+        cargarMemoriesAjenas(res.data.id);
+      }
+    } catch (err) {
+      console.error('Error al cargar el perfil:', err);
+      setPerfilAjeno(null);
+    } finally {
+      setCargandoAjeno(false);
+    }
+  }
 
-  // ── Panel notificaciones ────────────────────────────────────
-  const [panelNotif, setPanelNotif] = useState(false);
-
-  // Solicitudes recibidas para el perfil propio (userId === MI_USER_ID)
-  const solicitudesRecibidas = solicitudes.filter(
-    s => s.paraUserId === MI_USER_ID && s.estado === 'pendiente'
-  );
-
-  // ¿Ya es vínculo o ya envié solicitud?
-  const yaEsVinculo = vinculos.some(v => v.userId === userId);
-  const solicitudPendiente = solicitudes.some(
-    s => s.deUserId === MI_USER_ID && s.paraUserId === userId && s.estado === 'pendiente'
-  );
-
-  // ── Enviar solicitud ────────────────────────────────────────
-  const enviarSolicitud = () => {
-    const nueva: SolicitudVinculo = {
-      id:         Date.now().toString(),
-      deUserId:   MI_USER_ID,
-      deNombre:   PERFILES_DB[MI_USER_ID].datos.nombre + ' ' + PERFILES_DB[MI_USER_ID].datos.apellido,
-      deAvatar:   PERFILES_DB[MI_USER_ID].datos.avatar,
-      paraUserId: userId,
-      tipo:       tipoSolicitud,
-      mensaje:    mensajeSolicitud,
-      fecha:      new Date().toISOString(),
-      estado:     'pendiente',
-    };
-    const nuevas = [...solicitudes, nueva];
-    setSolicitudes(nuevas);
-    guardarSolicitudes(nuevas);
-    setSolicitudEnviada(true);
-    setTimeout(() => {
-      setModalSolicitud(false);
-      setSolicitudEnviada(false);
-      setMensajeSolicitud('');
-    }, 2000);
+  async function cargarMemoriesAjenas(targetUserId: string) {
+    setCargandoMemoriesAjenas(true);
+    try {
+      const res: any = await memoryService.getByUser(targetUserId, 1, 6);
+      setMemoriesAjenas(res.data.items);
+    } catch {
+      setMemoriesAjenas([]);
+    } finally {
+      setCargandoMemoriesAjenas(false);
+    }
+  }
+  const showToastReportar = () => {
+    alert('El sistema de reportes todavía no está implementado — lo sumamos en el próximo bloque de moderación.');
   };
 
-  // ── Responder solicitud recibida ────────────────────────────
-  const responderSolicitud = (id: string, accion: 'aceptada' | 'rechazada') => {
-    const actualizadas = solicitudes.map(s =>
-      s.id === id ? { ...s, estado: accion } : s
-    );
-    setSolicitudes(actualizadas);
-    guardarSolicitudes(actualizadas);
-
-    // Si acepta → agregar al listado de vínculos local
-    if (accion === 'aceptada') {
-      const sol = solicitudes.find(s => s.id === id);
-      if (sol) {
-        const nuevoVinculo: Vinculo = {
-          id:     Date.now().toString(),
-          nombre: sol.deNombre,
-          tipo:   sol.tipo,
-          avatar: sol.deAvatar,
-          userId: sol.deUserId,
-        };
-        const nuevosVinculos = [...vinculos, nuevoVinculo];
-        setVinculos(nuevosVinculos);
-        guardarPerfilLocal(MI_USER_ID, {
-          datos: perfil,
-          capitulos,
-          vinculos: nuevosVinculos,
-          recuerdos,
-        });
-      }
+  const conectar = async () => {
+    if (!perfilAjeno) return;
+    try {
+      await connectionService.sendRequestById(perfilAjeno.id);
+      setEstadoConexion('enviada');
+    } catch (err: any) {
+      alert(err.message || 'No se pudo enviar la solicitud');
     }
   };
 
-  // Drawer edición
-  const [drawerAbierto, setDrawerAbierto] = useState(false);
-  const [drawerSeccion, setDrawerSeccion] = useState<'perfil' | 'capitulos' | 'vinculos'>('perfil');
+  const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
 
-  // Edición temporal (se aplica al guardar)
-  const [editPerfil,    setEditPerfil]    = useState<DatosPerfil>(base.datos);
-  const [editCapitulos, setEditCapitulos] = useState<Capitulo[]>(base.capitulos);
-  const [editVinculos,  setEditVinculos]  = useState<Vinculo[]>(base.vinculos);
+  const confirmarEliminarAmigo = async () => {
+    if (!perfilAjeno?.connectionId) return;
+    setConfirmandoEliminar(false);
+    try {
+      await connectionService.remove(perfilAjeno.connectionId);
+      await cargarPerfilAjeno();
+    } catch (err: any) {
+      alert(err.message || 'No se pudo eliminar la conexión');
+    }
+  };
 
-  // ── Abrir drawer ──
-  const abrirDrawer = (seccion: typeof drawerSeccion) => {
-    setEditPerfil({ ...perfil });
-    setEditCapitulos(capitulos.map(c => ({ ...c })));
-    setEditVinculos(vinculos.map(v => ({ ...v })));
+  const confirmarBloqueo = async () => {
+    if (!perfilAjeno) return;
+    setConfirmandoBloqueo(false);
+    try {
+      await blockService.block(perfilAjeno.id);
+      navigate('/personas');
+    } catch (err: any) {
+      alert(err.message || 'No se pudo bloquear');
+    }
+  };
+
+  async function cargarTodo() {
+    setCargando(true);
+    try {
+      const [chaptersRes, memoriesRes, connectionsRes] = await Promise.all([
+        chapterService.list() as Promise<any>,
+        memoryService.getAll(1, 6) as Promise<any>,
+        connectionService.list('accepted') as Promise<any>,
+      ]);
+      setChapters(chaptersRes.data);
+      setMemories(memoriesRes.data.items);
+      setMemoriesTotal(memoriesRes.data.total);
+      setConnections(connectionsRes.data);
+    } catch (err) {
+      console.error('Error al cargar el perfil:', err);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  if (!user) return null;
+
+  if (esOtroPerfil) {
+    if (cargandoAjeno) {
+      return <div className="profile-root with-navbar"><p className="profile-vacio">Cargando perfil...</p></div>;
+    }
+    if (!perfilAjeno) {
+      return <div className="profile-root with-navbar"><p className="profile-vacio">No encontramos a esa persona.</p></div>;
+    }
+  }
+
+  const datosHero = esOtroPerfil && perfilAjeno ? perfilAjeno : user;
+  const nivelCfg = NIVEL_CONFIG[datosHero.membershipLevel] || NIVEL_CONFIG.bronze;
+  const aniosVividos = calcularAniosVividos(esOtroPerfil ? null : user.birthDate);
+  const heroListo = avatarListo; // los datos (perfilAjeno/user) ya están garantizados acá, solo falta la imagen
+
+  const abrirDrawer = (seccion: 'perfil' | 'capitulos') => {
     setDrawerSeccion(seccion);
+    setBio(user.bio || '');
+    setCity(user.city || '');
+    setCountry(user.country || '');
     setDrawerAbierto(true);
   };
 
-  // ── Guardar cambios (persiste en localStorage) ──
-  const guardar = () => {
-    const nuevoPerfil: PerfilCompleto = {
-      datos: { ...editPerfil },
-      capitulos: [...editCapitulos],
-      vinculos: [...editVinculos],
-      recuerdos: [...recuerdos],
-    };
-    setPerfil(nuevoPerfil.datos);
-    setCapitulos(nuevoPerfil.capitulos);
-    setVinculos(nuevoPerfil.vinculos);
-    guardarPerfilLocal(userId, nuevoPerfil);
-    setDrawerAbierto(false);
+  const guardarPerfil = async () => {
+    setGuardando(true);
+    setGuardadoOk(false);
+    try {
+      const res: any = await userService.updateProfile({ bio, country, city });
+      setBio(res.data.bio || '');
+      setCity(res.data.city || '');
+      setCountry(res.data.country || '');
+      setGuardadoOk(true);
+      setTimeout(() => setGuardadoOk(false), 2500);
+    } catch (err: any) {
+      alert(err.message || 'Error al guardar el perfil');
+    } finally {
+      setGuardando(false);
+    }
   };
 
-  // ── Capítulos: agregar / editar / borrar ──
-  const agregarCapitulo = () => {
-    const ultimo = editCapitulos[editCapitulos.length - 1];
-    const desde  = ultimo ? ultimo.hasta + 1 : new Date().getFullYear();
-    setEditCapitulos([...editCapitulos, {
-      id:     Date.now().toString(),
-      nombre: 'Nuevo capítulo',
-      desde,
-      hasta:  desde + 5,
-      color:  COLORES_DISPONIBLES[editCapitulos.length % COLORES_DISPONIBLES.length],
-    }]);
+  const elegirAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setAvatarPendiente(file);
+    e.target.value = ''; // permite volver a elegir el mismo archivo si cancela
   };
 
-  const actualizarCapitulo = (id: string, campo: keyof Capitulo, valor: string | number) => {
-    setEditCapitulos(editCapitulos.map(c =>
-      c.id === id ? { ...c, [campo]: valor } : c
-    ));
+  const elegirPortada = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setPortadaPendiente(file);
+    e.target.value = '';
   };
 
-  const eliminarCapitulo = (id: string) => {
-    setEditCapitulos(editCapitulos.filter(c => c.id !== id));
+  const confirmarAvatar = async (blob: Blob) => {
+    setAvatarPendiente(null);
+    setSubiendoAvatar(true);
+    try {
+      const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      const res: any = await userService.uploadAvatar(file);
+      setAvatarUrl(res.data.avatarUrl);
+      setAvatarMemoryId(res.data.profileMemoryId || null);
+    } catch (err: any) {
+      alert(err.message || 'Error al subir el avatar');
+    } finally {
+      setSubiendoAvatar(false);
+    }
   };
 
-  // ── Vínculos: agregar / editar / borrar ──
-  const agregarVinculo = () => {
-    setEditVinculos([...editVinculos, {
-      id:     Date.now().toString(),
-      nombre: '',
-      tipo:   'amigo/a',
-      avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80`,
-    }]);
+  const confirmarPortada = async (blob: Blob) => {
+    setPortadaPendiente(null);
+    setSubiendoPortada(true);
+    try {
+      const file = new File([blob], 'portada.jpg', { type: 'image/jpeg' });
+      const res: any = await userService.uploadCover(file);
+      setCoverUrl(res.data.coverUrl);
+      setCoverMemoryId(res.data.profileMemoryId || null);
+    } catch (err: any) {
+      alert(err.message || 'Error al subir la portada');
+    } finally {
+      setSubiendoPortada(false);
+    }
   };
 
-  const actualizarVinculo = (id: string, campo: keyof Vinculo, valor: string) => {
-    setEditVinculos(editVinculos.map(v =>
-      v.id === id ? { ...v, [campo]: valor } : v
-    ));
+  const abrirEditorCapitulo = (c?: Chapter) => {
+    if (c) {
+      setChapterEditId(c.id);
+      setChapterForm({ nombre: c.nombre, desde: String(c.desde), hasta: String(c.hasta), color: c.color, emoji: c.emoji });
+    } else {
+      setChapterEditId(null);
+      setChapterForm({
+        nombre: '', desde: '', hasta: '',
+        color: COLORES_DISPONIBLES[chapters.length % COLORES_DISPONIBLES.length],
+        emoji: EMOJIS_CAPITULO[chapters.length % EMOJIS_CAPITULO.length],
+      });
+    }
   };
 
-  const eliminarVinculo = (id: string) => {
-    setEditVinculos(editVinculos.filter(v => v.id !== id));
+  const guardarCapitulo = async () => {
+    const desde = parseInt(chapterForm.desde);
+    const hasta = parseInt(chapterForm.hasta);
+    if (!chapterForm.nombre.trim() || !desde || !hasta) {
+      alert('Completá nombre, desde y hasta');
+      return;
+    }
+    try {
+      if (chapterEditId) {
+        const res: any = await chapterService.update(chapterEditId, { nombre: chapterForm.nombre, desde, hasta, color: chapterForm.color, emoji: chapterForm.emoji });
+        setChapters(chapters.map(c => c.id === chapterEditId ? res.data : c));
+      } else {
+        const res: any = await chapterService.create({ nombre: chapterForm.nombre, desde, hasta, color: chapterForm.color, emoji: chapterForm.emoji });
+        setChapters([...chapters, res.data].sort((a, b) => a.desde - b.desde));
+      }
+      setChapterEditId(null);
+      setChapterForm({ nombre: '', desde: '', hasta: '', color: COLORES_DISPONIBLES[0], emoji: EMOJIS_CAPITULO[0] });
+    } catch (err: any) {
+      alert(err.message || 'Error al guardar el capítulo');
+    }
   };
 
-  // ── Navegar al perfil de un vínculo (si tiene userId) ──
-  const irAVinculo = (v: Vinculo) => {
-    if (v.userId) navigate(`/perfil/${v.userId}`);
+  const borrarCapitulo = async (id: string) => {
+    try {
+      await chapterService.delete(id);
+      setChapters(chapters.filter(c => c.id !== id));
+    } catch (err: any) {
+      alert(err.message || 'Error al borrar el capítulo');
+    }
   };
 
-  const nivelCfg = NIVEL_CONFIG[perfil.nivel];
+  const reaccionarRecuerdo = async (id: string) => {
+    try {
+      const res: any = await memoryService.setReaction(id, 'emocionante');
+      setMemories(memories.map(m => m.id === id ? { ...m, reactionCounts: res.data.reactionCounts } : m));
+    } catch {
+      // si falla la reacción, no rompemos la pantalla por esto
+    }
+  };
 
   return (
-    <div className="profile-page with-navbar">
+    <div className="profile-root with-navbar">
 
-      {/* ════════════════════════════════════════════════
-          ① HERO
-      ════════════════════════════════════════════════ */}
+      {/* ════════════ HERO ════════════ */}
+      {!heroListo && (
+        <div className="profile-hero profile-hero--skeleton">
+          <div className="profile-skel profile-skel--portada" />
+          <div className="profile-hero__contenido">
+            <div className="profile-hero__avatar-wrap">
+              <div className="profile-skel profile-skel--avatar" />
+            </div>
+            <div className="profile-hero__info">
+              <div className="profile-skel profile-skel--nombre" />
+              <div className="profile-skel profile-skel--linea" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {heroListo && (
       <div className="profile-hero">
-        <div
-          className="profile-hero__portada"
-          style={{ backgroundImage: `url(${perfil.portada})` }}
-        >
+        <div className="profile-hero__imagen">
+          <div
+            className="profile-hero__portada"
+            style={
+              (esOtroPerfil ? perfilAjeno?.coverUrl : coverUrl)
+                ? { backgroundImage: `url(${esOtroPerfil ? perfilAjeno?.coverUrl : coverUrl})` }
+                : { background: '#03192E' }
+            }
+            onClick={() => !esOtroPerfil && coverUrl && setViendoFoto('portada')}
+          />
           <div className="profile-hero__portada-overlay" />
+          {!esOtroPerfil && (
+            <>
+              <button
+                className="profile-hero__portada-editar"
+                onClick={(e) => { e.stopPropagation(); portadaInputRef.current?.click(); }}
+              >
+                📷 Editar portada
+              </button>
+              <input ref={portadaInputRef} type="file" accept="image/*" onChange={elegirPortada} hidden />
+            </>
+          )}
         </div>
 
         <div className="profile-hero__contenido">
@@ -518,746 +455,561 @@ export default function Profile() {
             <div
               className="profile-hero__nivel-ring"
               style={{ '--nivel-color': nivelCfg.color } as React.CSSProperties}
+              onClick={() => !esOtroPerfil && avatarUrl && setViendoFoto('avatar')}
             >
-              <img
-                src={perfil.avatar}
-                alt={perfil.nombre}
-                className="profile-hero__avatar"
-              />
+              {(esOtroPerfil ? perfilAjeno?.avatarUrl : avatarUrl)
+                ? (
+                  <img
+                    key={esOtroPerfil ? perfilAjeno!.avatarUrl! : avatarUrl}
+                    src={esOtroPerfil ? perfilAjeno!.avatarUrl! : avatarUrl}
+                    alt={datosHero.firstName}
+                    className="profile-hero__avatar"
+                    onLoad={(e) => e.currentTarget.classList.add('cargada')}
+                  />
+                )
+                : <div className="profile-hero__avatar profile-hero__avatar--vacio">{datosHero.firstName[0]}{datosHero.lastName[0]}</div>
+              }
             </div>
-            <div
-              className="profile-hero__nivel-badge"
-              style={{ background: nivelCfg.bg, color: nivelCfg.color }}
-            >
+            <div className="profile-hero__nivel-badge" style={{ background: nivelCfg.bg, color: nivelCfg.color }}>
               {nivelCfg.label}
             </div>
+            {!esOtroPerfil && (
+              <>
+                <button
+                  type="button"
+                  className="profile-hero__avatar-editar"
+                  onClick={() => avatarInputRef.current?.click()}
+                >
+                  📷
+                </button>
+                <input ref={avatarInputRef} type="file" accept="image/*" onChange={elegirAvatar} hidden />
+              </>
+            )}
           </div>
 
           <div className="profile-hero__info">
-            <h1 className="profile-hero__nombre">
-              {perfil.nombre} {perfil.apellido}
-            </h1>
-            <p className="profile-hero__frase">"{perfil.fraseDeLegado}"</p>
+            <h1 className="profile-hero__nombre">{datosHero.firstName} {datosHero.lastName}</h1>
+            {(esOtroPerfil ? perfilAjeno?.bio : bio) && (
+              <p className="profile-hero__frase">"{esOtroPerfil ? perfilAjeno?.bio : bio}"</p>
+            )}
             <div className="profile-hero__meta">
-              {perfil.ciudad && (
+              {((esOtroPerfil ? perfilAjeno?.city : city) || (esOtroPerfil ? perfilAjeno?.country : country)) && (
                 <span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  {perfil.ciudad}, {perfil.pais}
-                </span>
-              )}
-              {perfil.trabajo && (
-                <span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                  {perfil.trabajo}
-                </span>
-              )}
-              {perfil.fechaNacimiento && (
-                <span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  {new Date(perfil.fechaNacimiento).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                  {[esOtroPerfil ? perfilAjeno?.city : city, esOtroPerfil ? perfilAjeno?.country : country].filter(Boolean).join(', ')}
                 </span>
               )}
             </div>
           </div>
 
           <div className="profile-hero__acciones">
-            {esPropio ? (
+            {esOtroPerfil ? (
               <>
-                {/* Campana de notificaciones */}
-                <button
-                  className="profile-hero__notif-btn"
-                  onClick={() => setPanelNotif(!panelNotif)}
-                >
-                  <Bell size={16} strokeWidth={2} />
-                  {solicitudesRecibidas.length > 0 && (
-                    <span className="profile-hero__notif-badge">
-                      {solicitudesRecibidas.length}
-                    </span>
-                  )}
-                </button>
-                <button
-                  className="profile-hero__editar"
-                  onClick={() => abrirDrawer('perfil')}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  Editar perfil
-                </button>
+                {perfilAjeno?.estaConectado ? (
+                  <div className="profile-hero__menu-wrap">
+                    <button className="profile-hero__ya-vinculado profile-hero__ya-vinculado--btn" onClick={() => setMenuAbierto(v => !v)}>
+                      ✓ Conectados <ChevronDown size={14} strokeWidth={2} />
+                    </button>
+                    {menuAbierto && (
+                      <>
+                        <div className="profile-hero__menu-backdrop" onClick={() => setMenuAbierto(false)} />
+                        <div className="profile-hero__menu">
+                          <button onClick={() => { setMenuAbierto(false); setConfirmandoEliminar(true); }}>
+                            <UserX size={15} strokeWidth={1.8} /> Eliminar de mis amigos
+                          </button>
+                          <button onClick={() => { setMenuAbierto(false); setConfirmandoBloqueo(true); }}>
+                            <UserX size={15} strokeWidth={1.8} /> Bloquear
+                          </button>
+                          <button onClick={() => { setMenuAbierto(false); showToastReportar(); }}>
+                            <Flag size={15} strokeWidth={1.8} /> Reportar
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : estadoConexion === 'enviada' || perfilAjeno?.estadoConexion === 'pendiente_enviada' ? (
+                  <span className="profile-hero__solicitud-enviada">Solicitud enviada</span>
+                ) : perfilAjeno?.estadoConexion === 'rechazada' ? (
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      className="profile-hero__solicitud-enviada"
+                      style={{ background: 'rgba(186,26,26,0.08)', borderColor: 'rgba(186,26,26,0.25)', color: '#ba1a1a', border: '1.5px solid', cursor: 'pointer' }}
+                      onClick={() => setTooltipRechazoAbierto(v => !v)}
+                    >
+                      Rechazada
+                    </button>
+                    {tooltipRechazoAbierto && (
+                      <>
+                        <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setTooltipRechazoAbierto(false)} />
+                        <div style={{
+                          position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 10,
+                          background: '#03192e', color: 'white', fontSize: '0.75rem', lineHeight: 1.4,
+                          padding: '10px 14px', borderRadius: 10, width: 220, boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                        }}>
+                          Esta persona rechazó tu solicitud. Podés volver a intentarlo en {perfilAjeno.diasRestantes} día{perfilAjeno.diasRestantes === 1 ? '' : 's'}.
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <button className="profile-hero__conectar" onClick={conectar}>Conectar</button>
+                )}
+
+                {!perfilAjeno?.estaConectado && (
+                  <div className="profile-hero__menu-wrap">
+                    <button className="profile-hero__mas-btn" onClick={() => setMenuAbierto(v => !v)} aria-label="Más opciones">
+                      <MoreHorizontal size={18} strokeWidth={1.8} />
+                    </button>
+                    {menuAbierto && (
+                      <>
+                        <div className="profile-hero__menu-backdrop" onClick={() => setMenuAbierto(false)} />
+                        <div className="profile-hero__menu">
+                          <button onClick={() => { setMenuAbierto(false); setConfirmandoBloqueo(true); }}>
+                            <UserX size={15} strokeWidth={1.8} /> Bloquear
+                          </button>
+                          <button onClick={() => { setMenuAbierto(false); showToastReportar(); }}>
+                            <Flag size={15} strokeWidth={1.8} /> Reportar
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
-              /* Botón conectar para perfiles ajenos */
-              yaEsVinculo ? (
-                <div className="profile-hero__ya-vinculado">
-                  <Check size={14} strokeWidth={2.5} />
-                  Conectados
-                </div>
-              ) : solicitudPendiente ? (
-                <div className="profile-hero__solicitud-enviada">
-                  <Send size={13} strokeWidth={2} />
-                  Solicitud enviada
-                </div>
-              ) : (
-                <button
-                  className="profile-hero__conectar"
-                  onClick={() => setModalSolicitud(true)}
-                >
-                  <UserPlus size={15} strokeWidth={2} />
-                  Conectar
+              <>
+                <button className="profile-hero__editar" onClick={() => abrirDrawer('perfil')}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                  Editar perfil
                 </button>
-              )
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ════════════════════════════════════════════════
-          ② NÚMEROS CON ALMA
-      ════════════════════════════════════════════════ */}
-      <section className="profile-numeros">
-        {[
-          { valor: perfil.aniosVividos,    label: 'Años vividos',    icono: '⏳', ruta: null },
-          { valor: perfil.recuerdosTotal,  label: 'Recuerdos',       icono: '📸', ruta: `/linea-de-vida/${userId}` },
-          { valor: perfil.paises,          label: 'Países',          icono: '🌍', ruta: null },
-          { valor: perfil.generaciones,    label: 'Generaciones',    icono: '🌳', ruta: `/arbol-genealogico/${userId}` },
-          { valor: perfil.vinculos,        label: 'Vínculos',        icono: '🤝', ruta: null },
-          { valor: perfil.hitos,           label: 'Hitos de vida',   icono: '⭐', ruta: `/linea-de-vida/${userId}` },
-        ].map((m, i) => (
-          <div
-            key={i}
-            className={`profile-metrica${m.ruta ? ' profile-metrica--link' : ''}`}
-            onClick={() => m.ruta && navigate(m.ruta)}
-          >
-            <span className="profile-metrica__icono">{m.icono}</span>
-            <span className="profile-metrica__valor">{m.valor.toLocaleString('es-AR')}</span>
-            <span className="profile-metrica__label">{m.label}</span>
-            {m.ruta && (
-              <span className="profile-metrica__arrow">→</span>
-            )}
-          </div>
-        ))}
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          ③ CAPÍTULOS DE VIDA
-      ════════════════════════════════════════════════ */}
-      <section className="profile-capitulos-sec">
-        <div className="profile-barra-header">
-          <div>
-            <span className="profile-seccion-eyebrow">
-              {esPropio ? 'Tu historia' : 'Su historia'}
-            </span>
-            <h2 className="profile-seccion-titulo">
-              <BookOpen size={18} strokeWidth={1.8} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-              Capítulos de vida
-            </h2>
-          </div>
-          {esPropio ? (
-            <button
-              className="profile-btn-editar-sec"
-              onClick={() => abrirDrawer('capitulos')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Editar capítulos
-            </button>
-          ) : (
-            <button
-              className="profile-btn-ver"
-              onClick={() => navigate(`/linea-de-vida/${userId}`)}
-            >
-              Ver todo →
-            </button>
-          )}
-        </div>
-
-        <div className="profile-capitulos">
-          {capitulos.map((c, i) => (
-            <button
-              key={c.id}
-              className="profile-capitulo"
-              style={{ borderColor: c.color }}
-              onClick={() => navigate(`/linea-de-vida/${userId}?epoca=${c.id}`)}
-            >
-              <span className="profile-capitulo__emoji">{EMOJIS_CAPITULO[i % EMOJIS_CAPITULO.length]}</span>
-              <span className="profile-capitulo__label">{c.nombre}</span>
-              <span className="profile-capitulo__años">{c.desde} – {c.hasta}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          ④ MIS VÍNCULOS
-      ════════════════════════════════════════════════ */}
-      <section className="profile-vinculos-sec">
-        <div className="profile-barra-header">
-          <div>
-            <span className="profile-seccion-eyebrow">Las personas que importan</span>
-            <h2 className="profile-seccion-titulo">
-              {esPropio ? 'Mis Vínculos' : 'Vínculos'}
-            </h2>
-          </div>
-          {esPropio && (
-            <button
-              className="profile-btn-editar-sec"
-              onClick={() => abrirDrawer('vinculos')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Editar
-            </button>
-          )}
-        </div>
-
-        <div className="profile-vinculos-grid">
-          {vinculos.map(v => (
-            <div
-              key={v.id}
-              className="profile-vinculo-card"
-              onClick={() => irAVinculo(v)}
-              style={{ cursor: v.userId ? 'pointer' : 'default' }}
-              title={v.userId ? `Ver perfil de ${v.nombre}` : undefined}
-            >
-              <img
-                src={v.avatar}
-                alt={v.nombre}
-                className="profile-vinculo-card__avatar"
-              />
-              <span className="profile-vinculo-card__nombre">{v.nombre}</span>
-              <span className="profile-vinculo-card__tipo">{v.tipo}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          ⑤ RECUERDOS DESTACADOS
-      ════════════════════════════════════════════════ */}
-      <section className="profile-recuerdos-sec">
-        <div className="profile-barra-header">
-          <div>
-            <span className="profile-seccion-eyebrow">Los más especiales</span>
-            <h2 className="profile-seccion-titulo">Recuerdos Destacados</h2>
-          </div>
-          <button
-            className="profile-btn-ver"
-            onClick={() => navigate(`/linea-de-vida/${userId}`)}
-          >
-            Ver todos →
-          </button>
-        </div>
-
-        <div className="profile-recuerdos-grid">
-          {recuerdos.map((r, i) => (
-            <div
-              key={r.id}
-              className={`profile-recuerdo${i === 0 ? ' profile-recuerdo--grande' : ''}`}
-              onClick={() => navigate(`/linea-de-vida/${userId}`)}
-            >
-              <img src={r.foto} alt={r.titulo} />
-              <div className="profile-recuerdo__overlay">
-                <span className="profile-recuerdo__titulo">{r.titulo}</span>
-                <span className="profile-recuerdo__meta">{r.fecha} · {r.lugar}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          ⑥ MI LEGADO COMPLETO (hub — solo perfil propio)
-      ════════════════════════════════════════════════ */}
-      {esPropio && (
-        <section className="profile-hub-sec">
-          <div className="profile-barra-header">
-            <div>
-              <span className="profile-seccion-eyebrow">El mapa de tu legado</span>
-              <h2 className="profile-seccion-titulo">
-                <LayoutDashboard size={18} strokeWidth={1.8} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-                Mi legado completo
-              </h2>
-            </div>
-          </div>
-          <div className="profile-hub-grid">
-            {SECCIONES.map(s => (
-              <button
-                key={s.path}
-                className="profile-hub-item"
-                onClick={() => navigate(s.path)}
-                style={{ background: s.bg }}
-              >
-                <div className="profile-hub-item__icon-wrap" style={{ color: s.color }}>
-                  {s.icono}
-                  {s.vault && (
-                    <span className="profile-hub-item__lock">
-                      <Lock size={10} strokeWidth={2.5} />
-                    </span>
+                <div className="profile-hero__menu-wrap">
+                  <button className="profile-hero__mas-btn" onClick={() => setMenuAbierto(v => !v)} aria-label="Más opciones">
+                    <MoreHorizontal size={18} strokeWidth={1.8} />
+                  </button>
+                  {menuAbierto && (
+                    <>
+                      <div className="profile-hero__menu-backdrop" onClick={() => setMenuAbierto(false)} />
+                      <div className="profile-hero__menu">
+                        <button onClick={() => { setMenuAbierto(false); navigate('/configuracion'); }}>
+                          <SettingsIcon size={15} strokeWidth={1.8} /> Configuración
+                        </button>
+                        <button onClick={() => { setMenuAbierto(false); logout(); }}>
+                          Cerrar sesión
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
-                <span className="profile-hub-item__label">{s.label}</span>
-                <span className="profile-hub-item__desc">{s.desc}</span>
-              </button>
-            ))}
+              </>
+            )}
           </div>
+
+          {confirmandoBloqueo && (
+            <ConfirmModal
+              titulo="Bloquear a esta persona"
+              mensaje={`¿Bloquear a ${perfilAjeno?.firstName}? Ya no van a poder ver sus perfiles ni conectarse, y se elimina cualquier conexión que tuvieran.`}
+              textoConfirmar="Sí, bloquear"
+              peligroso
+              onConfirm={confirmarBloqueo}
+              onCancel={() => setConfirmandoBloqueo(false)}
+            />
+          )}
+
+          {confirmandoEliminar && (
+            <ConfirmModal
+              titulo="Eliminar de mis amigos"
+              mensaje={`¿Eliminar a ${perfilAjeno?.firstName} de tus conexiones? Van a dejar de estar conectados, pero podrán volver a conectarse en el futuro.`}
+              textoConfirmar="Sí, eliminar"
+              peligroso
+              onConfirm={confirmarEliminarAmigo}
+              onCancel={() => setConfirmandoEliminar(false)}
+            />
+          )}
+        </div>
+      </div>
+      )}
+
+      {heroListo && esOtroPerfil && !perfilAjeno?.puedeVerContenido && (
+        <p className="profile-vacio" style={{ maxWidth: 900, margin: '32px auto 0', padding: '0 40px' }}>
+          Este perfil es privado. Conectate con {perfilAjeno?.firstName} para ver más.
+        </p>
+      )}
+
+      {esOtroPerfil && perfilAjeno?.puedeVerContenido && (
+        <section className="profile-recuerdos-sec">
+          <div className="profile-barra-header">
+            <div>
+              <span className="profile-seccion-eyebrow">Los más recientes</span>
+              <h2 className="profile-seccion-titulo">Recuerdos</h2>
+            </div>
+          </div>
+
+          {cargandoMemoriesAjenas && <p className="profile-vacio">Cargando...</p>}
+
+          {!cargandoMemoriesAjenas && memoriesAjenas.length === 0 && (
+            <p className="profile-vacio">{perfilAjeno.firstName} no agregó ningún recuerdo todavía.</p>
+          )}
+
+          {!cargandoMemoriesAjenas && memoriesAjenas.length > 0 && (
+            <div className="profile-recuerdos-grid">
+              {memoriesAjenas.slice(0, 3).map((m, i) => (
+                <div
+                  key={m.id}
+                  className={`profile-recuerdo${i === 0 ? ' profile-recuerdo--grande' : ''}${!m.mediaUrl ? ' profile-recuerdo--solo-texto' : ''}`}
+                  onClick={() => m.mediaUrl && setViendoRecuerdoAjeno(m)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {m.mediaUrl && <img src={m.mediaUrl} alt={m.caption || 'Recuerdo'} />}
+                  <div className="profile-recuerdo__overlay">
+                    {m.caption && <span className="profile-recuerdo__titulo">{m.caption}</span>}
+                    <span className="profile-recuerdo__meta">
+                      {new Date(m.createdAt).toLocaleDateString('es-AR')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
-      {/* ════════════════════════════════════════════════
-          ⑦ SOBRE MÍ
-      ════════════════════════════════════════════════ */}
-      <section className="profile-sobre">
-        <div className="profile-barra-header">
-          <div>
-            <span className="profile-seccion-eyebrow">
-              {esPropio ? 'Mi historia' : 'Su historia'}
-            </span>
-            <h2 className="profile-seccion-titulo">
-              {esPropio ? 'Sobre mí' : `Sobre ${perfil.nombre}`}
-            </h2>
-          </div>
-          {esPropio && (
-            <button
-              className="profile-btn-editar-sec"
-              onClick={() => abrirDrawer('perfil')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Editar
-            </button>
-          )}
-        </div>
-        <p className="profile-sobre__bio">{perfil.bio}</p>
-        <div className="profile-sobre__datos">
-          {[
-            { icono: '📅', label: 'Nacimiento', valor: new Date(perfil.fechaNacimiento).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) },
-            { icono: '📍', label: 'Ciudad',     valor: `${perfil.ciudad}, ${perfil.pais}` },
-            { icono: '💼', label: 'Trabajo',    valor: perfil.trabajo },
-            { icono: '🌱', label: 'Origen',     valor: perfil.origen },
-          ].map((d, i) => (
-            <div key={i} className="profile-sobre__dato">
-              <span className="profile-sobre__dato-icono">{d.icono}</span>
-              <div>
-                <span className="profile-sobre__dato-label">{d.label}</span>
-                <span className="profile-sobre__dato-valor">{d.valor}</span>
+      {!esOtroPerfil && (
+        <>
+          {/* ════════════ NÚMEROS ════════════ */}
+          <section className="profile-numeros">
+            {[
+              { valor: aniosVividos, label: 'Años vividos', icono: '⏳', ruta: null },
+              { valor: memoriesTotal, label: 'Recuerdos', icono: '📸', ruta: '/feed' },
+              { valor: connections.length, label: 'Vínculos', icono: '🤝', ruta: '/vinculos' },
+            ].map((m, i) => (
+              <div
+                key={i}
+                className={`profile-metrica${m.ruta ? ' profile-metrica--link' : ''}`}
+                onClick={() => m.ruta && navigate(m.ruta)}
+              >
+                <span className="profile-metrica__icono">{m.icono}</span>
+                <span className="profile-metrica__valor">{m.valor.toLocaleString('es-AR')}</span>
+                <span className="profile-metrica__label">{m.label}</span>
+                {m.ruta && <span className="profile-metrica__arrow">→</span>}
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </section>
 
-      {/* ════════════════════════════════════════════════
-          ⑧ FRASE DE LEGADO
-      ════════════════════════════════════════════════ */}
-      <section className="profile-legado">
-        <div className="profile-legado__comillas">"</div>
-        <p className="profile-legado__frase">{perfil.fraseDeLegado}</p>
-        <span className="profile-legado__firma">— {perfil.nombre} {perfil.apellido}</span>
-      </section>
-
-
-      {/* ════════════════════════════════════════════════
-          PANEL DE NOTIFICACIONES (solicitudes recibidas)
-      ════════════════════════════════════════════════ */}
-      {panelNotif && esPropio && (
-        <div className="profile-notif-overlay" onClick={() => setPanelNotif(false)}>
-          <div className="profile-notif-panel" onClick={e => e.stopPropagation()}>
-            <div className="profile-notif-panel__header">
-              <Bell size={16} strokeWidth={2} />
-              <h3>Solicitudes de vínculo</h3>
-              <button onClick={() => setPanelNotif(false)}>
-                <X size={18} strokeWidth={2} />
+          {/* ════════════ CAPÍTULOS DE VIDA ════════════ */}
+          <section className="profile-capitulos-sec">
+            <div className="profile-barra-header">
+              <div>
+                <span className="profile-seccion-eyebrow">Tu historia</span>
+                <h2 className="profile-seccion-titulo">
+                  <BookOpen size={18} strokeWidth={1.8} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+                  Capítulos de vida
+                </h2>
+              </div>
+              <button className="profile-btn-editar-sec" onClick={() => abrirDrawer('capitulos')}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                Editar capítulos
               </button>
             </div>
 
-            {solicitudesRecibidas.length === 0 ? (
-              <div className="profile-notif-panel__empty">
-                <span>🎉</span>
-                <p>No tenés solicitudes pendientes</p>
-              </div>
-            ) : (
-              <div className="profile-notif-panel__lista">
-                {solicitudesRecibidas.map(sol => (
-                  <div key={sol.id} className="profile-notif-item">
-                    <img src={sol.deAvatar} alt={sol.deNombre} className="profile-notif-item__avatar" />
-                    <div className="profile-notif-item__info">
-                      <span className="profile-notif-item__nombre">{sol.deNombre}</span>
-                      <span className="profile-notif-item__tipo">
-                        {VINCULO_CONFIG[sol.tipo]?.emoji} quiere conectar como{' '}
-                        <strong>{VINCULO_CONFIG[sol.tipo]?.label}</strong>
-                      </span>
-                      {sol.mensaje && (
-                        <p className="profile-notif-item__mensaje">"{sol.mensaje}"</p>
-                      )}
-                    </div>
-                    <div className="profile-notif-item__acciones">
-                      <button
-                        className="profile-notif-item__aceptar"
-                        onClick={() => responderSolicitud(sol.id, 'aceptada')}
-                      >
-                        <Check size={14} strokeWidth={2.5} />
-                      </button>
-                      <button
-                        className="profile-notif-item__rechazar"
-                        onClick={() => responderSolicitud(sol.id, 'rechazada')}
-                      >
-                        <X size={14} strokeWidth={2.5} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {chapters.length === 0 && !cargando && (
+              <p className="profile-vacio">Todavía no armaste ningún capítulo. Editá para crear el primero.</p>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* ════════════════════════════════════════════════
-          MODAL DE SOLICITUD DE VÍNCULO
-      ════════════════════════════════════════════════ */}
-      {modalSolicitud && !esPropio && (
-        <div className="profile-modal-overlay" onClick={() => setModalSolicitud(false)}>
-          <div className="profile-modal-solicitud" onClick={e => e.stopPropagation()}>
+            <div className="profile-capitulos">
+              {chapters.map((c) => (
+                <div key={c.id} className="profile-capitulo" style={{ borderColor: c.color }}>
+                  <span className="profile-capitulo__emoji">{c.emoji}</span>
+                  <span className="profile-capitulo__label">{c.nombre}</span>
+                  <span className="profile-capitulo__años">{c.desde} – {c.hasta}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
-            {solicitudEnviada ? (
-              /* ── Estado éxito ── */
-              <div className="profile-modal-solicitud__exito">
-                <div className="profile-modal-solicitud__exito-icon">✅</div>
-                <h3>¡Solicitud enviada!</h3>
-                <p>{perfil.nombre} recibirá tu solicitud de vínculo.</p>
+          {/* ════════════ VÍNCULOS ════════════ */}
+          <section className="profile-vinculos-sec">
+            <div className="profile-barra-header">
+              <div>
+                <span className="profile-seccion-eyebrow">Las personas que importan</span>
+                <h2 className="profile-seccion-titulo">Mis Vínculos</h2>
               </div>
-            ) : (
-              <>
-                {/* Header */}
-                <div className="profile-modal-solicitud__header">
-                  <img
-                    src={perfil.avatar}
-                    alt={perfil.nombre}
-                    className="profile-modal-solicitud__avatar"
-                  />
-                  <div>
-                    <h3>Conectar con {perfil.nombre}</h3>
-                    <p>Elegí cómo te relacionás con esta persona</p>
-                  </div>
-                  <button
-                    className="profile-modal-solicitud__cerrar"
-                    onClick={() => setModalSolicitud(false)}
-                  >
-                    <X size={18} strokeWidth={2} />
+              <button className="profile-btn-ver" onClick={() => navigate('/vinculos')}>Ver todos →</button>
+            </div>
+
+            {connections.length === 0 && !cargando && (
+              <p className="profile-vacio">Todavía no tenés conexiones aceptadas.</p>
+            )}
+
+            <div className="profile-vinculos-grid">
+              {connections.map(c => {
+                const otro = c.requesterId === user.id ? c.addressee : c.requester;
+                return (
+                  <button key={c.id} className="profile-vinculo-card" onClick={() => navigate(`/perfil/${otro.id}`)}>
+                    {otro.avatarUrl
+                      ? <img src={otro.avatarUrl} alt={otro.firstName} className="profile-vinculo-card__avatar" />
+                      : <div className="profile-vinculo-card__avatar profile-vinculo-card__avatar--vacio">{otro.firstName[0]}</div>
+                    }
+                    <span className="profile-vinculo-card__nombre">{otro.firstName} {otro.lastName}</span>
                   </button>
-                </div>
+                );
+              })}
+            </div>
+          </section>
 
-                {/* Selector de tipo */}
-                <div className="profile-modal-solicitud__tipos">
-                  <label className="profile-modal-solicitud__label">Tipo de vínculo</label>
-                  <div className="profile-modal-solicitud__grid">
-                    {(TIPOS_VINCULO).map(tipo => {
-                      const cfg = VINCULO_CONFIG[tipo];
-                      return (
-                        <button
-                          key={tipo}
-                          className={`profile-modal-solicitud__tipo-btn${tipoSolicitud === tipo ? ' active' : ''}`}
-                          onClick={() => setTipoSolicitud(tipo)}
-                        >
-                          <span className="profile-modal-solicitud__tipo-emoji">{cfg.emoji}</span>
-                          <span className="profile-modal-solicitud__tipo-label">{cfg.label}</span>
-                        </button>
-                      );
-                    })}
+          {/* ════════════ RECUERDOS ════════════ */}
+          <section className="profile-recuerdos-sec">
+            <div className="profile-barra-header">
+              <div>
+                <span className="profile-seccion-eyebrow">Los más recientes</span>
+                <h2 className="profile-seccion-titulo">Recuerdos</h2>
+              </div>
+              <button className="profile-btn-ver" onClick={() => navigate('/feed')}>Ver todos →</button>
+            </div>
+
+            {memories.length === 0 && !cargando && (
+              <p className="profile-vacio">Todavía no subiste ningún recuerdo.</p>
+            )}
+
+            <div className="profile-recuerdos-grid">
+              {memories.slice(0, 3).map((m, i) => (
+                <div
+                  key={m.id}
+                  className={`profile-recuerdo${i === 0 ? ' profile-recuerdo--grande' : ''}${!m.mediaUrl ? ' profile-recuerdo--solo-texto' : ''}`}
+                  onClick={() => m.mediaUrl && setViendoRecuerdoAjeno(m)}
+                  style={{ cursor: m.mediaUrl ? 'pointer' : 'default' }}
+                >
+                  {m.mediaUrl && <img src={m.mediaUrl} alt={m.caption || 'Recuerdo'} />}
+                  <div className="profile-recuerdo__overlay">
+                    {m.caption && <span className="profile-recuerdo__titulo">{m.caption}</span>}
+                    <span className="profile-recuerdo__meta">
+                      {new Date(m.createdAt).toLocaleDateString('es-AR')}
+                    </span>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); reaccionarRecuerdo(m.id); }}
+                        style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: 0 }}
+                      >
+                        <Heart size={14} /> {Object.values(m.reactionCounts || {}).reduce((a, b) => a + b, 0)}
+                      </button>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <MessageCircle size={14} /> {m.commentsCount}
+                      </span>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </section>
 
-                {/* Mensaje opcional */}
-                <div className="profile-modal-solicitud__mensaje-wrap">
-                  <label className="profile-modal-solicitud__label">
-                    Mensaje (opcional)
-                  </label>
-                  <textarea
-                    className="profile-modal-solicitud__textarea"
-                    placeholder={`Hola ${perfil.nombre}, me gustaría conectar con vos...`}
-                    value={mensajeSolicitud}
-                    onChange={e => setMensajeSolicitud(e.target.value)}
-                    maxLength={200}
-                    rows={3}
-                  />
-                  <span className="profile-modal-solicitud__contador">
-                    {mensajeSolicitud.length}/200
-                  </span>
-                </div>
-
-                {/* Botón enviar */}
-                <button
-                  className="profile-modal-solicitud__enviar"
-                  onClick={enviarSolicitud}
-                >
-                  <Send size={15} strokeWidth={2} />
-                  Enviar solicitud de vínculo
+          {/* ════════════ MI LEGADO COMPLETO (hub) ════════════ */}
+          <section className="profile-hub-sec">
+            <div className="profile-barra-header">
+              <div>
+                <span className="profile-seccion-eyebrow">El mapa de tu legado</span>
+                <h2 className="profile-seccion-titulo">
+                  <LayoutDashboard size={18} strokeWidth={1.8} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+                  Mi legado completo
+                </h2>
+              </div>
+            </div>
+            <div className="profile-hub-grid">
+              {SECCIONES.map(s => (
+                <button key={s.path} className="profile-hub-item" onClick={() => navigate(s.path)} style={{ background: s.bg }}>
+                  <div className="profile-hub-item__icon-wrap" style={{ color: s.color }}>
+                    {s.icono}
+                    {s.vault && <span className="profile-hub-item__lock"><Lock size={10} strokeWidth={2.5} /></span>}
+                  </div>
+                  <span className="profile-hub-item__label">{s.label}</span>
+                  <span className="profile-hub-item__desc">{s.desc}</span>
                 </button>
-
-                <p className="profile-modal-solicitud__nota">
-                  {perfil.nombre} podrá aceptar, rechazar o cambiar el tipo de vínculo.
-                </p>
-              </>
-            )}
-          </div>
-        </div>
+              ))}
+            </div>
+          </section>
+        </>
       )}
 
-      {/* ════════════════════════════════════════════════
-          DRAWER DE EDICIÓN (solo perfil propio)
-      ════════════════════════════════════════════════ */}
-      {drawerAbierto && esPropio && (
+      {/* ════════════ DRAWER DE EDICIÓN ════════════ */}
+      {drawerAbierto && (
         <div className="profile-drawer-overlay" onClick={() => setDrawerAbierto(false)}>
-          <aside
-            className="profile-drawer"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Header drawer */}
+          <div className="profile-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="profile-drawer__header">
               <div className="profile-drawer__tabs">
-                {([
-                  { id: 'perfil',    label: 'Perfil'          },
-                  { id: 'capitulos', label: 'Capítulos'       },
-                  { id: 'vinculos',  label: 'Vínculos'        },
-                ] as const).map(t => (
-                  <button
-                    key={t.id}
-                    className={`profile-drawer__tab${drawerSeccion === t.id ? ' active' : ''}`}
-                    onClick={() => setDrawerSeccion(t.id)}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+                <button
+                  className={`profile-drawer__tab${drawerSeccion === 'perfil' ? ' active' : ''}`}
+                  onClick={() => setDrawerSeccion('perfil')}
+                >
+                  Perfil
+                </button>
+                <button
+                  className={`profile-drawer__tab${drawerSeccion === 'capitulos' ? ' active' : ''}`}
+                  onClick={() => setDrawerSeccion('capitulos')}
+                >
+                  Capítulos
+                </button>
               </div>
-              <button
-                className="profile-drawer__cerrar"
-                onClick={() => setDrawerAbierto(false)}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
+              <button className="profile-drawer__cerrar" onClick={() => setDrawerAbierto(false)}>✕</button>
             </div>
 
-            {/* Contenido drawer */}
-            <div className="profile-drawer__body">
-
-              {/* ── Tab Perfil ── */}
-              {drawerSeccion === 'perfil' && (
+            {drawerSeccion === 'perfil' && (
+              <div className="profile-drawer__body">
                 <div className="profile-drawer__form">
                   <div className="profile-drawer__grupo">
-                    <label>Nombre</label>
-                    <input
-                      value={editPerfil.nombre}
-                      onChange={e => setEditPerfil({ ...editPerfil, nombre: e.target.value })}
-                    />
+                    <label>Foto de perfil</label>
+                    <label className="profile-drawer__file-btn">
+                      {subiendoAvatar ? 'Subiendo...' : 'Elegir imagen'}
+                      <input type="file" accept="image/*" onChange={elegirAvatar} disabled={subiendoAvatar} hidden />
+                    </label>
                   </div>
                   <div className="profile-drawer__grupo">
-                    <label>Apellido</label>
-                    <input
-                      value={editPerfil.apellido}
-                      onChange={e => setEditPerfil({ ...editPerfil, apellido: e.target.value })}
-                    />
-                  </div>
-                  <div className="profile-drawer__grupo">
-                    <label>Frase de legado</label>
-                    <textarea
-                      rows={3}
-                      value={editPerfil.fraseDeLegado}
-                      onChange={e => setEditPerfil({ ...editPerfil, fraseDeLegado: e.target.value })}
-                    />
+                    <label>Foto de portada</label>
+                    <label className="profile-drawer__file-btn">
+                      {subiendoPortada ? 'Subiendo...' : 'Elegir imagen'}
+                      <input type="file" accept="image/*" onChange={elegirPortada} disabled={subiendoPortada} hidden />
+                    </label>
                   </div>
                   <div className="profile-drawer__grupo">
                     <label>Bio</label>
-                    <textarea
-                      rows={4}
-                      value={editPerfil.bio}
-                      onChange={e => setEditPerfil({ ...editPerfil, bio: e.target.value })}
-                    />
+                    <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={500} rows={3} />
                   </div>
                   <div className="profile-drawer__grupo">
-                    <label>Fecha de nacimiento</label>
-                    <input
-                      type="date"
-                      value={editPerfil.fechaNacimiento}
-                      onChange={e => setEditPerfil({ ...editPerfil, fechaNacimiento: e.target.value })}
-                    />
-                  </div>
-                  <div className="profile-drawer__grid2">
-                    <div className="profile-drawer__grupo">
-                      <label>Ciudad</label>
-                      <input
-                        value={editPerfil.ciudad}
-                        onChange={e => setEditPerfil({ ...editPerfil, ciudad: e.target.value })}
-                      />
-                    </div>
-                    <div className="profile-drawer__grupo">
-                      <label>País</label>
-                      <input
-                        value={editPerfil.pais}
-                        onChange={e => setEditPerfil({ ...editPerfil, pais: e.target.value })}
-                      />
-                    </div>
+                    <label>Ciudad</label>
+                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} />
                   </div>
                   <div className="profile-drawer__grupo">
-                    <label>Trabajo / Ocupación</label>
-                    <input
-                      value={editPerfil.trabajo}
-                      onChange={e => setEditPerfil({ ...editPerfil, trabajo: e.target.value })}
-                    />
+                    <label>País</label>
+                    <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} />
                   </div>
-                  <div className="profile-drawer__grupo">
-                    <label>Origen</label>
-                    <input
-                      value={editPerfil.origen}
-                      onChange={e => setEditPerfil({ ...editPerfil, origen: e.target.value })}
-                    />
-                  </div>
-                  <div className="profile-drawer__grupo">
-                    <label>URL Avatar</label>
-                    <input
-                      value={editPerfil.avatar}
-                      onChange={e => setEditPerfil({ ...editPerfil, avatar: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="profile-drawer__grupo">
-                    <label>URL Foto de portada</label>
-                    <input
-                      value={editPerfil.portada}
-                      onChange={e => setEditPerfil({ ...editPerfil, portada: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* ── Tab Capítulos ── */}
-              {drawerSeccion === 'capitulos' && (
-                <div className="profile-drawer__form">
-                  <p className="profile-drawer__hint">
-                    Definí los capítulos de tu vida. Cada uno tiene un nombre, rango de años y color de acento.
-                  </p>
-                  {editCapitulos.map((c, i) => (
-                    <div key={c.id} className="profile-drawer__capitulo">
-                      <div className="profile-drawer__capitulo-header">
-                        <span
-                          className="profile-drawer__capitulo-color"
-                          style={{ background: c.color }}
-                        />
-                        <span className="profile-drawer__capitulo-num">Capítulo {i + 1}</span>
-                        <button
-                          className="profile-drawer__capitulo-del"
-                          onClick={() => eliminarCapitulo(c.id)}
-                        >✕</button>
-                      </div>
-                      <div className="profile-drawer__grupo">
-                        <label>Nombre del capítulo</label>
-                        <input
-                          value={c.nombre}
-                          onChange={e => actualizarCapitulo(c.id, 'nombre', e.target.value)}
-                        />
-                      </div>
-                      <div className="profile-drawer__grid2">
-                        <div className="profile-drawer__grupo">
-                          <label>Desde (año)</label>
-                          <input
-                            type="number"
-                            value={c.desde}
-                            onChange={e => actualizarCapitulo(c.id, 'desde', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div className="profile-drawer__grupo">
-                          <label>Hasta (año)</label>
-                          <input
-                            type="number"
-                            value={c.hasta}
-                            onChange={e => actualizarCapitulo(c.id, 'hasta', parseInt(e.target.value))}
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-drawer__grupo">
-                        <label>Color</label>
-                        <div className="profile-drawer__colores">
-                          {COLORES_DISPONIBLES.map(col => (
-                            <button
-                              key={col}
-                              className={`profile-drawer__color-chip${c.color === col ? ' active' : ''}`}
-                              style={{ background: col }}
-                              onClick={() => actualizarCapitulo(c.id, 'color', col)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    className="profile-drawer__add"
-                    onClick={agregarCapitulo}
-                  >
-                    + Agregar capítulo
+                  <button className="profile-drawer__btn-guardar" disabled={guardando} onClick={guardarPerfil}>
+                    {guardando ? 'Guardando...' : 'Guardar cambios'}
                   </button>
+                  {guardadoOk && <span className="profile-drawer__confirmacion">✓ Cambios guardados</span>}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* ── Tab Vínculos ── */}
-              {drawerSeccion === 'vinculos' && (
+            {drawerSeccion === 'capitulos' && (
+              <div className="profile-drawer__body">
                 <div className="profile-drawer__form">
-                  <p className="profile-drawer__hint">
-                    Las personas más importantes de tu vida. Podés agregar hasta 8.
-                  </p>
-                  {editVinculos.map(v => (
-                    <div key={v.id} className="profile-drawer__vinculo">
-                      <div className="profile-drawer__vinculo-header">
-                        <img src={v.avatar} alt={v.nombre} className="profile-drawer__vinculo-avatar" />
-                        <button
-                          className="profile-drawer__capitulo-del"
-                          onClick={() => eliminarVinculo(v.id)}
-                        >✕</button>
-                      </div>
-                      <div className="profile-drawer__grupo">
-                        <label>Nombre completo</label>
-                        <input
-                          value={v.nombre}
-                          placeholder="Nombre y apellido"
-                          onChange={e => actualizarVinculo(v.id, 'nombre', e.target.value)}
-                        />
-                      </div>
-                      <div className="profile-drawer__grupo">
-                        <label>Tipo de vínculo</label>
-                        <select
-                          value={v.tipo}
-                          onChange={e => actualizarVinculo(v.id, 'tipo', e.target.value)}
-                        >
-                          {TIPOS_VINCULO.map(t => (
-                            <option key={t} value={t}>{t}</option>
-                          ))}
-                        </select>
-                      </div>
+                  {chapters.map(c => (
+                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '1.1rem' }}>{c.emoji}</span>
+                      <span style={{ flex: 1 }}>{c.nombre} ({c.desde}–{c.hasta})</span>
+                      <button onClick={() => abrirEditorCapitulo(c)}>Editar</button>
+                      <button onClick={() => borrarCapitulo(c.id)}>Borrar</button>
                     </div>
                   ))}
-                  {editVinculos.length < 8 && (
-                    <button
-                      className="profile-drawer__add"
-                      onClick={agregarVinculo}
-                    >
-                      + Agregar vínculo
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
 
-            {/* Footer drawer */}
-            <div className="profile-drawer__footer">
-              <button
-                className="profile-drawer__cancelar"
-                onClick={() => setDrawerAbierto(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="profile-drawer__guardar"
-                onClick={guardar}
-              >
-                Guardar cambios
-              </button>
-            </div>
-          </aside>
+                  <hr />
+                  <p className="profile-drawer__form-titulo">
+                    {chapterEditId ? 'Editando capítulo' : 'Nuevo capítulo'}
+                  </p>
+                  <div className="profile-drawer__grupo">
+                    <label>Nombre</label>
+                    <input type="text" value={chapterForm.nombre} onChange={(e) => setChapterForm({ ...chapterForm, nombre: e.target.value })} />
+                  </div>
+                  <div className="profile-drawer__grupo">
+                    <label>Desde (año)</label>
+                    <input type="number" value={chapterForm.desde} onChange={(e) => setChapterForm({ ...chapterForm, desde: e.target.value })} />
+                  </div>
+                  <div className="profile-drawer__grupo">
+                    <label>Hasta (año)</label>
+                    <input type="number" value={chapterForm.hasta} onChange={(e) => setChapterForm({ ...chapterForm, hasta: e.target.value })} />
+                  </div>
+                  <div className="profile-drawer__grupo">
+                    <label>Emoji</label>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {EMOJIS_CAPITULO.map(emoji => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => setChapterForm({ ...chapterForm, emoji })}
+                          className={`profile-drawer__emoji-btn${chapterForm.emoji === emoji ? ' active' : ''}`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="profile-drawer__grupo">
+                    <label>Color</label>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {COLORES_DISPONIBLES.map(color => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setChapterForm({ ...chapterForm, color })}
+                          style={{
+                            width: 24, height: 24, borderRadius: '50%', background: color, cursor: 'pointer',
+                            border: chapterForm.color === color ? '2px solid #03192e' : '1px solid rgba(0,0,0,0.1)',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="profile-drawer__btn-guardar" onClick={guardarCapitulo}>
+                      {chapterEditId ? 'Guardar cambios' : 'Agregar capítulo'}
+                    </button>
+                    {chapterEditId && (
+                      <button className="profile-drawer__btn-cancelar" onClick={() => abrirEditorCapitulo()}>
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+      )}
+
+      {avatarPendiente && (
+        <ImageCropModal
+          file={avatarPendiente}
+          aspect={1}
+          cropShape="round"
+          titulo="Ajustá tu foto de perfil"
+          onCancel={() => setAvatarPendiente(null)}
+          onConfirm={confirmarAvatar}
+        />
+      )}
+
+      {portadaPendiente && (
+        <ImageCropModal
+          file={portadaPendiente}
+          aspect={3.4}
+          cropShape="rect"
+          titulo="Ajustá tu foto de portada"
+          onCancel={() => setPortadaPendiente(null)}
+          onConfirm={confirmarPortada}
+        />
+      )}
+
+      {viendoFoto === 'avatar' && avatarUrl && (
+        <FotoViewerModal
+          memoryId={avatarMemoryId}
+          imageUrl={avatarUrl}
+          titulo="Foto de perfil"
+          onClose={() => setViendoFoto(null)}
+        />
+      )}
+
+      {viendoFoto === 'portada' && coverUrl && (
+        <FotoViewerModal
+          memoryId={coverMemoryId}
+          imageUrl={coverUrl}
+          titulo="Foto de portada"
+          onClose={() => setViendoFoto(null)}
+        />
+      )}
+
+      {viendoRecuerdoAjeno && (
+        <FotoViewerModal
+          memoryId={viendoRecuerdoAjeno.id}
+          imageUrl={viendoRecuerdoAjeno.mediaUrl || ''}
+          titulo={viendoRecuerdoAjeno.caption || `Recuerdo de ${perfilAjeno?.firstName}`}
+          onClose={() => setViendoRecuerdoAjeno(null)}
+        />
       )}
 
     </div>

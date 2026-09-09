@@ -40,12 +40,6 @@
     padding: 0;
   }
 
-  &__img {
-    height: 36px;
-    width: 36px;
-    object-fit: contain;
-  }
-
   &__name {
     font-family: v.$font-display;
     font-style: italic;

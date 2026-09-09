@@ -947,3 +947,14 @@ $shadow-lg:   0 8px 40px rgba(3,25,46,0.13);
 
   .settings-menu-item { min-width: 70px; padding: 8px; }
 }
+
+
+.settings-item-row--seleccionado {
+  border: 1.5px solid rgba(201, 147, 42, 0.4);
+  background: rgba(201, 147, 42, 0.05);
+}
+
+.settings-toggle.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}

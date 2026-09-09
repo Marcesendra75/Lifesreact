@@ -1,30 +1,233 @@
 // ============================================================
 // LIFE'S — Navbar.tsx | Componente compartido de navegación
-// Desktop: sidebar rail izquierda (íconos → expande al hover)
+// Desktop: sidebar rail izquierda (íconos → expande al hacer clic)
 // Mobile:  barra inferior fija con 5 ítems
 // Íconos: Lucide React
 // ============================================================
-import { NavLink, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Home, Activity, GitBranch, User, Lock,
+  Home, Activity, GitBranch, User, Lock, Menu, Users,
+  Search, Bell, ChevronDown, Settings as SettingsIcon, LogOut,
 } from 'lucide-react';
+import { connectionService, userService, notificationService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/logo.webp';
 import './Navbar.scss';
 
 const NAV_ITEMS = [
-  { ruta: '/feed',              label: 'Feed',          icono: <Home      size={22} strokeWidth={1.8} /> },
-  { ruta: '/linea-de-vida',     label: 'Línea de Vida', icono: <Activity  size={22} strokeWidth={1.8} /> },
-  { ruta: '/arbol-genealogico', label: 'Árbol',         icono: <GitBranch size={22} strokeWidth={1.8} /> },
-  { ruta: '/perfil',            label: 'Perfil',        icono: <User      size={22} strokeWidth={1.8} /> },
+  { ruta: '/feed', label: 'Feed', icono: <Home size={22} strokeWidth={1.8} /> },
+  { ruta: '/linea-de-vida', label: 'Línea de Vida', icono: <Activity size={22} strokeWidth={1.8} /> },
+  { ruta: '/arbol-genealogico', label: 'Árbol', icono: <GitBranch size={22} strokeWidth={1.8} /> },
+  { ruta: '/personas', label: 'Personas', icono: <Users size={22} strokeWidth={1.8} /> },
+  { ruta: '/perfil', label: 'Perfil', icono: <User size={22} strokeWidth={1.8} /> },
 ];
 
 const RUTAS_OCULTAS = [
   '/', '/login', '/crear-cuenta', '/acceso-seguro',
   '/recuperar', '/tarjeta-legado', '/tarjeta-pendiente',
   '/empresas', '/empresas/planes', '/404',
+  '/terminos', '/privacidad', '/verificar-email',
 ];
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [expandido, setExpandido] = useState(false);
+  const [solicitudesPendientes, setSolicitudesPendientes] = useState(0);
+
+  // ── Buscador rápido de la barra superior ──
+  const [query, setQuery] = useState('');
+  const [resultados, setResultados] = useState<any[]>([]);
+  const [buscando, setBuscando] = useState(false);
+  const [resultadosAbiertos, setResultadosAbiertos] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
+
+  const handleQueryChange = (texto: string) => {
+    setQuery(texto);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (texto.trim().length < 2) {
+      setResultados([]);
+      setResultadosAbiertos(false);
+      return;
+    }
+    debounceRef.current = setTimeout(async () => {
+      setBuscando(true);
+      setResultadosAbiertos(true);
+      try {
+        const res: any = await userService.search(texto, 1, 6);
+        setResultados(res.data.items);
+      } catch {
+        setResultados([]);
+      } finally {
+        setBuscando(false);
+      }
+    }, 400);
+  };
+
+  const irAPersona = (id: string) => {
+    setResultadosAbiertos(false);
+    setQuery('');
+    navigate(`/perfil/${id}`);
+  };
+
+  // cerrar el desplegable de resultados con click afuera
+  useEffect(() => {
+    if (!resultadosAbiertos) return;
+    const onClickFuera = (e: MouseEvent) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
+        setResultadosAbiertos(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickFuera);
+    return () => document.removeEventListener('mousedown', onClickFuera);
+  }, [resultadosAbiertos]);
+
+  // ── Menú rápido del avatar ──
+  const [menuAvatarAbierto, setMenuAvatarAbierto] = useState(false);
+
+  // ── Notificaciones ──
+  const [notifAbiertas, setNotifAbiertas] = useState(false);
+  const [notifItems, setNotifItems] = useState<any[]>([]);
+  const [cargandoNotifs, setCargandoNotifs] = useState(false);
+  const [cargandoMasNotifs, setCargandoMasNotifs] = useState(false);
+  const [notifPage, setNotifPage] = useState(1);
+  const [notifTotalPages, setNotifTotalPages] = useState(1);
+  const [noLeidas, setNoLeidas] = useState(0);
+  const notifPanelRef = useRef<HTMLDivElement>(null);
+
+  const cargarNoLeidas = () => {
+    notificationService.unreadCount()
+      .then((res: any) => setNoLeidas(res.data.count))
+      .catch(() => {});
+  };
+
+  const abrirNotificaciones = async () => {
+    const nuevoEstado = !notifAbiertas;
+    setNotifAbiertas(nuevoEstado);
+    if (nuevoEstado) {
+      setCargandoNotifs(true);
+      try {
+        const res: any = await notificationService.list(1, 15);
+        setNotifItems(res.data.items);
+        setNotifPage(1);
+        setNotifTotalPages(res.data.totalPages);
+      } catch {
+        setNotifItems([]);
+      } finally {
+        setCargandoNotifs(false);
+      }
+    }
+  };
+
+  const cargarMasNotificaciones = async () => {
+    if (cargandoMasNotifs || notifPage >= notifTotalPages) return;
+    setCargandoMasNotifs(true);
+    try {
+      const siguiente = notifPage + 1;
+      const res: any = await notificationService.list(siguiente, 15);
+      setNotifItems((prev) => [...prev, ...res.data.items]);
+      setNotifPage(siguiente);
+      setNotifTotalPages(res.data.totalPages);
+    } catch {
+      // si falla, simplemente no se agrega nada; el usuario puede reintentar scrolleando de nuevo
+    } finally {
+      setCargandoMasNotifs(false);
+    }
+  };
+
+  // scroll infinito dentro del panel: al acercarse al final, pedimos la página siguiente
+  useEffect(() => {
+    const panel = notifPanelRef.current;
+    if (!panel || !notifAbiertas) return;
+
+    const onScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = panel;
+      if (scrollHeight - scrollTop - clientHeight < 80) {
+        cargarMasNotificaciones();
+      }
+    };
+
+    panel.addEventListener('scroll', onScroll);
+    return () => panel.removeEventListener('scroll', onScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifAbiertas, notifPage, notifTotalPages, cargandoMasNotifs]);
+
+  const tocarNotificacion = async (n: any) => {
+    setNotifAbiertas(false);
+    if (!n.isRead) {
+      try {
+        await notificationService.markRead(n.id);
+        setNoLeidas((prev) => Math.max(0, prev - 1));
+      } catch {}
+    }
+
+    // reacción/comentario van directo al recuerdo puntual, no al feed general
+    if ((n.type === 'reaction' || n.type === 'comment') && n.entityId) {
+      navigate(`/feed/${n.entityId}`);
+      return;
+    }
+
+    // las de conexión pendiente van directo a la pestaña donde se resuelven
+    if (n.type === 'connection_request') {
+      navigate('/personas?tab=solicitudes');
+      return;
+    }
+    if (n.type === 'relation_type_proposed') {
+      navigate('/vinculos?tab=propuestas');
+      return;
+    }
+
+    const destinos: Record<string, string> = {
+      connection_accepted: '/vinculos',
+      connection_rejected: '/personas',
+      relation_type_accepted: '/vinculos',
+      relation_type_rejected: '/vinculos',
+      relation_type_cancelled: '/vinculos',
+    };
+    navigate(destinos[n.type] || '/feed');
+  };
+
+  const NOTIF_TEXTO: Record<string, (n: any) => string> = {
+    connection_request: (n) => `${n.actor?.firstName || 'Alguien'} te envió una solicitud de conexión`,
+    connection_accepted: (n) => `${n.actor?.firstName || 'Alguien'} aceptó tu solicitud de conexión`,
+    connection_rejected: (n) => `${n.actor?.firstName || 'Alguien'} rechazó tu solicitud de conexión`,
+    relation_type_proposed: (n) => `${n.actor?.firstName || 'Alguien'} te propuso un tipo de vínculo`,
+    relation_type_accepted: (n) => `${n.actor?.firstName || 'Alguien'} aceptó tu propuesta de vínculo`,
+    relation_type_rejected: (n) => `${n.actor?.firstName || 'Alguien'} rechazó tu propuesta de vínculo`,
+    relation_type_cancelled: (n) => `${n.actor?.firstName || 'Alguien'} canceló su propuesta de vínculo`,
+    reaction: (n) => n.actorsCount > 1
+      ? `${n.actor?.firstName || 'Alguien'} y ${n.actorsCount - 1} persona${n.actorsCount - 1 === 1 ? '' : 's'} más reaccionaron a tu recuerdo`
+      : `${n.actor?.firstName || 'Alguien'} reaccionó a tu recuerdo`,
+    comment: (n) => n.actorsCount > 1
+      ? `${n.actor?.firstName || 'Alguien'} y ${n.actorsCount - 1} persona${n.actorsCount - 1 === 1 ? '' : 's'} más comentaron tu recuerdo`
+      : `${n.actor?.firstName || 'Alguien'} comentó tu recuerdo`,
+  };
+
+  const cargarPendientes = () => {
+    connectionService.list('pending')
+      .then((res: any) => {
+        // solo las que ME llegaron a mí, no las que yo mandé
+        const recibidas = res.data.filter((c: any) => c.addressee.id === user?.id);
+        setSolicitudesPendientes(recibidas.length);
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    cargarPendientes();
+    cargarNoLeidas();
+    // se actualiza solo al volver de /personas (por si aceptaste/rechazaste algo ahí)
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const onActualizado = () => cargarPendientes();
+    window.addEventListener('lifes:solicitudes-actualizadas', onActualizado);
+    return () => window.removeEventListener('lifes:solicitudes-actualizadas', onActualizado);
+  }, []);
+
   if (RUTAS_OCULTAS.includes(location.pathname)) return null;
   if (
     location.pathname.startsWith('/empresas/perfil') ||
@@ -37,27 +240,149 @@ export default function Navbar() {
 
   return (
     <>
+      {/* ── BARRA SUPERIOR FIJA: buscador + notificaciones + avatar ── */}
+      <header className={`navbar-top${expandido ? ' navbar-top--expandido' : ''}`}>
+        <NavLink
+          to="/feed"
+          className="navbar-top__brand"
+          onClick={() => {
+            if (location.pathname === '/feed') {
+              window.dispatchEvent(new CustomEvent('lifes:nav-refresh', { detail: '/feed' }));
+            }
+          }}
+        >
+          <img src={logo} alt="Life's" className="navbar-top__brand-logo" />
+          <span className="navbar-top__brand-text">Life's</span>
+        </NavLink>
+
+        <div className="navbar-top__search" ref={searchWrapRef}>
+          <Search size={16} strokeWidth={1.8} />
+          <input
+            type="text"
+            placeholder="Buscar personas..."
+            value={query}
+            onChange={(e) => handleQueryChange(e.target.value)}
+            onFocus={() => query.trim().length >= 2 && setResultadosAbiertos(true)}
+          />
+          {resultadosAbiertos && (
+            <div className="navbar-top__resultados">
+              {buscando && <p className="navbar-top__resultados-vacio">Buscando...</p>}
+              {!buscando && resultados.length === 0 && (
+                <p className="navbar-top__resultados-vacio">No encontramos a nadie con ese nombre.</p>
+              )}
+              {!buscando && resultados.map((p) => (
+                <button key={p.id} className="navbar-top__resultado" onClick={() => irAPersona(p.id)}>
+                  {p.avatarUrl
+                    ? <img src={p.avatarUrl} alt={p.firstName} />
+                    : <div className="navbar-top__resultado-vacio">{p.firstName[0]}</div>
+                  }
+                  <span>{p.firstName} {p.lastName}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="navbar-top__acciones">
+          <div className="navbar-top__notif-wrap">
+            <button className="navbar-top__icon-btn" aria-label="Notificaciones" onClick={abrirNotificaciones}>
+              <Bell size={19} strokeWidth={1.8} />
+              {noLeidas > 0 && <span className="navbar-top__notif-badge">{noLeidas > 9 ? '9+' : noLeidas}</span>}
+            </button>
+            {notifAbiertas && (
+              <>
+                <div className="navbar-top__menu-backdrop" onClick={() => setNotifAbiertas(false)} />
+                <div className="navbar-top__notif-panel" ref={notifPanelRef}>
+                  <div className="navbar-top__notif-header">Notificaciones</div>
+                  {cargandoNotifs && <p className="navbar-top__notif-vacio">Cargando...</p>}
+                  {!cargandoNotifs && notifItems.length === 0 && (
+                    <p className="navbar-top__notif-vacio">No tenés notificaciones todavía.</p>
+                  )}
+                  {!cargandoNotifs && notifItems.map((n) => (
+                    <button
+                      key={n.id}
+                      className={`navbar-top__notif-item${n.isRead ? '' : ' sin-leer'}`}
+                      onClick={() => tocarNotificacion(n)}
+                    >
+                      {n.actor?.avatarUrl
+                        ? <img src={n.actor.avatarUrl} alt={n.actor.firstName} />
+                        : <div className="navbar-top__notif-item-vacio">{n.actor?.firstName?.[0] || '?'}</div>
+                      }
+                      <span>{NOTIF_TEXTO[n.type]?.(n) || 'Nueva notificación'}</span>
+                    </button>
+                  ))}
+                  {cargandoMasNotifs && <p className="navbar-top__notif-vacio">Cargando más...</p>}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="navbar-top__avatar-wrap">
+            <button className="navbar-top__avatar-btn" onClick={() => setMenuAvatarAbierto(v => !v)}>
+              {user?.avatarUrl
+                ? <img src={user.avatarUrl} alt={user.firstName} className="navbar-top__avatar" />
+                : <div className="navbar-top__avatar navbar-top__avatar--vacio">{user?.firstName?.[0]}</div>
+              }
+              <ChevronDown size={14} strokeWidth={2} />
+            </button>
+            {menuAvatarAbierto && (
+              <>
+                <div className="navbar-top__menu-backdrop" onClick={() => setMenuAvatarAbierto(false)} />
+                <div className="navbar-top__menu">
+                  <button onClick={() => { setMenuAvatarAbierto(false); navigate('/perfil'); }}>
+                    <User size={15} strokeWidth={1.8} /> Mi perfil
+                  </button>
+                  <button onClick={() => { setMenuAvatarAbierto(false); navigate('/configuracion'); }}>
+                    <SettingsIcon size={15} strokeWidth={1.8} /> Configuración
+                  </button>
+                  <button onClick={() => { setMenuAvatarAbierto(false); logout(); }}>
+                    <LogOut size={15} strokeWidth={1.8} /> Cerrar sesión
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
       {/* ── DESKTOP: sidebar rail ── */}
-      <nav className="navbar-rail" aria-label="Navegación principal">
+      <nav className={`navbar-rail${expandido ? ' expandido' : ''}`} aria-label="Navegación principal">
         <div className="navbar-rail__logo">
-          <span className="navbar-rail__logo-icon">L</span>
+          <button
+            className="navbar-rail__toggle"
+            onClick={() => setExpandido(!expandido)}
+            aria-label={expandido ? 'Colapsar menú' : 'Expandir menú'}
+          >
+            <Menu size={20} strokeWidth={1.8} />
+          </button>
+          <img src={logo} alt="Life's" className="navbar-rail__logo-icon" />
           <span className="navbar-rail__logo-text">Life's</span>
         </div>
-        <ul className="navbar-rail__items">
+        <ul className="navbar-rail__items" onClick={() => setExpandido(false)}>
           {NAV_ITEMS.map(item => (
             <li key={item.ruta}>
               <NavLink
                 to={item.ruta}
+                title={item.label}
                 className={({ isActive }) => `navbar-rail__link${isActive ? ' active' : ''}`}
+                onClick={() => {
+                  if (location.pathname === item.ruta) {
+                    window.dispatchEvent(new CustomEvent('lifes:nav-refresh', { detail: item.ruta }));
+                  }
+                }}
               >
-                <span className="navbar-rail__icon">{item.icono}</span>
+                <span className="navbar-rail__icon">
+                  {item.icono}
+                  {item.ruta === '/personas' && solicitudesPendientes > 0 && (
+                    <span className="navbar-rail__badge">{solicitudesPendientes}</span>
+                  )}
+                </span>
                 <span className="navbar-rail__label">{item.label}</span>
               </NavLink>
             </li>
           ))}
         </ul>
         <div className="navbar-rail__boveda">
-          <NavLink to="/caja-fuerte" className="navbar-rail__boveda-btn" title="Bóveda">
+          <NavLink to="/caja-fuerte" className="navbar-rail__boveda-btn" title="Bóveda" onClick={() => setExpandido(false)}>
             <Lock size={18} strokeWidth={1.8} />
             <span>Bóveda</span>
           </NavLink>
@@ -71,11 +396,28 @@ export default function Navbar() {
             key={item.ruta}
             to={item.ruta}
             className={({ isActive }) => `navbar-bottom__item${isActive ? ' active' : ''}`}
+            onClick={() => {
+              if (location.pathname === item.ruta) {
+                window.dispatchEvent(new CustomEvent('lifes:nav-refresh', { detail: item.ruta }));
+              }
+            }}
           >
-            <span className="navbar-bottom__icon">{item.icono}</span>
+            <span className="navbar-bottom__icon">
+              {item.icono}
+              {item.ruta === '/personas' && solicitudesPendientes > 0 && (
+                <span className="navbar-bottom__badge">{solicitudesPendientes}</span>
+              )}
+            </span>
             <span className="navbar-bottom__label">{item.label}</span>
           </NavLink>
         ))}
+        <NavLink
+          to="/caja-fuerte"
+          className={({ isActive }) => `navbar-bottom__item navbar-bottom__item--boveda${isActive ? ' active' : ''}`}
+        >
+          <span className="navbar-bottom__icon"><Lock size={22} strokeWidth={1.8} /></span>
+          <span className="navbar-bottom__label">Bóveda</span>
+        </NavLink>
       </nav>
     </>
   );

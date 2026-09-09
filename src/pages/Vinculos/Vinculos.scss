@@ -1,30 +1,14 @@
 // ============================================================
 // LIFE'S — Vinculos.scss
-// Paleta: crema cálida — coherente con Profile.scss
 // ============================================================
+$noche: #03192E;
+$crema: #fbf9f5;
+$ambar: #C9932A;
+$piedra: #8A8279;
+$blanco: #ffffff;
+$peligro: #ba1a1a;
+$exito: #27ae60;
 
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600;700&display=swap');
-
-// ── Tokens (mismos que Profile) ─────────────────────────────
-$noche:       #03192E;
-$noche-med:   #052240;
-$crema:       #F5F0E8;
-$crema-med:   #EDE8DF;
-$ambar:       #C9932A;
-$ambar-light: #E8B84B;
-$piedra:      #8A8279;
-$piedra-light:#C4BFB8;
-$blanco:      #ffffff;
-$verde:       #27ae60;
-$rojo:        #c0392b;
-
-$radius-sm:   8px;
-$radius-md:   14px;
-$radius-lg:   22px;
-$shadow-card: 0 4px 24px rgba(3,25,46,0.07);
-$shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
-
-// ── Base ─────────────────────────────────────────────────────
 .vk-page {
   min-height: 100dvh;
   background: $crema;
@@ -33,202 +17,151 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
   padding-bottom: 80px;
 }
 
-// ── Header ───────────────────────────────────────────────────
 .vk-header {
-  background: $noche;
-  padding: 32px 40px 0;
-
-  @media (max-width: 600px) { padding: 24px 20px 0; }
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 20px 0;
 
   &__inner {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: flex-start;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
   &__buscar-btn {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: rgba(white, 0.08);
-    border: 1.5px solid rgba(white, 0.2);
-    border-radius: $radius-md;
-    font-family: 'Manrope', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: rgba(white, 0.9);
+    gap: 6px;
+    background: $noche;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-      background: $ambar;
-      border-color: $ambar;
-      color: white;
-    }
+    transition: background 0.2s;
+    &:hover { background: #1a2e44; }
   }
 }
 
 .vk-eyebrow {
   display: block;
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: $ambar;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .vk-titulo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   font-family: 'Newsreader', serif;
   font-style: italic;
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 400;
-  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
-
-  svg { color: $ambar; }
 }
 
-// ── Stats rápidas ────────────────────────────────────────────
 .vk-stats {
   display: flex;
-  gap: 0;
-  border-top: 0.5px solid rgba(white, 0.1);
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .vk-stat {
-  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 10px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 14px 0;
-  border-right: 0.5px solid rgba(white, 0.08);
+  min-width: 70px;
+  box-shadow: 0 2px 8px rgba(3,25,46,0.06);
 
-  &:last-child { border-right: none; }
+  &--alerta { border: 1.5px solid rgba($ambar, 0.4); }
 
-  &--alerta .vk-stat__n { color: $ambar; }
-
-  &__n {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    line-height: 1;
-  }
-
-  &__l {
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(white, 0.5);
-  }
+  &__n { font-family: 'Newsreader', serif; font-size: 1.3rem; font-weight: 600; }
+  &__l { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: $piedra; letter-spacing: 0.05em; }
 }
 
-// ── Tabs ─────────────────────────────────────────────────────
 .vk-tabs {
+  max-width: 900px;
+  margin: 20px auto 0;
+  padding: 0 20px;
   display: flex;
-  background: $blanco;
-  border-bottom: 1.5px solid rgba($noche, 0.08);
-  padding: 0 40px;
-  gap: 0;
-  overflow-x: auto;
-
-  @media (max-width: 600px) { padding: 0 16px; }
+  gap: 8px;
+  border-bottom: 1px solid rgba($noche, 0.08);
 }
 
 .vk-tab {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 16px 20px;
+  gap: 6px;
   background: none;
   border: none;
-  border-bottom: 2.5px solid transparent;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: $piedra;
   cursor: pointer;
+  padding: 10px 6px;
+  margin-right: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: $piedra;
+  border-bottom: 2px solid transparent;
   transition: all 0.2s;
-  white-space: nowrap;
 
-  &:hover { color: $noche; }
-
-  &.active {
-    color: $noche;
-    border-bottom-color: $ambar;
-  }
-
-  &__count {
-    background: rgba($noche, 0.08);
-    color: $piedra;
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 20px;
-
-    &--alerta {
-      background: $rojo;
-      color: white;
-    }
-  }
+  &.active { color: $noche; border-bottom-color: $ambar; }
 }
 
-// ── Contenido general ────────────────────────────────────────
+.vk-tab__count {
+  background: rgba($noche, 0.08);
+  color: $piedra;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+
+  &--alerta { background: $peligro; color: white; }
+}
+
 .vk-content {
   max-width: 900px;
-  margin: 0 auto;
-  padding: 32px 40px;
-
-  @media (max-width: 600px) { padding: 20px 16px; }
+  margin: 20px auto 0;
+  padding: 0 20px;
 }
 
-// ── Toolbar: búsqueda + filtros ──────────────────────────────
 .vk-toolbar {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .vk-search {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border-radius: 999px;
+  padding: 8px 14px;
   flex: 1;
-  min-width: 180px;
-
-  &__icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: $piedra;
-    pointer-events: none;
-  }
+  min-width: 200px;
+  color: $piedra;
 
   &__input {
-    width: 100%;
-    padding: 10px 14px 10px 36px;
-    border: 1.5px solid rgba($noche, 0.12);
-    border-radius: $radius-sm;
-    background: $blanco;
-    font-family: 'Manrope', sans-serif;
-    font-size: 0.83rem;
-    color: $noche;
+    flex: 1;
+    border: none;
+    background: none;
     outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-
-    &::placeholder { color: $piedra-light; }
-    &:focus { border-color: $ambar; }
+    font-size: 0.82rem;
+    color: $noche;
   }
 }
 
@@ -239,458 +172,230 @@ $shadow-lg:   0 12px 48px rgba(3,25,46,0.14);
 }
 
 .vk-filtro {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 5px;
-  padding: 8px 14px;
-  border: 1.5px solid rgba($noche, 0.12);
-  border-radius: $radius-sm;
-  background: $blanco;
-  font-family: 'Manrope', sans-serif;
+  background: white;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  padding: 6px 12px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: $piedra;
-  cursor: pointer;
-  transition: all 0.18s;
-
-  &:hover { border-color: $ambar; color: $ambar; }
-
-  &.active {
-    background: $noche;
-    border-color: $noche;
-    color: white;
-  }
-}
-
-// ── Grid de vínculos ─────────────────────────────────────────
-.vk-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
-  margin-bottom: 40px;
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.vk-card {
-  background: $blanco;
-  border-radius: $radius-md;
-  border: 0.5px solid rgba($noche, 0.08);
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: $shadow-card;
-  transition: box-shadow 0.2s, transform 0.2s;
-
-  &:hover {
-    box-shadow: $shadow-lg;
-    transform: translateY(-1px);
-  }
-
-  &__avatar-wrap {
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  &__avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid $crema-med;
-  }
-
-  &__tipo-emoji {
-    position: absolute;
-    bottom: -2px;
-    right: -4px;
-    font-size: 1rem;
-    line-height: 1;
-    background: $blanco;
-    border-radius: 50%;
-    padding: 1px;
-  }
-
-  &__info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  &__nombre {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: $noche;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__tipo {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: $ambar;
-  }
-
-  &__ciudad, &__trabajo {
-    font-size: 0.68rem;
-    color: $piedra;
-  }
-
-  &__acciones {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-
-  &__btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.18s;
-
-    &--perfil {
-      background: rgba($noche, 0.06);
-      color: $noche;
-      &:hover { background: $noche; color: white; }
-    }
-
-    &--eliminar {
-      background: rgba($rojo, 0.07);
-      color: $rojo;
-      &:hover { background: $rojo; color: white; }
-    }
-  }
-}
-
-// ── Sugerencias ──────────────────────────────────────────────
-.vk-sugerencias {
-  border-top: 1.5px solid rgba($noche, 0.08);
-  padding-top: 28px;
-
-  &__titulo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'Newsreader', serif;
-    font-style: italic;
-    font-size: 1.2rem;
-    font-weight: 400;
-    color: $noche;
-    margin: 0 0 16px;
-
-    svg { color: $ambar; }
-  }
-
-  &__lista {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-}
-
-.vk-sugerido {
-  background: $blanco;
-  border-radius: $radius-md;
-  border: 0.5px solid rgba($noche, 0.08);
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  &__avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 2px solid $crema-med;
-  }
-
-  &__info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  &__nombre {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: $noche;
-  }
-
-  &__ciudad, &__mutuos {
-    font-size: 0.7rem;
-    color: $piedra;
-  }
-
-  &__btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: $noche;
-    border: none;
-    border-radius: $radius-sm;
-    font-family: 'Manrope', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s;
-    flex-shrink: 0;
-
-    &:hover {
-      background: $ambar;
-      transform: translateY(-1px);
-    }
-  }
-}
-
-// ── Solicitudes ──────────────────────────────────────────────
-.vk-solicitudes {
-  &__lista {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-}
-
-.vk-solicitud-card {
-  background: $blanco;
-  border-radius: $radius-md;
-  border: 0.5px solid rgba($noche, 0.08);
-  padding: 18px;
-  display: flex;
-  gap: 14px;
-  box-shadow: $shadow-card;
-  position: relative;
-
-  &__estado-dot {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: $ambar;
-  }
-
-  &--aceptada .vk-solicitud-card__estado-dot { background: $verde; }
-  &--rechazada .vk-solicitud-card__estado-dot { background: $rojo; }
-
-  &__avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 2px solid $crema-med;
-  }
-
-  &__body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  &__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  &__nombre {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: $noche;
-  }
-
-  &__tiempo {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.68rem;
-    color: $piedra;
-  }
-
-  &__tipo {
-    font-size: 0.78rem;
-    color: $piedra;
-    strong { color: $ambar; font-weight: 600; }
-  }
-
-  &__mensaje {
-    font-size: 0.75rem;
-    color: $piedra;
-    font-style: italic;
-    margin: 4px 0 0;
-    padding: 8px 12px;
-    background: rgba($noche, 0.03);
-    border-radius: $radius-sm;
-    border-left: 2px solid $ambar;
-    line-height: 1.5;
-  }
-
-  &__acciones {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-  }
-
-  &__badge {
-    display: inline-flex;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.68rem;
-    font-weight: 600;
-    width: fit-content;
-
-    &--pendiente { background: rgba($ambar, 0.12); color: $ambar; }
-    &--aceptada  { background: rgba($verde, 0.12); color: $verde; }
-    &--rechazada { background: rgba($rojo,  0.10); color: $rojo;  }
-  }
-}
-
-// Botones aceptar / rechazar
-.vk-btn-aceptar, .vk-btn-rechazar {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border: none;
-  border-radius: $radius-sm;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.18s;
-}
-
-.vk-btn-aceptar {
-  background: rgba($verde, 0.1);
-  color: $verde;
-  &:hover { background: $verde; color: white; transform: translateY(-1px); }
-}
-
-.vk-btn-rechazar {
-  background: rgba($rojo, 0.08);
-  color: $rojo;
-  &:hover { background: $rojo; color: white; transform: translateY(-1px); }
-}
-
-// ── Historial ────────────────────────────────────────────────
-.vk-historial {
-  margin-top: 32px;
-  border-top: 1.5px solid rgba($noche, 0.08);
-  padding-top: 20px;
-
-  &__titulo {
-    font-family: 'Newsreader', serif;
-    font-style: italic;
-    font-size: 1rem;
-    font-weight: 400;
-    color: $piedra;
-    margin: 0 0 12px;
-  }
-}
-
-.vk-historial-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 0.5px solid rgba($noche, 0.06);
-
-  &:last-child { border-bottom: none; }
-
-  &__avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    opacity: 0.6;
-  }
-
-  &__nombre {
-    flex: 1;
-    font-size: 0.82rem;
-    color: $piedra;
-  }
-
-  &__estado {
-    font-size: 0.7rem;
-    font-weight: 600;
-
-    &--aceptada { color: $verde; }
-    &--rechazada { color: $rojo; }
-  }
-}
-
-// ── Empty state ──────────────────────────────────────────────
-.vk-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 60px 20px;
-  text-align: center;
-
-  span:first-child { font-size: 3rem; }
-
-  p {
-    font-family: 'Newsreader', serif;
-    font-style: italic;
-    font-size: 1.1rem;
-    color: $noche;
-    margin: 0;
-  }
-
-  &__sub {
-    font-size: 0.78rem;
-    color: $piedra;
-  }
-}
-
-.vk-btn-explorar {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 8px;
-  padding: 10px 24px;
-  background: $noche;
-  border: none;
-  border-radius: $radius-md;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: white;
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover { background: $ambar; }
+  &.active { border-color: $ambar; color: $noche; background: rgba($ambar, 0.08); }
 }
 
-// ── Responsive ───────────────────────────────────────────────
-@media (max-width: 600px) {
-  .vk-tabs { padding: 0 12px; }
-  .vk-tab  { padding: 12px 14px; font-size: 0.75rem; }
-  .vk-solicitud-card { padding: 14px; }
-  .vk-card { flex-wrap: wrap; }
-  .vk-sugerido { flex-wrap: wrap; }
+.vk-empty {
+  text-align: center;
+  padding: 40px 0;
+  color: $piedra;
+  font-size: 0.85rem;
+
+  &__sub { display: block; font-size: 0.75rem; margin-top: 6px; }
+}
+
+.vk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.vk-card {
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(3,25,46,0.06);
+}
+
+.vk-card__avatar-wrap { position: relative; flex-shrink: 0; }
+
+.vk-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  &--vacio {
+    display: flex; align-items: center; justify-content: center;
+    background: $ambar; color: white; font-weight: 700;
+  }
+}
+
+.vk-card__tipo-emoji {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  padding: 2px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.vk-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vk-card__nombre { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vk-card__tipo { font-size: 0.7rem; color: $ambar; font-weight: 700; }
+.vk-card__pendiente { font-size: 0.65rem; color: $piedra; font-style: italic; }
+
+.vk-card__acciones { display: flex; gap: 4px; flex-shrink: 0; }
+
+.vk-card__btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+
+  &--perfil { background: rgba($ambar, 0.1); color: $ambar; &:hover { background: $ambar; color: white; } }
+  &--eliminar { background: rgba($peligro, 0.08); color: $peligro; &:hover { background: $peligro; color: white; } }
+}
+
+// ── Solicitudes / propuestas ──
+.vk-solicitudes__lista { display: flex; flex-direction: column; gap: 10px; }
+
+.vk-historial__titulo {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $piedra;
+  margin: 0 0 10px;
+}
+
+.vk-solicitud-card {
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  box-shadow: 0 2px 10px rgba(3,25,46,0.06);
+
+  &--enviada { border-left: 3px solid $ambar; }
+}
+
+.vk-solicitud-card__avatar {
+  width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  &--vacio { display: flex; align-items: center; justify-content: center; background: $ambar; color: white; font-weight: 700; }
+}
+
+.vk-solicitud-card__estado-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: $ambar; margin-top: 6px; flex-shrink: 0;
+}
+
+.vk-solicitud-card__body { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.vk-solicitud-card__nombre { font-size: 0.85rem; font-weight: 700; }
+.vk-solicitud-card__tipo { font-size: 0.78rem; color: $piedra; }
+.vk-solicitud-card__badge { font-size: 0.7rem; font-weight: 700; color: $ambar; }
+
+.vk-solicitud-card__acciones { display: flex; gap: 8px; margin-top: 4px; }
+
+.vk-btn-aceptar, .vk-btn-rechazar {
+  display: flex; align-items: center; gap: 5px;
+  border: none; border-radius: 8px; padding: 7px 14px;
+  font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+
+.vk-btn-aceptar { background: rgba($exito, 0.1); color: $exito; &:hover:not(:disabled) { background: $exito; color: white; } }
+.vk-btn-rechazar { background: rgba($peligro, 0.08); color: $peligro; &:hover:not(:disabled) { background: $peligro; color: white; } }
+
+// ── Modal proponer tipo ──
+.vk-modal-overlay {
+  position: fixed; inset: 0; background: rgba($noche, 0.5); backdrop-filter: blur(4px);
+  z-index: 300; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+
+.vk-modal {
+  background: white; border-radius: 18px; width: 100%; max-width: 460px;
+  padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.vk-modal__titulo { font-family: 'Newsreader', serif; font-style: italic; font-size: 1.2rem; margin: 0 0 4px; }
+.vk-modal__sub { font-size: 0.78rem; color: $piedra; margin: 0 0 16px; }
+
+.vk-modal__grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;
+}
+
+.vk-modal__tipo-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: $crema; border: 1.5px solid transparent; border-radius: 12px;
+  padding: 10px 4px; cursor: pointer; transition: all 0.18s;
+
+  &:hover:not(:disabled) { border-color: $ambar; background: rgba($ambar, 0.08); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.vk-modal__tipo-emoji { font-size: 1.2rem; }
+.vk-modal__tipo-label { font-size: 0.58rem; font-weight: 700; text-align: center; }
+
+.vk-modal__cerrar {
+  width: 100%; background: none; border: 1.5px solid rgba($noche, 0.15);
+  border-radius: 10px; padding: 10px; font-size: 0.8rem; font-weight: 700;
+  color: $piedra; cursor: pointer;
+}
+
+.vk-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: $noche; color: white; padding: 10px 20px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 500;
+}
+
+@media (max-width: 480px) {
+  .vk-grid { grid-template-columns: 1fr; }
+  .vk-modal__grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.vk-sugerencias {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(3, 25, 46, 0.08);
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #03192e;
+    margin: 0 0 14px;
+  }
+}
+
+.vk-card__info--link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+
+  &:hover:not(:has(.vk-card__tipo--link:hover)) .vk-card__nombre {
+    text-decoration: underline;
+  }
+}
+
+.vk-card__tipo--link {
+  display: inline-block;
+  width: fit-content;
+  color: $ambar;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.15s;
+
+  &:hover { color: darken($ambar, 12%); }
 }

@@ -1,201 +1,223 @@
 // ============================================================
 // LIFE'S — Vinculos.tsx
-// Sistema completo de vínculos: activos por categoría,
-// solicitudes recibidas/enviadas, explorar perfiles
-// Ruta: /vinculos
+// Gestión de vínculos reales: tus conexiones aceptadas, con su
+// tipo de relación (amigo por defecto, o el que se haya confirmado),
+// más las propuestas de tipo pendientes (recibidas y enviadas).
 // ============================================================
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Users, Bell, Send, Check, X, Search,
-  UserPlus, Heart, Briefcase, TreePine,
-  Clock, ChevronRight, Filter,
+  Users, Search, Heart, Briefcase, TreePine,
+  Check, X, ChevronRight, UserPlus,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { connectionService, userService } from '../../services/api';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
+import MutualsModal from '../../components/MutualsModal/MutualsModal';
 import './Vinculos.scss';
 
 // ── Tipos ────────────────────────────────────────────────────
-type TipoVinculo =
-  | 'pareja' | 'padre' | 'madre' | 'hijo/a'
-  | 'hermano/a' | 'abuelo/a' | 'amigo/a' | 'compañero/a'
-  | 'familiar' | 'colega' | 'conocido/a' | 'primo/a';
+type RelationType =
+  | 'pareja' | 'padre' | 'madre' | 'hijo' | 'hermano' | 'abuelo'
+  | 'primo' | 'familiar' | 'amigo' | 'conocido' | 'companero' | 'colega';
 
-type EstadoSolicitud = 'pendiente' | 'aceptada' | 'rechazada';
 type Categoria = 'todos' | 'familiar' | 'social' | 'trabajo';
-type VistaTab = 'vinculos' | 'recibidas' | 'enviadas';
+type Tab = 'vinculos' | 'propuestas';
 
-interface Vinculo {
+interface Persona {
   id: string;
-  nombre: string;
-  tipo: TipoVinculo;
-  avatar: string;
-  userId?: string;
-  ciudad?: string;
-  trabajo?: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string | null;
 }
 
-interface SolicitudVinculo {
+interface ConnectionItem {
   id: string;
-  deUserId: string;
-  deNombre: string;
-  deAvatar: string;
-  paraUserId: string;
-  tipo: TipoVinculo;
-  mensaje: string;
-  fecha: string;
-  estado: EstadoSolicitud;
+  requesterId: string;
+  addresseeId: string;
+  requester: Persona;
+  addressee: Persona;
+  relationType: RelationType;
+  relationTypePendiente: RelationType | null;
+  relationTypePropuestoPor: string | null;
 }
 
-// ── Config de tipos ─────────────────────────────────────────
-const VINCULO_CONFIG: Record<TipoVinculo, { emoji: string; label: string; categoria: Categoria }> = {
-  'pareja':     { emoji: '💑', label: 'Pareja',      categoria: 'familiar' },
-  'padre':      { emoji: '👨‍👧', label: 'Padre',       categoria: 'familiar' },
-  'madre':      { emoji: '👩‍👧', label: 'Madre',       categoria: 'familiar' },
-  'hijo/a':     { emoji: '👶', label: 'Hijo/a',      categoria: 'familiar' },
-  'hermano/a':  { emoji: '🧑‍🤝‍🧑', label: 'Hermano/a',  categoria: 'familiar' },
-  'abuelo/a':   { emoji: '👴', label: 'Abuelo/a',    categoria: 'familiar' },
-  'primo/a':    { emoji: '🫂', label: 'Primo/a',     categoria: 'familiar' },
-  'familiar':   { emoji: '👨‍👩‍👧‍👦', label: 'Familiar',   categoria: 'familiar' },
-  'amigo/a':    { emoji: '💛', label: 'Amigo/a',     categoria: 'social'   },
-  'conocido/a': { emoji: '🤝', label: 'Conocido/a',  categoria: 'social'   },
-  'compañero/a':{ emoji: '🙌', label: 'Compañero/a', categoria: 'social'   },
-  'colega':     { emoji: '💼', label: 'Colega',      categoria: 'trabajo'  },
+interface Sugerido {
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string | null;
+  city?: string | null;
+  mutuos: number;
+}
+
+// ── Config de tipos, alineada con el enum del backend ───────
+const RELATION_CONFIG: Record<RelationType, { emoji: string; label: string; categoria: Categoria }> = {
+  pareja:     { emoji: '💑', label: 'Pareja',      categoria: 'familiar' },
+  padre:      { emoji: '👨', label: 'Padre',       categoria: 'familiar' },
+  madre:      { emoji: '👩', label: 'Madre',       categoria: 'familiar' },
+  hijo:       { emoji: '👶', label: 'Hijo/a',      categoria: 'familiar' },
+  hermano:    { emoji: '🧑‍🤝‍🧑', label: 'Hermano/a',  categoria: 'familiar' },
+  abuelo:     { emoji: '👴', label: 'Abuelo/a',    categoria: 'familiar' },
+  primo:      { emoji: '🫂', label: 'Primo/a',     categoria: 'familiar' },
+  familiar:   { emoji: '👨‍👩‍👧‍👦', label: 'Familiar',   categoria: 'familiar' },
+  amigo:      { emoji: '💛', label: 'Amigo/a',     categoria: 'social'   },
+  conocido:   { emoji: '🤝', label: 'Conocido/a',  categoria: 'social'   },
+  companero:  { emoji: '🙌', label: 'Compañero/a', categoria: 'social'   },
+  colega:     { emoji: '💼', label: 'Colega',      categoria: 'trabajo'  },
 };
 
-// ── Vínculos iniciales de prueba ────────────────────────────
-const VINCULOS_INICIALES: Vinculo[] = [
-  { id: '1', nombre: 'María Valenzuela', tipo: 'hermano/a', avatar: 'https://i.pravatar.cc/100?img=5',   userId: '2', ciudad: 'Mendoza', trabajo: 'Docente' },
-  { id: '2', nombre: 'Marcelo García',   tipo: 'amigo/a',   avatar: 'https://i.pravatar.cc/100?img=68',  userId: '3', ciudad: 'Mendoza', trabajo: 'Broker de Seguros' },
-  { id: '3', nombre: 'Abuelo Pedro',     tipo: 'abuelo/a',  avatar: 'https://i.pravatar.cc/100?img=70',  ciudad: 'Córdoba' },
-  { id: '4', nombre: 'Papá Carlos',      tipo: 'padre',     avatar: 'https://i.pravatar.cc/100?img=60',  ciudad: 'Mendoza' },
-  { id: '5', nombre: 'Laura Sánchez',    tipo: 'amigo/a',   avatar: 'https://i.pravatar.cc/100?img=47',  ciudad: 'Buenos Aires', trabajo: 'Diseñadora' },
-  { id: '6', nombre: 'Diego Ramos',      tipo: 'colega',    avatar: 'https://i.pravatar.cc/100?img=52',  ciudad: 'Mendoza', trabajo: 'Contador' },
-  { id: '7', nombre: 'Ana García',       tipo: 'primo/a',   avatar: 'https://i.pravatar.cc/100?img=44',  ciudad: 'San Juan' },
+const TIPOS_PROPONIBLES: RelationType[] = [
+  'pareja', 'padre', 'madre', 'hijo', 'hermano', 'abuelo', 'primo',
+  'familiar', 'amigo', 'conocido', 'companero', 'colega',
 ];
 
-// ── Solicitudes de prueba ───────────────────────────────────
-const SOLICITUDES_DEMO: SolicitudVinculo[] = [
-  {
-    id: 'demo-1',
-    deUserId: '99',
-    deNombre: 'Valentina Cruz',
-    deAvatar: 'https://i.pravatar.cc/100?img=32',
-    paraUserId: '1',
-    tipo: 'conocido/a',
-    mensaje: 'Hola! Nos conocimos en el evento de fotografía el mes pasado.',
-    fecha: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    estado: 'pendiente',
-  },
-  {
-    id: 'demo-2',
-    deUserId: '98',
-    deNombre: 'Roberto Fernández',
-    deAvatar: 'https://i.pravatar.cc/100?img=57',
-    paraUserId: '1',
-    tipo: 'familiar',
-    mensaje: 'Soy primo de tu mamá, me contó que tenés perfil acá.',
-    fecha: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    estado: 'pendiente',
-  },
-];
-
-// ── Perfiles sugeridos ──────────────────────────────────────
-const SUGERIDOS = [
-  { userId: '2', nombre: 'María Valenzuela', avatar: 'https://i.pravatar.cc/100?img=5',  ciudad: 'Mendoza', mutuos: 3 },
-  { userId: '3', nombre: 'Marcelo García',   avatar: 'https://i.pravatar.cc/100?img=68', ciudad: 'Mendoza', mutuos: 5 },
-  { userId: '4', nombre: 'Elena Morales',    avatar: 'https://i.pravatar.cc/100?img=25', ciudad: 'Córdoba', mutuos: 1 },
-  { userId: '5', nombre: 'Luis Herrera',     avatar: 'https://i.pravatar.cc/100?img=51', ciudad: 'Rosario', mutuos: 2 },
-];
-
-const STORAGE_KEY_SOL   = 'lifes_vinculos_solicitudes';
-const STORAGE_KEY_VINS  = 'lifes_vinculos_activos';
-
-function formatFecha(iso: string) {
-  const d = new Date(iso);
-  const ahora = new Date();
-  const diff  = (ahora.getTime() - d.getTime()) / 1000;
-  if (diff < 3600)  return `Hace ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} h`;
-  return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
-}
-
-// ── Componente ───────────────────────────────────────────────
 export default function Vinculos() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [tab,       setTab]       = useState<VistaTab>('vinculos');
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(searchParams.get('tab') === 'propuestas' ? 'propuestas' : 'vinculos');
   const [categoria, setCategoria] = useState<Categoria>('todos');
-  const [busqueda,  setBusqueda]  = useState('');
+  const [busqueda, setBusqueda] = useState('');
+  const [connections, setConnections] = useState<ConnectionItem[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [toast, setToast] = useState('');
+  const [enviando, setEnviando] = useState<string | null>(null);
 
-  // Vínculos activos
-  const [vinculos, setVinculos] = useState<Vinculo[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_VINS);
-      return raw ? JSON.parse(raw) : VINCULOS_INICIALES;
-    } catch { return VINCULOS_INICIALES; }
-  });
+  const [proponiendoPara, setProponiendoPara] = useState<ConnectionItem | null>(null);
+  const [eliminando, setEliminando] = useState<ConnectionItem | null>(null);
 
-  // Solicitudes
-  const [solicitudes, setSolicitudes] = useState<SolicitudVinculo[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_SOL);
-      const guardadas: SolicitudVinculo[] = raw ? JSON.parse(raw) : [];
-      // Mezclar demos que no estén ya guardados
-      const ids = guardadas.map(s => s.id);
-      const demos = SOLICITUDES_DEMO.filter(d => !ids.includes(d.id));
-      return [...demos, ...guardadas];
-    } catch { return SOLICITUDES_DEMO; }
-  });
+  const [sugeridos, setSugeridos] = useState<Sugerido[]>([]);
+  const [cargandoSugeridos, setCargandoSugeridos] = useState(true);
+  const [enviadosSugeridos, setEnviadosSugeridos] = useState<Set<string>>(new Set());
+  const [verMutuosDe, setVerMutuosDe] = useState<Sugerido | null>(null);
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY_VINS, JSON.stringify(vinculos)); } catch {}
-  }, [vinculos]);
+    cargarConexiones();
+    cargarSugeridos();
+  }, []);
 
-  useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY_SOL, JSON.stringify(solicitudes)); } catch {}
-  }, [solicitudes]);
-
-  const recibidas = solicitudes.filter(s => s.paraUserId === '1' && s.estado === 'pendiente');
-  const enviadas  = solicitudes.filter(s => s.deUserId === '1');
-
-  // Filtrar vínculos
-  const vinculosFiltrados = vinculos.filter(v => {
-    const cat = VINCULO_CONFIG[v.tipo]?.categoria;
-    const matchCat = categoria === 'todos' || cat === categoria;
-    const matchBus = v.nombre.toLowerCase().includes(busqueda.toLowerCase());
-    return matchCat && matchBus;
-  });
-
-  // Responder solicitud
-  const responder = (id: string, accion: 'aceptada' | 'rechazada') => {
-    const actualizadas = solicitudes.map(s =>
-      s.id === id ? { ...s, estado: accion } : s
-    );
-    setSolicitudes(actualizadas);
-
-    if (accion === 'aceptada') {
-      const sol = solicitudes.find(s => s.id === id);
-      if (sol) {
-        const nuevo: Vinculo = {
-          id:     Date.now().toString(),
-          nombre: sol.deNombre,
-          tipo:   sol.tipo,
-          avatar: sol.deAvatar,
-          userId: sol.deUserId,
-        };
-        setVinculos(prev => [...prev, nuevo]);
-      }
+  const cargarSugeridos = async () => {
+    setCargandoSugeridos(true);
+    try {
+      const res: any = await userService.getSuggestions();
+      setSugeridos(res.data);
+    } catch {
+      setSugeridos([]);
+    } finally {
+      setCargandoSugeridos(false);
     }
   };
 
-  // Eliminar vínculo
-  const eliminarVinculo = (id: string) => {
-    setVinculos(prev => prev.filter(v => v.id !== id));
+  const conectarSugerido = async (persona: Sugerido) => {
+    try {
+      await connectionService.sendRequestById(persona.id);
+      setEnviadosSugeridos(prev => new Set(prev).add(persona.id));
+      showToast(`Solicitud enviada a ${persona.firstName}`);
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo enviar la solicitud');
+    }
   };
 
-  // Contadores
-  const countFamiliar = vinculos.filter(v => VINCULO_CONFIG[v.tipo]?.categoria === 'familiar').length;
-  const countSocial   = vinculos.filter(v => VINCULO_CONFIG[v.tipo]?.categoria === 'social').length;
-  const countTrabajo  = vinculos.filter(v => VINCULO_CONFIG[v.tipo]?.categoria === 'trabajo').length;
+  const cargarConexiones = async () => {
+    setCargando(true);
+    try {
+      const res: any = await connectionService.list('accepted');
+      setConnections(res.data);
+    } catch {
+      setConnections([]);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const otroDe = (c: ConnectionItem): Persona =>
+    c.requesterId === user?.id ? c.addressee : c.requester;
+
+  const vinculosFiltrados = connections.filter(c => {
+    const otro = otroDe(c);
+    const cat = RELATION_CONFIG[c.relationType]?.categoria;
+    const matchCat = categoria === 'todos' || cat === categoria;
+    const nombreCompleto = `${otro.firstName} ${otro.lastName}`.toLowerCase();
+    const matchBus = nombreCompleto.includes(busqueda.toLowerCase());
+    return matchCat && matchBus;
+  });
+
+  const recibidas = connections.filter(c => c.relationTypePendiente && c.relationTypePropuestoPor !== user?.id);
+  const enviadas  = connections.filter(c => c.relationTypePendiente && c.relationTypePropuestoPor === user?.id);
+
+  const countFamiliar = connections.filter(c => RELATION_CONFIG[c.relationType]?.categoria === 'familiar').length;
+  const countSocial   = connections.filter(c => RELATION_CONFIG[c.relationType]?.categoria === 'social').length;
+  const countTrabajo  = connections.filter(c => RELATION_CONFIG[c.relationType]?.categoria === 'trabajo').length;
+
+  const proponer = async (tipo: RelationType) => {
+    if (!proponiendoPara) return;
+    setEnviando(proponiendoPara.id);
+    try {
+      await connectionService.proposeType(proponiendoPara.id, tipo);
+      showToast(`Le propusiste "${RELATION_CONFIG[tipo].label}" a ${otroDe(proponiendoPara).firstName}`);
+      setProponiendoPara(null);
+      cargarConexiones();
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo enviar la propuesta');
+    } finally {
+      setEnviando(null);
+    }
+  };
+
+  const aceptarTipo = async (c: ConnectionItem) => {
+    setEnviando(c.id);
+    try {
+      await connectionService.acceptType(c.id);
+      showToast(`Ahora ${otroDe(c).firstName} figura como ${RELATION_CONFIG[c.relationTypePendiente!].label}`);
+      cargarConexiones();
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo aceptar');
+    } finally {
+      setEnviando(null);
+    }
+  };
+
+  const cancelarPropuesta = async (c: ConnectionItem) => {
+    setEnviando(c.id);
+    try {
+      await connectionService.cancelType(c.id);
+      showToast('Propuesta cancelada');
+      cargarConexiones();
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo cancelar');
+    } finally {
+      setEnviando(null);
+    }
+  };
+
+  const rechazarTipo = async (c: ConnectionItem) => {
+    setEnviando(c.id);
+    try {
+      await connectionService.rejectType(c.id);
+      showToast('Propuesta rechazada');
+      cargarConexiones();
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo rechazar');
+    } finally {
+      setEnviando(null);
+    }
+  };
+
+  const confirmarEliminar = async () => {
+    if (!eliminando) return;
+    const c = eliminando;
+    setEliminando(null);
+    try {
+      await connectionService.remove(c.id);
+      setConnections(connections.filter(x => x.id !== c.id));
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo eliminar el vínculo');
+    }
+  };
 
   return (
     <div className="vk-page with-navbar">
@@ -210,19 +232,15 @@ export default function Vinculos() {
               Mis Vínculos
             </h1>
           </div>
-          <button
-            className="vk-header__buscar-btn"
-            onClick={() => navigate('/perfil/2')}
-          >
+          <button className="vk-header__buscar-btn" onClick={() => navigate('/personas')}>
             <UserPlus size={16} strokeWidth={2} />
-            Explorar perfiles
+            Buscar personas
           </button>
         </div>
 
-        {/* Stats rápidas */}
         <div className="vk-stats">
           <div className="vk-stat">
-            <span className="vk-stat__n">{vinculos.length}</span>
+            <span className="vk-stat__n">{connections.length}</span>
             <span className="vk-stat__l">Total</span>
           </div>
           <div className="vk-stat">
@@ -239,50 +257,29 @@ export default function Vinculos() {
           </div>
           <div className="vk-stat vk-stat--alerta">
             <span className="vk-stat__n">{recibidas.length}</span>
-            <span className="vk-stat__l">Pendientes</span>
+            <span className="vk-stat__l">Propuestas</span>
           </div>
         </div>
       </div>
 
       {/* ── Tabs ── */}
       <div className="vk-tabs">
-        <button
-          className={`vk-tab${tab === 'vinculos' ? ' active' : ''}`}
-          onClick={() => setTab('vinculos')}
-        >
+        <button className={`vk-tab${tab === 'vinculos' ? ' active' : ''}`} onClick={() => setTab('vinculos')}>
           <Users size={15} strokeWidth={2} />
           Mis vínculos
-          <span className="vk-tab__count">{vinculos.length}</span>
+          <span className="vk-tab__count">{connections.length}</span>
         </button>
-        <button
-          className={`vk-tab${tab === 'recibidas' ? ' active' : ''}`}
-          onClick={() => setTab('recibidas')}
-        >
-          <Bell size={15} strokeWidth={2} />
-          Recibidas
-          {recibidas.length > 0 && (
-            <span className="vk-tab__count vk-tab__count--alerta">{recibidas.length}</span>
-          )}
-        </button>
-        <button
-          className={`vk-tab${tab === 'enviadas' ? ' active' : ''}`}
-          onClick={() => setTab('enviadas')}
-        >
-          <Send size={15} strokeWidth={2} />
-          Enviadas
-          <span className="vk-tab__count">{enviadas.length}</span>
+        <button className={`vk-tab${tab === 'propuestas' ? ' active' : ''}`} onClick={() => setTab('propuestas')}>
+          Propuestas
+          {recibidas.length > 0 && <span className="vk-tab__count vk-tab__count--alerta">{recibidas.length}</span>}
         </button>
       </div>
 
       <div className="vk-content">
 
-        {/* ══════════════════════════════════════
-            TAB: MIS VÍNCULOS
-        ══════════════════════════════════════ */}
+        {/* ══ TAB: MIS VÍNCULOS ══ */}
         {tab === 'vinculos' && (
           <div className="vk-vinculos">
-
-            {/* Barra de búsqueda + filtro */}
             <div className="vk-toolbar">
               <div className="vk-search">
                 <Search size={15} className="vk-search__icon" />
@@ -296,10 +293,10 @@ export default function Vinculos() {
               </div>
               <div className="vk-filtros">
                 {([
-                  { key: 'todos',    label: 'Todos',    icono: <Users size={13} /> },
-                  { key: 'familiar', label: 'Familia',  icono: <TreePine size={13} /> },
-                  { key: 'social',   label: 'Social',   icono: <Heart size={13} /> },
-                  { key: 'trabajo',  label: 'Trabajo',  icono: <Briefcase size={13} /> },
+                  { key: 'todos',    label: 'Todos',   icono: <Users size={13} /> },
+                  { key: 'familiar', label: 'Familia', icono: <TreePine size={13} /> },
+                  { key: 'social',   label: 'Social',  icono: <Heart size={13} /> },
+                  { key: 'trabajo',  label: 'Trabajo', icono: <Briefcase size={13} /> },
                 ] as const).map(f => (
                   <button
                     key={f.key}
@@ -313,45 +310,59 @@ export default function Vinculos() {
               </div>
             </div>
 
-            {/* Grid de vínculos */}
-            {vinculosFiltrados.length === 0 ? (
+            {cargando && <p className="vk-empty__sub">Cargando...</p>}
+
+            {!cargando && vinculosFiltrados.length === 0 && (
               <div className="vk-empty">
-                <span>🔍</span>
-                <p>No encontramos vínculos con ese filtro</p>
+                <p>{connections.length === 0 ? 'Todavía no tenés vínculos.' : 'No encontramos vínculos con ese filtro'}</p>
+                {connections.length === 0 && (
+                  <span className="vk-empty__sub">Buscá personas para empezar a conectar</span>
+                )}
               </div>
-            ) : (
+            )}
+
+            {!cargando && vinculosFiltrados.length > 0 && (
               <div className="vk-grid">
-                {vinculosFiltrados.map(v => {
-                  const cfg = VINCULO_CONFIG[v.tipo];
+                {vinculosFiltrados.map(c => {
+                  const otro = otroDe(c);
+                  const cfg = RELATION_CONFIG[c.relationType];
+                  const tienePendiente = !!c.relationTypePendiente;
+                  const yoLaPropuse = c.relationTypePropuestoPor === user?.id;
                   return (
-                    <div key={v.id} className="vk-card">
+                    <div key={c.id} className="vk-card">
                       <div
                         className="vk-card__avatar-wrap"
-                        onClick={() => v.userId && navigate(`/perfil/${v.userId}`)}
-                        style={{ cursor: v.userId ? 'pointer' : 'default' }}
+                        onClick={() => navigate(`/perfil/${otro.id}`)}
+                        style={{ cursor: 'pointer' }}
                       >
-                        <img src={v.avatar} alt={v.nombre} className="vk-card__avatar" />
+                        {otro.avatarUrl
+                          ? <img src={otro.avatarUrl} alt={otro.firstName} className="vk-card__avatar" />
+                          : <div className="vk-card__avatar vk-card__avatar--vacio">{otro.firstName[0]}</div>
+                        }
                         <span className="vk-card__tipo-emoji">{cfg?.emoji}</span>
                       </div>
                       <div className="vk-card__info">
-                        <span className="vk-card__nombre">{v.nombre}</span>
+                        <span className="vk-card__nombre">{otro.firstName} {otro.lastName}</span>
                         <span className="vk-card__tipo">{cfg?.label}</span>
-                        {v.ciudad && <span className="vk-card__ciudad">📍 {v.ciudad}</span>}
-                        {v.trabajo && <span className="vk-card__trabajo">💼 {v.trabajo}</span>}
+                        {tienePendiente && (
+                          <span className="vk-card__pendiente">
+                            {yoLaPropuse ? 'Propuesta enviada' : 'Te propuso un vínculo nuevo'}
+                          </span>
+                        )}
                       </div>
                       <div className="vk-card__acciones">
-                        {v.userId && (
+                        {!tienePendiente && (
                           <button
                             className="vk-card__btn vk-card__btn--perfil"
-                            onClick={() => navigate(`/perfil/${v.userId}`)}
-                            title="Ver perfil"
+                            onClick={() => setProponiendoPara(c)}
+                            title="Establecer vínculo"
                           >
                             <ChevronRight size={15} strokeWidth={2} />
                           </button>
                         )}
                         <button
                           className="vk-card__btn vk-card__btn--eliminar"
-                          onClick={() => eliminarVinculo(v.id)}
+                          onClick={() => setEliminando(c)}
                           title="Eliminar vínculo"
                         >
                           <X size={14} strokeWidth={2} />
@@ -363,92 +374,88 @@ export default function Vinculos() {
               </div>
             )}
 
-            {/* Sugerencias */}
             <div className="vk-sugerencias">
               <h2 className="vk-sugerencias__titulo">
                 <UserPlus size={16} strokeWidth={2} />
                 Personas que quizás conocés
               </h2>
-              <div className="vk-sugerencias__lista">
-                {SUGERIDOS.map(s => {
-                  const yaConectado = vinculos.some(v => v.userId === s.userId);
-                  if (yaConectado) return null;
-                  return (
-                    <div key={s.userId} className="vk-sugerido">
-                      <img
-                        src={s.avatar}
-                        alt={s.nombre}
-                        className="vk-sugerido__avatar"
-                        onClick={() => navigate(`/perfil/${s.userId}`)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                      <div className="vk-sugerido__info">
-                        <span className="vk-sugerido__nombre">{s.nombre}</span>
-                        <span className="vk-sugerido__ciudad">📍 {s.ciudad}</span>
-                        <span className="vk-sugerido__mutuos">
-                          🤝 {s.mutuos} {s.mutuos === 1 ? 'vínculo mutuo' : 'vínculos mutuos'}
-                        </span>
+
+              {cargandoSugeridos && <p className="vk-empty__sub">Cargando...</p>}
+              {!cargandoSugeridos && sugeridos.length === 0 && (
+                <p className="vk-empty__sub">Todavía no tenemos sugerencias para vos.</p>
+              )}
+              {!cargandoSugeridos && sugeridos.length > 0 && (
+                <div className="vk-grid">
+                  {sugeridos.map(s => (
+                    <div key={s.id} className="vk-card">
+                      <div className="vk-card__avatar-wrap" onClick={() => navigate(`/perfil/${s.id}`)} style={{ cursor: 'pointer' }}>
+                        {s.avatarUrl
+                          ? <img src={s.avatarUrl} alt={s.firstName} className="vk-card__avatar" />
+                          : <div className="vk-card__avatar vk-card__avatar--vacio">{s.firstName[0]}</div>
+                        }
                       </div>
-                      <button
-                        className="vk-sugerido__btn"
-                        onClick={() => navigate(`/perfil/${s.userId}`)}
-                      >
-                        <UserPlus size={13} strokeWidth={2} />
-                        Conectar
+                      <button className="vk-card__info vk-card__info--link" onClick={() => navigate(`/perfil/${s.id}`)}>
+                        <span className="vk-card__nombre">{s.firstName} {s.lastName}</span>
+                        {s.mutuos > 0 ? (
+                          <span
+                            className="vk-card__tipo vk-card__tipo--link"
+                            onClick={(e) => { e.stopPropagation(); setVerMutuosDe(s); }}
+                          >
+                            {s.mutuos} {s.mutuos === 1 ? 'vínculo mutuo' : 'vínculos mutuos'}
+                          </span>
+                        ) : (
+                          <span className="vk-card__tipo">{s.city || 'Sugerido para vos'}</span>
+                        )}
                       </button>
+                      <div className="vk-card__acciones">
+                        <button
+                          className="vk-card__btn vk-card__btn--perfil"
+                          disabled={enviadosSugeridos.has(s.id)}
+                          onClick={() => conectarSugerido(s)}
+                          title="Conectar"
+                        >
+                          {enviadosSugeridos.has(s.id) ? <Check size={15} strokeWidth={2} /> : <UserPlus size={15} strokeWidth={2} />}
+                        </button>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* ══════════════════════════════════════
-            TAB: SOLICITUDES RECIBIDAS
-        ══════════════════════════════════════ */}
-        {tab === 'recibidas' && (
+        {/* ══ TAB: PROPUESTAS ══ */}
+        {tab === 'propuestas' && (
           <div className="vk-solicitudes">
+            <h3 className="vk-historial__titulo">Te llegaron</h3>
             {recibidas.length === 0 ? (
               <div className="vk-empty">
-                <span>🎉</span>
-                <p>No tenés solicitudes pendientes</p>
-                <span className="vk-empty__sub">Cuando alguien quiera conectar, aparecerá acá</span>
+                <p>No tenés propuestas pendientes</p>
+                <span className="vk-empty__sub">Cuando alguien te proponga un vínculo, aparecerá acá</span>
               </div>
             ) : (
               <div className="vk-solicitudes__lista">
-                {recibidas.map(sol => {
-                  const cfg = VINCULO_CONFIG[sol.tipo];
+                {recibidas.map(c => {
+                  const otro = otroDe(c);
+                  const cfg = RELATION_CONFIG[c.relationTypePendiente!];
                   return (
-                    <div key={sol.id} className="vk-solicitud-card">
-                      <img src={sol.deAvatar} alt={sol.deNombre} className="vk-solicitud-card__avatar" />
+                    <div key={c.id} className="vk-solicitud-card">
+                      {otro.avatarUrl
+                        ? <img src={otro.avatarUrl} alt={otro.firstName} className="vk-solicitud-card__avatar" />
+                        : <div className="vk-solicitud-card__avatar vk-solicitud-card__avatar--vacio">{otro.firstName[0]}</div>
+                      }
                       <div className="vk-solicitud-card__body">
-                        <div className="vk-solicitud-card__top">
-                          <span className="vk-solicitud-card__nombre">{sol.deNombre}</span>
-                          <span className="vk-solicitud-card__tiempo">
-                            <Clock size={11} /> {formatFecha(sol.fecha)}
-                          </span>
-                        </div>
+                        <span className="vk-solicitud-card__nombre">{otro.firstName} {otro.lastName}</span>
                         <span className="vk-solicitud-card__tipo">
-                          {cfg?.emoji} Quiere conectar como <strong>{cfg?.label}</strong>
+                          {cfg?.emoji} Dice que sos su <strong>{cfg?.label}</strong>
                         </span>
-                        {sol.mensaje && (
-                          <p className="vk-solicitud-card__mensaje">"{sol.mensaje}"</p>
-                        )}
                         <div className="vk-solicitud-card__acciones">
-                          <button
-                            className="vk-btn-aceptar"
-                            onClick={() => responder(sol.id, 'aceptada')}
-                          >
-                            <Check size={14} strokeWidth={2.5} />
-                            Aceptar
+                          <button className="vk-btn-aceptar" disabled={enviando === c.id} onClick={() => aceptarTipo(c)}>
+                            <Check size={14} strokeWidth={2.5} /> Aceptar
                           </button>
-                          <button
-                            className="vk-btn-rechazar"
-                            onClick={() => responder(sol.id, 'rechazada')}
-                          >
-                            <X size={14} strokeWidth={2.5} />
-                            Rechazar
+                          <button className="vk-btn-rechazar" disabled={enviando === c.id} onClick={() => rechazarTipo(c)}>
+                            <X size={14} strokeWidth={2.5} /> Rechazar
                           </button>
                         </div>
                       </div>
@@ -458,72 +465,26 @@ export default function Vinculos() {
               </div>
             )}
 
-            {/* Historial de respondidas */}
-            {solicitudes.filter(s => s.paraUserId === '1' && s.estado !== 'pendiente').length > 0 && (
-              <div className="vk-historial">
-                <h3 className="vk-historial__titulo">Historial</h3>
-                {solicitudes
-                  .filter(s => s.paraUserId === '1' && s.estado !== 'pendiente')
-                  .map(sol => (
-                    <div key={sol.id} className="vk-historial-item">
-                      <img src={sol.deAvatar} alt={sol.deNombre} className="vk-historial-item__avatar" />
-                      <span className="vk-historial-item__nombre">{sol.deNombre}</span>
-                      <span className={`vk-historial-item__estado vk-historial-item__estado--${sol.estado}`}>
-                        {sol.estado === 'aceptada' ? '✅ Aceptada' : '❌ Rechazada'}
-                      </span>
-                    </div>
-                  ))
-                }
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════
-            TAB: SOLICITUDES ENVIADAS
-        ══════════════════════════════════════ */}
-        {tab === 'enviadas' && (
-          <div className="vk-solicitudes">
+            <h3 className="vk-historial__titulo" style={{ marginTop: 24 }}>Enviadas por vos</h3>
             {enviadas.length === 0 ? (
               <div className="vk-empty">
-                <span>📤</span>
-                <p>No enviaste solicitudes aún</p>
-                <span className="vk-empty__sub">Explorá perfiles y conectá con quien quieras</span>
-                <button
-                  className="vk-btn-explorar"
-                  onClick={() => navigate('/perfil/2')}
-                >
-                  <UserPlus size={14} strokeWidth={2} />
-                  Explorar perfiles
-                </button>
+                <p>No enviaste propuestas de vínculo</p>
               </div>
             ) : (
               <div className="vk-solicitudes__lista">
-                {enviadas.map(sol => {
-                  const cfg = VINCULO_CONFIG[sol.tipo];
+                {enviadas.map(c => {
+                  const otro = otroDe(c);
+                  const cfg = RELATION_CONFIG[c.relationTypePendiente!];
                   return (
-                    <div key={sol.id} className={`vk-solicitud-card vk-solicitud-card--enviada vk-solicitud-card--${sol.estado}`}>
+                    <div key={c.id} className="vk-solicitud-card vk-solicitud-card--enviada">
                       <div className="vk-solicitud-card__estado-dot" />
                       <div className="vk-solicitud-card__body">
-                        <div className="vk-solicitud-card__top">
-                          <span className="vk-solicitud-card__nombre">
-                            Para: <strong>{sol.paraUserId === '2' ? 'María Valenzuela' : sol.paraUserId === '3' ? 'Marcelo García' : `Usuario ${sol.paraUserId}`}</strong>
-                          </span>
-                          <span className="vk-solicitud-card__tiempo">
-                            <Clock size={11} /> {formatFecha(sol.fecha)}
-                          </span>
-                        </div>
-                        <span className="vk-solicitud-card__tipo">
-                          {cfg?.emoji} Como <strong>{cfg?.label}</strong>
-                        </span>
-                        {sol.mensaje && (
-                          <p className="vk-solicitud-card__mensaje">"{sol.mensaje}"</p>
-                        )}
-                        <span className={`vk-solicitud-card__badge vk-solicitud-card__badge--${sol.estado}`}>
-                          {sol.estado === 'pendiente' && '⏳ Pendiente'}
-                          {sol.estado === 'aceptada'  && '✅ Aceptada'}
-                          {sol.estado === 'rechazada' && '❌ Rechazada'}
-                        </span>
+                        <span className="vk-solicitud-card__nombre">Para: <strong>{otro.firstName} {otro.lastName}</strong></span>
+                        <span className="vk-solicitud-card__tipo">{cfg?.emoji} Como <strong>{cfg?.label}</strong></span>
+                        <span className="vk-solicitud-card__badge">Esperando respuesta</span>
+                        <button className="vk-btn-rechazar" style={{ marginTop: 6, width: 'fit-content' }} onClick={() => cancelarPropuesta(c)}>
+                          <X size={14} strokeWidth={2.5} /> Cancelar propuesta
+                        </button>
                       </div>
                     </div>
                   );
@@ -534,6 +495,55 @@ export default function Vinculos() {
         )}
 
       </div>
+
+      {/* ── Modal: proponer tipo de vínculo ── */}
+      {proponiendoPara && (
+        <div className="vk-modal-overlay" onClick={() => setProponiendoPara(null)}>
+          <div className="vk-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="vk-modal__titulo">
+              ¿Qué es {otroDe(proponiendoPara).firstName} tuyo?
+            </h3>
+            <p className="vk-modal__sub">
+              {otroDe(proponiendoPara).firstName} va a tener que confirmarlo para que se establezca.
+            </p>
+            <div className="vk-modal__grid">
+              {TIPOS_PROPONIBLES.map(tipo => (
+                <button
+                  key={tipo}
+                  className="vk-modal__tipo-btn"
+                  disabled={!!enviando}
+                  onClick={() => proponer(tipo)}
+                >
+                  <span className="vk-modal__tipo-emoji">{RELATION_CONFIG[tipo].emoji}</span>
+                  <span className="vk-modal__tipo-label">{RELATION_CONFIG[tipo].label}</span>
+                </button>
+              ))}
+            </div>
+            <button className="vk-modal__cerrar" onClick={() => setProponiendoPara(null)}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      {eliminando && (
+        <ConfirmModal
+          titulo="Eliminar vínculo"
+          mensaje={`¿Eliminar a ${otroDe(eliminando).firstName} de tus vínculos? Van a dejar de estar conectados.`}
+          textoConfirmar="Sí, eliminar"
+          peligroso
+          onConfirm={confirmarEliminar}
+          onCancel={() => setEliminando(null)}
+        />
+      )}
+
+      {toast && <div className="vk-toast">{toast}</div>}
+
+      {verMutuosDe && (
+        <MutualsModal
+          userId={verMutuosDe.id}
+          nombre={verMutuosDe.firstName}
+          onClose={() => setVerMutuosDe(null)}
+        />
+      )}
     </div>
   );
 }

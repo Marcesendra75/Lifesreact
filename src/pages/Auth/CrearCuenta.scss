@@ -46,6 +46,9 @@
     height: 36px;
     width: 36px;
     object-fit: contain;
+    display: block;
+    position: relative;
+    top: 1px;
   }
 
   &__name {
@@ -55,6 +58,9 @@
     font-weight: 700;
     color: v.$primary;
     letter-spacing: -0.02em;
+    line-height: 1;
+    position: relative;
+    top: 5px;
   }
 }
 
@@ -458,23 +464,27 @@
   .cc-titulo { font-size: 1.2rem; }
 }
 
-.cc-terms {
+
+.cc-field-pass-wrap {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: #43474d;
+
+  .cc-field__input { width: 100%; padding-right: 40px; }
+}
+
+.cc-field-pass-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
   cursor: pointer;
-  margin-top: -0.5rem;
+  color: rgba(3, 25, 46, 0.4);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  transition: color 0.2s;
 
-  input[type="checkbox"] {
-    margin-top: 0.15rem;
-    accent-color: #855324;
-  }
-
-  a {
-    color: #855324;
-    font-weight: 600;
-    text-decoration: underline;
-  }
+  &:hover { color: #855324; }
 }

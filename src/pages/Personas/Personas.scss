@@ -1,0 +1,224 @@
+@use '../../styles/abstracts/variables' as v;
+
+.personas-root {
+  min-height: 100dvh;
+  background: #fbf9f5;
+  font-family: v.$font-body;
+  padding-bottom: 5rem;
+}
+
+.personas-main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+
+  @media (min-width: 769px) {
+    margin-left: calc(68px + max(0px, (100vw - 68px - 560px) / 2));
+    margin-right: max(0px, (100vw - 68px - 560px) / 2);
+    padding-top: 2rem;
+  }
+}
+
+.personas-titulo {
+  font-family: v.$font-display;
+  font-style: italic;
+  font-size: 1.6rem;
+  color: v.$primary;
+  margin-bottom: 1.25rem;
+}
+
+.personas-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(3,25,46,0.08);
+}
+
+.personas-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.6rem 0.25rem;
+  margin-right: 1.25rem;
+  font-family: v.$font-body;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #8A8279;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+
+  &.active { color: v.$primary; border-bottom-color: #C9A84C; }
+
+  &__badge {
+    background: #855324;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 999px;
+  }
+}
+
+.personas-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f5f3ef;
+  border-radius: 999px;
+  padding: 0.7rem 1.1rem;
+  margin-bottom: 1.25rem;
+  color: #8A8279;
+
+  input {
+    flex: 1;
+    border: none;
+    background: none;
+    outline: none;
+    font-family: v.$font-body;
+    font-size: 0.88rem;
+    color: v.$text-dark;
+
+    &::placeholder { color: rgba(3,25,46,0.35); }
+  }
+}
+
+.personas-vacio {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #8A8279;
+  font-style: italic;
+  padding: 2rem 0;
+}
+
+.personas-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f5f3ef;
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.6rem;
+
+  &__avatar {
+    width: 44px; height: 44px; border-radius: 9999px;
+    object-fit: cover; flex-shrink: 0;
+
+    &--vacio {
+      display: flex; align-items: center; justify-content: center;
+      background: #C9A84C; color: white; font-weight: 700;
+      font-family: v.$font-display;
+    }
+  }
+
+  &__info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+  &__nombre {
+    font-size: 0.88rem; font-weight: 700; color: v.$primary;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  &__privado, &__quiere {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 0.72rem; color: #8A8279;
+  }
+
+  &__btn {
+    display: flex; align-items: center; gap: 5px;
+    background: v.$primary; color: white; border: none;
+    border-radius: 999px; padding: 0.5rem 0.9rem;
+    font-family: v.$font-body; font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; flex-shrink: 0; transition: all 0.2s;
+
+    &:hover:not(:disabled) { background: #1a2e44; }
+    &.enviado { background: #e4e2de; color: #43474d; cursor: default; }
+  }
+
+  &__acciones { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+  &__icon-btn {
+    width: 34px; height: 34px; border-radius: 9999px;
+    border: none; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: all 0.2s;
+
+    &--ok { background: rgba(39,174,96,0.12); color: #27ae60; &:hover { background: rgba(39,174,96,0.22); } }
+    &--no { background: rgba(186,26,26,0.1); color: #ba1a1a; &:hover { background: rgba(186,26,26,0.18); } }
+  }
+}
+
+.personas-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #03192e;
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  font-family: v.$font-body;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(3, 25, 46, 0.3);
+  z-index: 500;
+}
+
+.personas-card__info--link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+
+  &:hover:not(:has(.personas-card__quiere--link:hover)) .personas-card__nombre {
+    text-decoration: underline;
+  }
+}
+
+.personas-card__avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: 9999px;
+}
+
+.personas-card__btn.rechazada {
+  background: rgba(186, 26, 26, 0.08);
+  color: #ba1a1a;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.personas-sugerencias {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(3, 25, 46, 0.08);
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #03192e;
+    margin: 0 0 12px;
+  }
+}
+
+.personas-card__quiere--link {
+  display: inline-block;
+  width: fit-content;
+  color: #C9A84C;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.15s;
+  &:hover { color: #ab8a3d; }
+}

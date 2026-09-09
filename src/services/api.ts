@@ -35,6 +35,7 @@ async function request<T>(
     method,
     headers: jsonHeaders(withAuth),
     body: body ? JSON.stringify(body) : undefined,
+    cache: 'no-store', // los datos cambian todo el tiempo (reacciones, comentarios, etc.) — nunca server desde la caché del navegador
   });
 
   const data = await res.json();
@@ -68,10 +69,12 @@ export const authService = {
   register: (data: unknown) =>
     request('/auth/register', 'POST', data, false),
   me: () => request('/auth/me'),
-   forgotPassword: (email: string) =>
+  forgotPassword: (email: string) =>
     request('/auth/forgot-password', 'POST', { email }, false),
-  resetPassword: (token: string, newPassword: string) =>
-    request('/auth/reset-password', 'POST', { token, newPassword }, false),
+  verifyResetCode: (email: string, code: string) =>
+    request('/auth/verify-reset-code', 'POST', { email, code }, false),
+  resetPassword: (email: string, code: string, newPassword: string) =>
+    request('/auth/reset-password', 'POST', { email, code, newPassword }, false),
   verifyEmail: (token: string) =>
     request('/auth/verify-email', 'POST', { token }, false),
   resendVerification: (email: string) =>
@@ -83,13 +86,18 @@ export const authService = {
 // hoy /memories siempre devuelve los del usuario logueado. Lo sumamos cuando
 // decidamos cómo se comparten recuerdos entre conectados.
 export const memoryService = {
-  getAll: (page = 1, pageSize = 20) =>
+    getAll: (page = 1, pageSize = 20) =>
     request(`/memories?page=${page}&pageSize=${pageSize}`),
+  getFeed: (page = 1, pageSize = 20) =>
+    request(`/memories/feed?page=${page}&pageSize=${pageSize}`),
   getById: (id: string) =>
     request(`/memories/${id}`),
-  create: (caption: string | undefined, file?: File) => {
+  getByUser: (userId: string, page = 1, pageSize = 20) =>
+    request(`/memories/user/${userId}?page=${page}&pageSize=${pageSize}`),
+  create: (caption: string | undefined, file?: File, chapterId?: string) => {
     const fd = new FormData();
     if (caption) fd.append('caption', caption);
+    if (chapterId) fd.append('chapterId', chapterId);
     if (file) fd.append('file', file);
     return requestFormData('/memories', 'POST', fd);
   },
@@ -97,6 +105,16 @@ export const memoryService = {
     request(`/memories/${id}`, 'PATCH', { caption }),
   delete: (id: string) =>
     request(`/memories/${id}`, 'DELETE'),
+  setReaction: (id: string, type: string) =>
+    request(`/memories/${id}/reaction`, 'POST', { type }),
+  listReactions: (id: string) =>
+    request(`/memories/${id}/reactions`),
+  listComments: (id: string, page = 1, pageSize = 20) =>
+    request(`/memories/${id}/comments?page=${page}&pageSize=${pageSize}`),
+  addComment: (id: string, content: string) =>
+    request(`/memories/${id}/comments`, 'POST', { content }),
+  deleteComment: (id: string, commentId: string) =>
+    request(`/memories/${id}/comments/${commentId}`, 'DELETE'),
 };
 
 // --- Árbol genealógico ---
@@ -122,6 +140,8 @@ export const familyService = {
     request('/family/partners', 'POST', { memberAId, memberBId }),
   removePartner: (id: string) =>
     request(`/family/partners/${id}`, 'DELETE'),
+  updatePosition: (id: string, posX: number, posY: number) =>
+    request(`/family/members/${id}/position`, 'PATCH', { posX, posY }),
   getMyPlacements: () => request('/family/my-placements'),
   linkMember: (id: string, userId: string) =>
     request(`/family/members/${id}/link`, 'PATCH', { userId }),
@@ -130,9 +150,17 @@ export const familyService = {
 };
 
 // --- Conexiones (invitar / aceptar / rechazar) ---
+export const blockService = {
+  block: (userId: string) => request('/blocks', 'POST', { userId }),
+  unblock: (id: string) => request(`/blocks/${id}`, 'DELETE'),
+  list: () => request('/blocks'),
+};
+
 export const connectionService = {
   sendRequest: (addresseeEmail: string) =>
     request('/connections', 'POST', { addresseeEmail }),
+  sendRequestById: (addresseeId: string) =>
+    request('/connections/by-id', 'POST', { addresseeId }),
   list: (status?: 'pending' | 'accepted' | 'rejected') =>
     request(`/connections${status ? `?status=${status}` : ''}`),
   accept: (id: string) =>
@@ -141,11 +169,17 @@ export const connectionService = {
     request(`/connections/${id}/reject`, 'PATCH'),
   remove: (id: string) =>
     request(`/connections/${id}`, 'DELETE'),
+  proposeType: (id: string, relationType: string) =>
+    request(`/connections/${id}/propose-type`, 'PATCH', { relationType }),
+  acceptType: (id: string) =>
+    request(`/connections/${id}/accept-type`, 'PATCH'),
+  rejectType: (id: string) =>
+    request(`/connections/${id}/reject-type`, 'PATCH'),
+  cancelType: (id: string) =>
+    request(`/connections/${id}/cancel-type`, 'PATCH'),
 };
 
 // --- Usuario ---
-// NOTA: ver el perfil de OTRA persona y buscar usuarios por nombre todavía no
-// existen en el backend — hoy solo hay endpoints para "mi" perfil.
 export const userService = {
   getMyProfile: () => request('/auth/me'),
   updateProfile: (data: { bio?: string; country?: string; city?: string; birthDate?: string }) =>
@@ -160,6 +194,29 @@ export const userService = {
     fd.append('file', file);
     return requestFormData('/users/me/cover', 'POST', fd);
   },
+  search: (q: string, page = 1, pageSize = 15) =>
+    request(`/users/search?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`),
+  updatePrivacy: (isPrivate: boolean) =>
+    request('/users/me/privacy', 'PATCH', { isPrivate }),
+  updateCommentPrivacy: (commentPrivacy: 'everyone' | 'connections' | 'nobody') =>
+    request('/users/me/comment-privacy', 'PATCH', { commentPrivacy }),
+  getById: (id: string) =>
+    request(`/users/${id}`),
+  getSuggestions: () =>
+    request('/users/suggestions'),
+  getMutuals: (id: string) =>
+    request(`/users/${id}/mutuals`),
+};
+
+// --- Capítulos de vida ---
+export const chapterService = {
+  list: () => request('/chapters'),
+  create: (data: { nombre: string; desde: number; hasta: number; color: string; emoji?: string }) =>
+    request('/chapters', 'POST', data),
+  update: (id: string, data: Partial<{ nombre: string; desde: number; hasta: number; color: string; emoji: string }>) =>
+    request(`/chapters/${id}`, 'PATCH', data),
+  delete: (id: string) =>
+    request(`/chapters/${id}`, 'DELETE'),
 };
 
 // --- Cápsulas del tiempo, Último tributo, Ecos, Postales, Ahorro ---
@@ -195,4 +252,16 @@ export const savingsService = {
   get: () => request('/savings'),
   create: (data: unknown) => request('/savings', 'POST', data),
   getHistory: () => request('/savings/history'),
+};
+
+
+export const notificationService = {
+  list: (page = 1, pageSize = 20) =>
+    request(`/notifications?page=${page}&pageSize=${pageSize}`),
+  unreadCount: () =>
+    request('/notifications/unread-count'),
+  markRead: (id: string) =>
+    request(`/notifications/${id}/read`, 'PATCH'),
+  markAllRead: () =>
+    request('/notifications/read-all', 'PATCH'),
 };

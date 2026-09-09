@@ -1,0 +1,98 @@
+{
+  "common": {
+    "appName": "Life's",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "close": "Close"
+  },
+  "auth": {
+    "login": {
+      "welcomeTitle": "Welcome back",
+      "welcomeSubtitle": "Access your personal archive",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "archive@legacy.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Your password",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Sign In",
+      "submitLoading": "Signing in...",
+      "noAccount": "Not a custodian of your story yet?",
+      "createAccount": "Create your account",
+      "resendVerification": "Resend confirmation email",
+      "resendCooldown": "Resend in {{seconds}}s",
+      "errorRequiredFields": "Fill in your email and password.",
+      "errorInvalidCredentials": "Incorrect email or password."
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Start Your Personal Archive",
+      "firstNameLabel": "First Name",
+      "lastNameLabel": "Last Name",
+      "emailLabel": "Email Address",
+      "birthDateLabel": "Date of Birth",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "passwordStrength": "Security Strength",
+      "termsPrefix": "I've read and accept the",
+      "termsLink": "Terms and Conditions",
+      "termsAnd": "and the",
+      "privacyLink": "Privacy Policy",
+      "submit": "Start my Legacy",
+      "submitLoading": "Creating your legacy...",
+      "successTitle": "Almost there!",
+      "successSubtitle": "We sent an email to {{email}} with a link to confirm your account. Check your inbox (and your spam folder, just in case).",
+      "goToLogin": "Go to Sign In",
+      "errorRequiredFields": "Fill in all required fields.",
+      "errorPasswordMismatch": "Passwords don't match.",
+      "errorTermsRequired": "You need to accept the Terms and Privacy Policy to continue."
+    },
+    "verifyEmail": {
+      "loadingTitle": "Confirming your account...",
+      "loadingSubtitle": "One moment, please.",
+      "successTitle": "Account confirmed!",
+      "successSubtitle": "You can now start saving your memories.",
+      "goToFeed": "Go to my Feed",
+      "errorTitle": "We couldn't confirm your account",
+      "errorMissingToken": "The verification token is missing from the link.",
+      "errorInvalidToken": "The link is invalid or has expired.",
+      "backToLogin": "Back to sign in"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "privacy": "Privacy",
+      "blocked": "Blocked"
+    },
+    "privacy": {
+      "profileLabel": "Private profile",
+      "profileHint": "Only your accepted connections will be able to see your chapters, memories and connections.",
+      "commentsLabel": "Who can comment on your posts?",
+      "commentsEveryone": "Everyone",
+      "commentsConnections": "Only my connections",
+      "commentsNobody": "Nobody"
+    },
+    "blocked": {
+      "empty": "You haven't blocked anyone.",
+      "unblock": "Unblock",
+      "confirmUnblock": "Unblock {{name}}? They'll be able to find you and send requests again."
+    }
+  },
+  "block": {
+    "action": "Block",
+    "confirm": "Block {{name}}? You won't be able to see each other's profiles or connect anymore, and any existing connection will be removed.",
+    "success": "User blocked",
+    "error": "Couldn't block the user"
+  },
+  "legal": {
+    "terms": {
+      "title": "Terms and Conditions"
+    },
+    "privacy": {
+      "title": "Privacy Policy"
+    },
+    "lastUpdated": "Last updated: {{year}}"
+  }
+}

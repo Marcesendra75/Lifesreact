@@ -8,7 +8,9 @@ import {
   User, Building2, LogIn, ArrowRight, GitBranch,
   Activity, Lock, Zap, Coins, Heart, Shield,
   UserPlus, TrendingUp, Users, BadgeCheck,
+  Eye, EyeOff,
 } from 'lucide-react';
+import logo from '../../assets/logo.webp';
 import './Landing.scss';
 
 type Mode = 'personal' | 'empresa';
@@ -22,6 +24,8 @@ export default function Landing() {
 
   const [mode, setMode]             = useState<Mode>('personal');
   const [loginError, setLoginError] = useState('');
+  const [verPass, setVerPass]       = useState(false);
+  const [verPassEmpresa, setVerPassEmpresa] = useState(false);
   const [palabra, setPalabra]       = useState(PALABRAS[0]);
   const [palabraAnim, setPalabraAnim] = useState<'in' | 'out' | ''>('');
   const [sliderStyle, setSliderStyle] = useState({ left: '4px', width: '0px' });
@@ -67,7 +71,7 @@ export default function Landing() {
     return () => clearInterval(interval);
   }, []);
 
-    const handleLogin = async (e: React.FormEvent, tipo: 'personal' | 'empresa') => {
+  const handleLogin = async (e: React.FormEvent, tipo: 'personal' | 'empresa') => {
     e.preventDefault();
     setLoginError('');
 
@@ -128,7 +132,7 @@ export default function Landing() {
             <div className="landing-logo" style={{ transform: 'rotate(-1deg)' }}>
               <div className="landing-logo__border" />
               <div className="landing-logo__wrap">
-                <img src="/images/landing.png" alt="Life's" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img src={logo} alt="Life's" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
             </div>
 
@@ -153,13 +157,23 @@ export default function Landing() {
                 placeholder="Usuario o Email"
                 autoComplete="username"
               />
-              <input
-                ref={passRef}
-                className="landing-field"
-                type="password"
-                placeholder="Contraseña"
-                autoComplete="current-password"
-              />
+              <div className="landing-field-pass-wrap">
+                <input
+                  ref={passRef}
+                  className="landing-field"
+                  type={verPass ? 'text' : 'password'}
+                  placeholder="Contraseña"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="landing-field-pass-toggle"
+                  onClick={() => setVerPass(v => !v)}
+                  tabIndex={-1}
+                >
+                  {verPass ? <EyeOff size={16} strokeWidth={1.8} /> : <Eye size={16} strokeWidth={1.8} />}
+                </button>
+              </div>
 
               <button type="submit" className="landing-btn landing-btn--primary">
                 <LogIn size={15} strokeWidth={2} />
@@ -223,7 +237,7 @@ export default function Landing() {
             <div className="landing-logo">
               <div className="landing-logo__border" style={{ borderColor: 'rgba(3,25,46,0.2)' }} />
               <div className="landing-logo__wrap" style={{ background: 'white', padding: '8px' }}>
-                <img src="/images/empresas.png" alt="Life's Empresas" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img src="/images/empresas.webp" alt="Life's Empresas" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
             </div>
 
@@ -254,13 +268,23 @@ export default function Landing() {
                 placeholder="Email corporativo"
                 autoComplete="email"
               />
-              <input
-                ref={passERef}
-                className="landing-field"
-                type="password"
-                placeholder="Contraseña"
-                autoComplete="current-password"
-              />
+              <div className="landing-field-pass-wrap">
+                <input
+                  ref={passERef}
+                  className="landing-field"
+                  type={verPassEmpresa ? 'text' : 'password'}
+                  placeholder="Contraseña"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="landing-field-pass-toggle"
+                  onClick={() => setVerPassEmpresa(v => !v)}
+                  tabIndex={-1}
+                >
+                  {verPassEmpresa ? <EyeOff size={16} strokeWidth={1.8} /> : <Eye size={16} strokeWidth={1.8} />}
+                </button>
+              </div>
 
               <button type="submit" className="landing-btn landing-btn--empresa">
                 <Building2 size={15} strokeWidth={2} />

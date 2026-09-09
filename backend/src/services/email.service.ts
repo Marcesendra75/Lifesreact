@@ -56,22 +56,24 @@ export async function sendVerificationEmail(to: string, firstName: string, token
   }
 }
 
-export async function sendPasswordResetEmail(to: string, firstName: string, token: string) {
-  const url = `${FRONTEND_URL}/restablecer-password?token=${token}`;
-
+export async function sendPasswordResetEmail(to: string, firstName: string, code: string) {
   const html = wrapEmail('Recuperá tu contraseña', `
     <p style="font-size:15px; color:#43474d; line-height:1.6;">Hola ${firstName},</p>
     <p style="font-size:15px; color:#43474d; line-height:1.6;">
-      Recibimos un pedido para restablecer tu contraseña. Si fuiste vos, hacé clic abajo.
+      Recibimos un pedido para restablecer tu contraseña. Usá este código para continuar:
     </p>
-    ${buttonHtml(url, 'Restablecer contraseña')}
-    <p style="font-size:13px; color:#84878c;">Este link vence en 30 minutos. Si no fuiste vos, ignorá este email — tu contraseña sigue siendo la misma.</p>
+    <div style="text-align:center; margin:28px 0;">
+      <span style="display:inline-block; background:#f5f3ef; color:#03192e; font-size:32px; font-weight:bold; letter-spacing:8px; padding:16px 24px; border-radius:8px; font-family:Georgia, serif;">
+        ${code}
+      </span>
+    </div>
+    <p style="font-size:13px; color:#84878c;">Este código vence en 15 minutos. Si no fuiste vos, ignorá este email — tu contraseña sigue siendo la misma.</p>
   `);
 
   const result = await resend.emails.send({
     from: `Life's <${FROM_EMAIL}>`,
     to,
-    subject: "Recuperá tu contraseña en Life's",
+    subject: "Tu código para recuperar la contraseña en Life's",
     html,
   });
 

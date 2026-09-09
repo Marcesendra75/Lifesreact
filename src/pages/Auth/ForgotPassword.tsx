@@ -1,28 +1,19 @@
 // ============================================================
 // LIFE'S — ForgotPassword.tsx
-// Recupero de contraseña (OTP 6 dígitos) y recupero de usuario
-// Ruta: /recuperar?tipo=password | /recuperar?tipo=usuario
-// Paleta: neblina azulada #EEF3F8
+// Recuperar contraseña con código de 6 dígitos, conectado al backend real
+// Ruta: /recuperar
 // ============================================================
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Mail, ArrowLeft, CheckCircle, AlertCircle,
-  Eye, EyeOff, RefreshCw, User, Lock, ChevronRight,
+  Eye, EyeOff, RefreshCw, Lock, ChevronRight,
   Shield,
 } from 'lucide-react';
+import { authService } from '../../services/api';
 import './ForgotPassword.scss';
 
-// ── Usuarios de prueba (mismos que TripleSeguridad) ─────────
-const USUARIOS_DB = [
-  { email: 'juan@lifes.com',  usuario: 'julian.v',   nombre: 'Julian Valenzuela' },
-  { email: 'maria@lifes.com', usuario: 'maria.lopez', nombre: 'María López'       },
-  { email: 'admin@lifes.com', usuario: 'admin.lifes', nombre: 'Admin Life\'s'     },
-];
-
-// ── Tipos de flujo ──────────────────────────────────────────
-type Tipo  = 'password' | 'usuario';
-type Paso  = 'email' | 'otp' | 'nueva-pass' | 'exito-pass' | 'exito-usuario';
+type Paso = 'email' | 'otp' | 'nueva-pass' | 'exito-pass';
 
 // ── Helper: enmascarar email ────────────────────────────────
 function enmascararEmail(email: string) {
@@ -31,22 +22,9 @@ function enmascararEmail(email: string) {
   return `${visible}${'*'.repeat(Math.max(2, user.length - 2))}@${domain}`;
 }
 
-// ── Helper: enmascarar usuario ──────────────────────────────
-function enmascararUsuario(usuario: string) {
-  const visible = usuario.slice(0, 3);
-  return `${visible}${'*'.repeat(Math.max(2, usuario.length - 3))}`;
-}
-
-// ── Generar OTP simulado ────────────────────────────────────
-function generarOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
 // ── Componente ──────────────────────────────────────────────
 export default function ForgotPassword() {
-  const navigate      = useNavigate();
-  const [searchParams] = useSearchParams();
-  const tipo: Tipo    = (searchParams.get('tipo') as Tipo) || 'password';
+  const navigate = useNavigate();
 
   const [paso, setPaso]         = useState<Paso>('email');
   const [email, setEmail]       = useState('');
@@ -55,20 +33,18 @@ export default function ForgotPassword() {
 
   // OTP
   const [otp, setOtp]           = useState(['', '', '', '', '', '']);
-  const [otpGen, setOtpGen]     = useState('');
-  const [segundos, setSegundos] = useState(15 * 60); // 15 min
+  const [segundos, setSegundos] = useState(15 * 60); // 15 min, igual que el backend
   const [otpExpirado, setOtpExpirado] = useState(false);
+  const [codigoVerificado, setCodigoVerificado] = useState('');
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Nueva contraseña
-  const [nuevaPass, setNuevaPass]       = useState('');
+  const [nuevaPass, setNuevaPass]         = useState('');
   const [confirmarPass, setConfirmarPass] = useState('');
-  const [showNueva, setShowNueva]       = useState(false);
+  const [showNueva, setShowNueva]         = useState(false);
   const [showConfirmar, setShowConfirmar] = useState(false);
 
-  // Datos encontrados
-  const [usuarioEncontrado, setUsuarioEncontrado] = useState('');
-  const [emailMasked, setEmailMasked]             = useState('');
+  const [emailMasked, setEmailMasked] = useState('');
 
   // ── Contador OTP ────────────────────────────────────────
   useEffect(() => {
@@ -86,7 +62,7 @@ export default function ForgotPassword() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [paso, otpGen]); // otpGen como dep para reiniciar al reenviar
+  }, [paso]);
 
   const formatTiempo = (s: number) => {
     const m = Math.floor(s / 60);
@@ -94,49 +70,39 @@ export default function ForgotPassword() {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
-  // ── Paso 1: verificar email ─────────────────────────────
-  const verificarEmail = () => {
+  // ── Paso 1: pedir el código ─────────────────────────────
+  const verificarEmail = async () => {
     setError('');
     if (!email.trim()) { setError('Ingresá tu email'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Email inválido'); return; }
 
     setCargando(true);
-    setTimeout(() => {
-      const user = USUARIOS_DB.find(u => u.email === email.toLowerCase().trim());
-
-      if (tipo === 'password') {
-        // Siempre mostramos éxito para no revelar si el email existe (seguridad)
-        const codigo = generarOTP();
-        setOtpGen(codigo);
-        console.info(`[DEV] OTP generado: ${codigo}`); // Solo en dev
-        setEmailMasked(enmascararEmail(email));
-        setCargando(false);
-        setPaso('otp');
-      } else {
-        // Recupero de usuario
-        if (user) {
-          setUsuarioEncontrado(user.usuario);
-          setEmailMasked(enmascararEmail(email));
-          setCargando(false);
-          setPaso('exito-usuario');
-        } else {
-          // Respuesta genérica por seguridad
-          setEmailMasked(enmascararEmail(email));
-          setCargando(false);
-          setPaso('exito-usuario');
-        }
-      }
-    }, 800);
+    try {
+      await authService.forgotPassword(email.toLowerCase().trim());
+      setEmailMasked(enmascararEmail(email));
+      setPaso('otp');
+    } catch (err: any) {
+      setError(err.message || 'Error al procesar la solicitud');
+    } finally {
+      setCargando(false);
+    }
   };
 
-  // ── Reenviar OTP ────────────────────────────────────────
-  const reenviarOTP = () => {
-    const codigo = generarOTP();
-    setOtpGen(codigo);
-    console.info(`[DEV] OTP reenviado: ${codigo}`);
-    setOtp(['', '', '', '', '', '']);
-    setError('');
-    otpRefs.current[0]?.focus();
+  // ── Reenviar código ─────────────────────────────────────
+  const reenviarOTP = async () => {
+    setCargando(true);
+    try {
+      await authService.forgotPassword(email.toLowerCase().trim());
+      setOtp(['', '', '', '', '', '']);
+      setError('');
+      setSegundos(15 * 60);
+      setOtpExpirado(false);
+      otpRefs.current[0]?.focus();
+    } catch (err: any) {
+      setError(err.message || 'Error al reenviar el código');
+    } finally {
+      setCargando(false);
+    }
   };
 
   // ── Manejo input OTP ────────────────────────────────────
@@ -147,7 +113,6 @@ export default function ForgotPassword() {
     setOtp(nuevo);
     setError('');
     if (val && idx < 5) otpRefs.current[idx + 1]?.focus();
-    // Auto-verificar al completar
     if (nuevo.every(d => d !== '')) {
       verificarOTP(nuevo.join(''));
     }
@@ -159,31 +124,33 @@ export default function ForgotPassword() {
     }
   };
 
-  // ── Verificar OTP ───────────────────────────────────────
-  const verificarOTP = (codigo?: string) => {
+  // ── Verificar código contra el backend real ─────────────
+  const verificarOTP = async (codigo?: string) => {
     const c = codigo || otp.join('');
     setError('');
     if (c.length < 6) { setError('Ingresá los 6 dígitos'); return; }
     if (otpExpirado) { setError('El código expiró. Solicitá uno nuevo.'); return; }
+
     setCargando(true);
-    setTimeout(() => {
-      if (c === otpGen) {
-        setCargando(false);
-        setPaso('nueva-pass');
-      } else {
-        setError('Código incorrecto');
-        setCargando(false);
-        setOtp(['', '', '', '', '', '']);
-        otpRefs.current[0]?.focus();
-      }
-    }, 500);
+    try {
+      await authService.verifyResetCode(email.toLowerCase().trim(), c);
+      setCodigoVerificado(c);
+      setPaso('nueva-pass');
+    } catch (err: any) {
+      setError(err.message || 'Código incorrecto');
+      setOtp(['', '', '', '', '', '']);
+      otpRefs.current[0]?.focus();
+    } finally {
+      setCargando(false);
+    }
   };
 
-  // ── Validar contraseña ──────────────────────────────────
+  // ── Validar contraseña (mismas reglas que el backend) ───
   const validarPass = (pass: string) => {
     if (pass.length < 8)          return 'Mínimo 8 caracteres';
     if (!/[A-Z]/.test(pass))      return 'Al menos una mayúscula';
     if (!/[0-9]/.test(pass))      return 'Al menos un número';
+    if (!/[^A-Za-z0-9]/.test(pass)) return 'Al menos un símbolo (ej: !@#$%)';
     return null;
   };
 
@@ -198,29 +165,27 @@ export default function ForgotPassword() {
     return score;
   };
 
-  // ── Guardar nueva contraseña ────────────────────────────
-  const guardarNuevaPass = () => {
+  // ── Guardar nueva contraseña en el backend real ─────────
+  const guardarNuevaPass = async () => {
     setError('');
     const err = validarPass(nuevaPass);
     if (err) { setError(err); return; }
     if (nuevaPass !== confirmarPass) { setError('Las contraseñas no coinciden'); return; }
+
     setCargando(true);
-    setTimeout(() => {
-      setCargando(false);
+    try {
+      await authService.resetPassword(email.toLowerCase().trim(), codigoVerificado, nuevaPass);
       setPaso('exito-pass');
-    }, 700);
+    } catch (err: any) {
+      setError(err.message || 'Error al restablecer la contraseña');
+    } finally {
+      setCargando(false);
+    }
   };
 
   const score = fortalezaPass(nuevaPass);
   const fortalezaLabel = ['', 'Muy débil', 'Débil', 'Aceptable', 'Fuerte', 'Muy fuerte'][score];
   const fortalezaColor = ['', '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#1D9E75'][score];
-
-  // ── Demo: rellenar OTP ──────────────────────────────────
-  const usarOTPDemo = () => {
-    const digits = otpGen.split('');
-    setOtp(digits);
-    setTimeout(() => verificarOTP(otpGen), 100);
-  };
 
   return (
     <div className="fp-page">
@@ -235,9 +200,7 @@ export default function ForgotPassword() {
           </div>
           <div>
             <span className="fp-logo__lifes">Life's</span>
-            <span className="fp-logo__badge">
-              {tipo === 'password' ? '🔑 Recuperar contraseña' : '👤 Recuperar usuario'}
-            </span>
+            <span className="fp-logo__badge">🔑 Recuperar contraseña</span>
           </div>
         </div>
 
@@ -245,18 +208,10 @@ export default function ForgotPassword() {
         {paso === 'email' && (
           <div className="fp-card">
             <div className="fp-card__header">
-              {tipo === 'password'
-                ? <Lock size={20} strokeWidth={1.6} />
-                : <User size={20} strokeWidth={1.6} />
-              }
+              <Lock size={20} strokeWidth={1.6} />
               <div>
-                <h2>{tipo === 'password' ? 'Recuperar contraseña' : 'Recuperar usuario'}</h2>
-                <p>
-                  {tipo === 'password'
-                    ? 'Te enviamos un código al email de tu cuenta'
-                    : 'Ingresá el email asociado a tu cuenta'
-                  }
-                </p>
+                <h2>Recuperar contraseña</h2>
+                <p>Te enviamos un código al email de tu cuenta</p>
               </div>
             </div>
 
@@ -287,20 +242,9 @@ export default function ForgotPassword() {
               <button className="fp-btn-primary" onClick={verificarEmail} disabled={cargando}>
                 {cargando
                   ? <span className="fp-loader" />
-                  : <>{tipo === 'password' ? 'Enviar código' : 'Buscar cuenta'} <ChevronRight size={15} /></>
+                  : <>Enviar código <ChevronRight size={15} /></>
                 }
               </button>
-
-              {/* Demo */}
-              <div className="fp-demo">
-                <p>Emails de prueba:</p>
-                {USUARIOS_DB.map(u => (
-                  <button key={u.email} className="fp-demo__item"
-                    onClick={() => setEmail(u.email)}>
-                    {u.email}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <button className="fp-link" onClick={() => navigate('/')}>
@@ -339,20 +283,11 @@ export default function ForgotPassword() {
                 ))}
               </div>
 
-              {/* Contador */}
               <div className={`fp-timer${otpExpirado ? ' expired' : ''}`}>
                 {otpExpirado
                   ? 'El código expiró'
                   : <>El código expira en <strong>{formatTiempo(segundos)}</strong></>
                 }
-              </div>
-
-              {/* Demo */}
-              <div className="fp-demo-otp">
-                <span>Código de prueba:</span>
-                <button className="fp-demo-otp__btn" onClick={usarOTPDemo}>
-                  {otpGen} <span>← usar</span>
-                </button>
               </div>
 
               {error && (
@@ -371,7 +306,7 @@ export default function ForgotPassword() {
             <button
               className="fp-btn-secondary"
               onClick={reenviarOTP}
-              disabled={!otpExpirado && segundos > 14 * 60}
+              disabled={cargando || (!otpExpirado && segundos > 14 * 60)}
             >
               <RefreshCw size={14} />
               {otpExpirado ? 'Solicitar nuevo código' : 'Reenviar código'}
@@ -413,7 +348,6 @@ export default function ForgotPassword() {
                   </button>
                 </div>
 
-                {/* Barra de fortaleza */}
                 {nuevaPass && (
                   <div className="fp-fortaleza">
                     <div className="fp-fortaleza__barra">
@@ -460,6 +394,7 @@ export default function ForgotPassword() {
                 <span className={nuevaPass.length >= 8 ? 'ok' : ''}>✓ Mínimo 8 caracteres</span>
                 <span className={/[A-Z]/.test(nuevaPass) ? 'ok' : ''}>✓ Una mayúscula</span>
                 <span className={/[0-9]/.test(nuevaPass) ? 'ok' : ''}>✓ Un número</span>
+                <span className={/[^A-Za-z0-9]/.test(nuevaPass) ? 'ok' : ''}>✓ Un símbolo</span>
               </div>
 
               {error && (
@@ -478,7 +413,7 @@ export default function ForgotPassword() {
           </div>
         )}
 
-        {/* ══ PASO: ÉXITO CONTRASEÑA ══ */}
+        {/* ══ PASO: ÉXITO ══ */}
         {paso === 'exito-pass' && (
           <div className="fp-card fp-card--exito">
             <div className="fp-exito-icon">
@@ -486,36 +421,8 @@ export default function ForgotPassword() {
             </div>
             <h2>¡Contraseña actualizada!</h2>
             <p>Tu contraseña fue cambiada exitosamente. Ya podés ingresar con tu nueva contraseña.</p>
-            <button className="fp-btn-primary" onClick={() => navigate('/')}>
-              Ir al inicio <ChevronRight size={15} />
-            </button>
-          </div>
-        )}
-
-        {/* ══ PASO: ÉXITO USUARIO ══ */}
-        {paso === 'exito-usuario' && (
-          <div className="fp-card fp-card--exito">
-            <div className="fp-exito-icon">
-              <Mail size={48} strokeWidth={1.2} />
-            </div>
-            <h2>Email enviado</h2>
-            <p>
-              Si existe una cuenta asociada a <strong>{emailMasked}</strong>, vas a recibir
-              un email con tu nombre de usuario en los próximos minutos.
-            </p>
-            {usuarioEncontrado && (
-              <div className="fp-usuario-hint">
-                <span className="fp-usuario-hint__label">Tu usuario</span>
-                <span className="fp-usuario-hint__valor">
-                  {enmascararUsuario(usuarioEncontrado)}
-                </span>
-              </div>
-            )}
-            <button className="fp-btn-primary" onClick={() => navigate('/')}>
-              Volver al inicio <ChevronRight size={15} />
-            </button>
-            <button className="fp-btn-secondary" onClick={() => navigate('/acceso-seguro?tipo=personal')}>
-              Ir al login
+            <button className="fp-btn-primary" onClick={() => navigate('/login')}>
+              Ir a Iniciar Sesión <ChevronRight size={15} />
             </button>
           </div>
         )}

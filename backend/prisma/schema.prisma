@@ -33,6 +33,8 @@ model User {
   membershipLevel MembershipLevel @default(bronze) @map("membership_level")
   isVerified      Boolean         @default(false) @map("is_verified")
   isActive        Boolean         @default(true)  @map("is_active")
+  isPrivate       Boolean         @default(false) @map("is_private")
+  commentPrivacy  CommentPrivacy  @default(everyone) @map("comment_privacy")
   termsAcceptedAt DateTime?       @map("terms_accepted_at")
 
   // recuperación de contraseña: token random + vencimiento, nunca guardamos la nueva sin hashear
@@ -52,11 +54,55 @@ model User {
   // ── relaciones ──
   memories  Memory[]
   familyMembers FamilyMember[]
-  connectionsSent     Connection[]   @relation("ConnectionRequester")
-  connectionsReceived Connection[]   @relation("ConnectionAddressee")
+  connectionsSent      Connection[]    @relation("ConnectionRequester")
+  connectionsReceived  Connection[]    @relation("ConnectionAddressee")
+  blocksMade           Block[]         @relation("BlockerRelation")
+  blocksReceived       Block[]         @relation("BlockedRelation")
+  notificationsRecibidas Notification[] @relation("NotificationRecipient")
+  notificationsGeneradas Notification[] @relation("NotificationActor")
   linkedFamilyNodes   FamilyMember[] @relation("FamilyLinkedUser")
+  chapters       Chapter[]
+  memoryReactions MemoryReaction[]
+  memoryComments  MemoryComment[]
 
   @@map("users") // el nombre real de la tabla en Postgres queda en minúscula y plural, como ya tenías
+}
+
+enum NotificationType {
+  connection_request
+  connection_accepted
+  connection_rejected
+  relation_type_proposed
+  relation_type_accepted
+  relation_type_rejected
+  relation_type_cancelled
+  reaction
+  comment
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+
+  // el último que generó el evento — sirve para mostrar su nombre/foto
+  actorId   String?          @map("actor_id")
+  actor     User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  // agrupamiento: si varias personas reaccionan/comentan lo mismo, en vez
+  // de crear una notificación por cada una, sumamos a la misma
+  actorIds    String[]       @default([]) @map("actor_ids")
+  actorsCount Int            @default(1)  @map("actors_count")
+
+  entityType String?         @map("entity_type") // "memory" | "connection"
+  entityId   String?         @map("entity_id")
+
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt       @map("updated_at")
+
+  @@map("notifications")
 }
 
 enum MediaType {
@@ -72,6 +118,12 @@ model Memory {
   caption   String? @db.Text
   mediaKey  String? @map("media_key")   // el key que guarda storage.service.ts, no la URL
   mediaType MediaType? @map("media_type")
+
+   chapterId String?  @map("chapter_id")
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  reactions MemoryReaction[]
+  comments  MemoryComment[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt      @map("updated_at")
@@ -110,6 +162,9 @@ model FamilyMember {
   partnersA FamilyPartner[] @relation("PartnerA")
   partnersB FamilyPartner[] @relation("PartnerB")
 
+  posX Float? @map("pos_x") // posición manual guardada, en el mismo sistema de coordenadas 800x560 del árbol
+  posY Float? @map("pos_y")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt      @map("updated_at")
 
@@ -138,6 +193,27 @@ enum ConnectionStatus {
   rejected
 }
 
+enum RelationType {
+  pareja
+  padre
+  madre
+  hijo
+  hermano
+  abuelo
+  primo
+  familiar
+  amigo
+  conocido
+  companero
+  colega
+}
+
+enum CommentPrivacy {
+  everyone
+  connections
+  nobody
+}
+
 model Connection {
   id          String   @id @default(uuid())
   requesterId String   @map("requester_id")
@@ -149,6 +225,78 @@ model Connection {
   createdAt   DateTime @default(now()) @map("created_at")
   respondedAt DateTime? @map("responded_at")
 
+  // ── Tipo de vínculo (solo tiene sentido una vez aceptada la conexión) ──
+  relationType             RelationType @default(amigo) @map("relation_type")
+  relationTypePendiente    RelationType? @map("relation_type_pendiente")
+  relationTypePropuestoPor String?       @map("relation_type_propuesto_por")
+  relationTypePropuestoEn  DateTime?     @map("relation_type_propuesto_en")
+  relationTypeRechazadoEn  DateTime?     @map("relation_type_rechazado_en")
+
   @@unique([requesterId, addresseeId])
   @@map("connections")
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String   @map("blocker_id")
+  blocker   User     @relation("BlockerRelation", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String   @map("blocked_id")
+  blocked   User     @relation("BlockedRelation", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([blockerId, blockedId])
+  @@map("blocks")
+}
+
+enum ReactionType {
+  emocionante // 💖
+  inspirador  // 🍃
+  recordare   // 📖 "lo recordaré"
+  conmueve    // 😢 "me conmueve"
+}
+
+model MemoryReaction {
+  id        String       @id @default(uuid())
+  memoryId  String       @map("memory_id")
+  memory    Memory       @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  userId    String       @map("user_id")
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      ReactionType
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  @@unique([memoryId, userId]) // una persona solo puede tener UNA reacción activa por recuerdo
+  @@map("memory_reactions")
+}
+
+model MemoryComment {
+  id        String   @id @default(uuid())
+  memoryId  String   @map("memory_id")
+  memory    Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([memoryId, createdAt])
+  @@map("memory_comments")
+}
+
+model Chapter {
+  id        String   @id @default(uuid())
+  ownerId   String   @map("owner_id")
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+   nombre    String
+  desde     Int      // año, ej: 1989
+  hasta     Int      // año, ej: 2001
+  color     String   // hex, ej: #7EC8E3
+  emoji     String   @default("📖")
+
+    memories  Memory[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@index([ownerId])
+  @@map("chapters")
 }

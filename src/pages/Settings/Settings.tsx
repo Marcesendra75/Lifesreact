@@ -2,22 +2,31 @@
 // LIFE'S — Settings.tsx
 // Centro de control de identidad y legado
 // ============================================================
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   User, Lock, Bell, Globe, CreditCard, Moon, Users,
-  AlertTriangle, ChevronRight, LogOut, Check, X,
-  Shield, Fingerprint, Smartphone, Eye, EyeOff,
+  AlertTriangle, ChevronRight, LogOut, Check,
+  Shield, Fingerprint, Smartphone,
   Download, Trash2, PauseCircle, BookOpen, GitBranch,
-  Heart, Camera, Mail, Phone, MapPin, Edit2,
+  Heart, Camera, Mail, MapPin, Edit2, UserX,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { userService, blockService } from '../../services/api';
 import './Settings.scss';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 
 // ── Tipos ──────────────────────────────────────────────────
 type Seccion =
   | 'identidad' | 'seguridad' | 'notificaciones'
   | 'privacidad' | 'plan' | 'apariencia'
-  | 'vinculos' | 'peligro' | null;
+  | 'vinculos' | 'bloqueados' | 'peligro' | null;
+
+interface BloqueadoItem {
+  id: string;
+  user: { id: string; firstName: string; lastName: string; avatarUrl?: string | null };
+}
 
 interface ToggleItem {
   id: string;
@@ -26,15 +35,12 @@ interface ToggleItem {
   value: boolean;
 }
 
-// ── Datos del perfil mock ──────────────────────────────────
-const PERFIL = {
-  nombre:   'Marcelo García',
-  email:    'marcelo@tusegurosalud.com.ar',
-  telefono: '+54 261 555-0142',
-  ciudad:   'Mendoza, Argentina',
-  avatar:   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80',
-  nivel:    'Oro',
-  nivelColor: '#C9932A',
+// El nivel y color de badge siguen siendo datos visuales fijos por ahora
+const NIVEL_COLOR: Record<string, string> = {
+  bronze: '#855324', silver: '#6b7280', gold: '#C9932A', diamond: '#3a5a8a',
+};
+const NIVEL_LABEL: Record<string, string> = {
+  bronze: 'Bronce', silver: 'Plata', gold: 'Oro', diamond: 'Diamante',
 };
 
 // ── Items de completitud del legado ───────────────────────
@@ -60,6 +66,7 @@ const MENU_ITEMS = [
   { id: 'seguridad',      label: 'Seguridad y Acceso',  sub: 'Contraseña, PIN, biometría',          icono: Lock,         color: '#735c00' },
   { id: 'notificaciones', label: 'Notificaciones',       sub: 'Qué recibir y cuándo',               icono: Bell,         color: '#855324' },
   { id: 'privacidad',     label: 'Privacidad',           sub: 'Quién ve qué, control de datos',     icono: Globe,        color: '#4a7a4e' },
+  { id: 'bloqueados',     label: 'Personas Bloqueadas',  sub: 'Gestioná quién no puede contactarte',icono: UserX,        color: '#ba1a1a' },
   { id: 'plan',           label: 'Mi Plan',              sub: 'Nivel Oro · beneficios y upgrades',  icono: CreditCard,   color: '#C9932A' },
   { id: 'apariencia',     label: 'Apariencia',           sub: 'Tema, fuente, modo oscuro',          icono: Moon,         color: '#5a3a7a' },
   { id: 'vinculos',       label: 'Vínculos y Familia',   sub: 'Relaciones, herederos',              icono: Users,        color: '#2a7a6a' },
@@ -68,10 +75,87 @@ const MENU_ITEMS = [
 
 // ── Componente principal ───────────────────────────────────
 export default function Settings() {
+  const { t } = useTranslation();
   const navigate   = useNavigate();
+  const { user, refreshUser } = useAuth();
   const [seccion, setSeccion]   = useState<Seccion>(null);
   const [toast, setToast]       = useState('');
   const [darkMode, setDarkMode] = useState(false);
+
+  const PERFIL = {
+    nombre: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+    email: user?.email || '',
+    ciudad: [user?.city, user?.country].filter(Boolean).join(', '),
+    avatar: user?.avatarUrl || '',
+    nivel: NIVEL_LABEL[user?.membershipLevel || 'bronze'],
+    nivelColor: NIVEL_COLOR[user?.membershipLevel || 'bronze'],
+  };
+  const [perfilPrivado, setPerfilPrivado] = useState(user?.isPrivate || false);
+  const [comentarios, setComentarios] = useState<'everyone' | 'connections' | 'nobody'>(
+    (user as any)?.commentPrivacy || 'everyone'
+  );
+  const [guardandoPriv, setGuardandoPriv] = useState(false);
+
+  const [bloqueados, setBloqueados] = useState<BloqueadoItem[]>([]);
+  const [cargandoBloqueados, setCargandoBloqueados] = useState(false);
+
+  useEffect(() => {
+    if (seccion === 'bloqueados') cargarBloqueados();
+  }, [seccion]);
+
+  const cargarBloqueados = async () => {
+    setCargandoBloqueados(true);
+    try {
+      const res: any = await blockService.list();
+      setBloqueados(res.data);
+    } catch {
+      // si falla, dejamos la lista vacía
+    } finally {
+      setCargandoBloqueados(false);
+    }
+  };
+
+  const [desbloqueando, setDesbloqueando] = useState<BloqueadoItem | null>(null);
+
+  const confirmarDesbloqueo = async () => {
+    if (!desbloqueando) return;
+    const item = desbloqueando;
+    setDesbloqueando(null);
+    try {
+      await blockService.unblock(item.user.id);
+      setBloqueados(bloqueados.filter(b => b.id !== item.id));
+      showToast('✓ ' + item.user.firstName);
+    } catch (err: any) {
+      showToast(err.message || 'Error');
+    }
+  };
+
+  const togglePerfilPrivado = async () => {
+    const nuevoValor = !perfilPrivado;
+    setPerfilPrivado(nuevoValor);
+    setGuardandoPriv(true);
+    try {
+      await userService.updatePrivacy(nuevoValor);
+      refreshUser?.();
+    } catch (err: any) {
+      setPerfilPrivado(!nuevoValor); // revertimos si falló
+      showToast(err.message || 'Error al guardar');
+    } finally {
+      setGuardandoPriv(false);
+    }
+  };
+
+  const cambiarComentarios = async (valor: 'everyone' | 'connections' | 'nobody') => {
+    const anterior = comentarios;
+    setComentarios(valor);
+    try {
+      await userService.updateCommentPrivacy(valor);
+      refreshUser?.();
+    } catch (err: any) {
+      setComentarios(anterior);
+      showToast(err.message || 'Error al guardar');
+    }
+  };
 
   // Notificaciones
   const [notifs, setNotifs] = useState<ToggleItem[]>([
@@ -82,13 +166,7 @@ export default function Settings() {
     { id: 'marketing',   label: 'Novedades de Life\'s',   sub: 'Nuevas funciones y actualizaciones',             value: false },
   ]);
 
-  // Privacidad
-  const [privacidad, setPrivacidad] = useState<ToggleItem[]>([
-    { id: 'perfil_pub',  label: 'Perfil público',         sub: 'Cualquier persona puede ver tu perfil',          value: true  },
-    { id: 'linea_pub',   label: 'Línea de vida pública',  sub: 'Visible para tus seguidores',                    value: true  },
-    { id: 'busqueda',    label: 'Aparecer en búsquedas',  sub: 'Tu perfil aparece en resultados de búsqueda',    value: false },
-    { id: 'arbol_pub',   label: 'Árbol genealógico público', sub: 'Tus familiares pueden ver el árbol',          value: true  },
-  ]);
+
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -99,9 +177,7 @@ export default function Settings() {
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, value: !n.value } : n));
   };
 
-  const togglePriv = (id: string) => {
-    setPrivacidad(prev => prev.map(p => p.id === id ? { ...p, value: !p.value } : p));
-  };
+
 
   // ── Render panel de detalle ──
   const renderDetalle = () => {
@@ -119,10 +195,9 @@ export default function Settings() {
             </div>
 
             {[
-              { label: 'Nombre completo', valor: PERFIL.nombre,   icono: <User size={15} /> },
-              { label: 'Email',           valor: PERFIL.email,    icono: <Mail size={15} /> },
-              { label: 'Teléfono',        valor: PERFIL.telefono, icono: <Phone size={15} /> },
-              { label: 'Ciudad',          valor: PERFIL.ciudad,   icono: <MapPin size={15} /> },
+              { label: 'Nombre completo', valor: PERFIL.nombre, icono: <User size={15} /> },
+              { label: 'Email',           valor: PERFIL.email,  icono: <Mail size={15} /> },
+              { label: 'Ciudad',          valor: PERFIL.ciudad, icono: <MapPin size={15} /> },
             ].map(f => (
               <div key={f.label} className="settings-field">
                 <label>{f.label}</label>
@@ -190,18 +265,38 @@ export default function Settings() {
       case 'privacidad':
         return (
           <div className="settings-detalle__body">
-            <p className="settings-hint">Controlá quién puede ver tu legado y cómo aparecés en Life's.</p>
-            {privacidad.map(p => (
-              <div key={p.id} className="settings-toggle-row">
-                <div className="settings-toggle-row__info">
-                  <span className="settings-toggle-row__label">{p.label}</span>
-                  <span className="settings-toggle-row__sub">{p.sub}</span>
-                </div>
-                <div className={`settings-toggle ${p.value ? 'on' : ''}`} onClick={() => togglePriv(p.id)}>
-                  <div className="settings-toggle__thumb" />
-                </div>
+            <p className="settings-hint">{t('settings.privacy.profileHint')}</p>
+
+            <div className="settings-toggle-row">
+              <div className="settings-toggle-row__info">
+                <span className="settings-toggle-row__label">{t('settings.privacy.profileLabel')}</span>
               </div>
-            ))}
+              <div className={`settings-toggle ${perfilPrivado ? 'on' : ''} ${guardandoPriv ? 'disabled' : ''}`} onClick={togglePerfilPrivado}>
+                <div className="settings-toggle__thumb" />
+              </div>
+            </div>
+
+            <div className="settings-divider" />
+
+            <div className="settings-grupo">
+              <label className="settings-grupo__label">{t('settings.privacy.commentsLabel')}</label>
+              {([
+                { valor: 'everyone', label: t('settings.privacy.commentsEveryone') },
+                { valor: 'connections', label: t('settings.privacy.commentsConnections') },
+                { valor: 'nobody', label: t('settings.privacy.commentsNobody') },
+              ] as const).map(op => (
+                <button
+                  key={op.valor}
+                  className={`settings-item-row ${comentarios === op.valor ? 'settings-item-row--seleccionado' : ''}`}
+                  onClick={() => cambiarComentarios(op.valor)}
+                >
+                  <div className="settings-item-row__info">
+                    <span className="settings-item-row__label">{op.label}</span>
+                  </div>
+                  {comentarios === op.valor && <Check size={16} strokeWidth={2.5} style={{ color: '#4a7a4e' }} />}
+                </button>
+              ))}
+            </div>
 
             <div className="settings-divider" />
 
@@ -215,17 +310,34 @@ export default function Settings() {
               </div>
               <ChevronRight size={16} strokeWidth={1.8} className="settings-item-row__arrow" />
             </button>
+          </div>
+        );
 
-            <button className="settings-item-row" onClick={() => showToast('👁️ Abriendo vista pública...')}>
-              <div className="settings-item-row__icono" style={{ background: '#4a7a4e18', color: '#4a7a4e' }}>
-                <Eye size={20} strokeWidth={1.8} />
+      // ── BLOQUEADOS ──
+      case 'bloqueados':
+        return (
+          <div className="settings-detalle__body">
+            {cargandoBloqueados && <p className="settings-hint">{t('common.loading')}</p>}
+            {!cargandoBloqueados && bloqueados.length === 0 && (
+              <p className="settings-hint">{t('settings.blocked.empty')}</p>
+            )}
+            {!cargandoBloqueados && bloqueados.map(b => (
+              <div key={b.id} className="settings-item-row" style={{ cursor: 'default' }}>
+                {b.user.avatarUrl
+                  ? <img src={b.user.avatarUrl} alt={b.user.firstName} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  : <div className="settings-item-row__icono" style={{ background: '#ba1a1a18', color: '#ba1a1a' }}>{b.user.firstName[0]}</div>
+                }
+                <div className="settings-item-row__info">
+                  <span className="settings-item-row__label">{b.user.firstName} {b.user.lastName}</span>
+                </div>
+                <button
+                  onClick={() => setDesbloqueando(b)}
+                  style={{ background: 'none', border: '1.5px solid rgba(3,25,46,0.15)', borderRadius: 8, padding: '6px 12px', fontSize: '0.75rem', fontWeight: 700, color: '#03192e', cursor: 'pointer' }}
+                >
+                  {t('settings.blocked.unblock')}
+                </button>
               </div>
-              <div className="settings-item-row__info">
-                <span className="settings-item-row__label">Ver mi perfil público</span>
-                <span className="settings-item-row__sub">Así te ven los demás</span>
-              </div>
-              <ChevronRight size={16} strokeWidth={1.8} className="settings-item-row__arrow" />
-            </button>
+            ))}
           </div>
         );
 
@@ -537,6 +649,16 @@ export default function Settings() {
           <Check size={14} strokeWidth={2.5} />
           {toast}
         </div>
+      )}
+
+      {desbloqueando && (
+        <ConfirmModal
+          titulo="Desbloquear"
+          mensaje={t('settings.blocked.confirmUnblock', { name: desbloqueando.user.firstName })}
+          textoConfirmar="Sí, desbloquear"
+          onConfirm={confirmarDesbloqueo}
+          onCancel={() => setDesbloqueando(null)}
+        />
       )}
 
     </div>

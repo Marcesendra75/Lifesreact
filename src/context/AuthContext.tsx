@@ -9,6 +9,7 @@ interface AuthContextType extends AuthState {
   register: (data: RegisterData) => Promise<{ message: string }>;
   verifyEmail: (token: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   // Bóveda
   openVaultSession: () => void;   // llamar tras triple verificación exitosa
   closeVaultSession: () => void;  // cerrar sesión de bóveda manualmente
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-    const register = async (formData: RegisterData) => {
+  const register = async (formData: RegisterData) => {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -118,6 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: true,
       isLoading: false,
     }));
+  };
+
+  const refreshUser = async () => {
+    const token = state.token || localStorage.getItem('lifes_token');
+    if (!token) return;
+    await fetchCurrentUser(token);
   };
 
   const logout = () => {
@@ -161,6 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       verifyEmail,
       logout,
+      refreshUser,
       openVaultSession,
       closeVaultSession,
       isVaultSessionActive,
@@ -175,3 +183,4 @@ export function useAuth() {
   if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return context;
 }
+
