@@ -1,6 +1,7 @@
 import prisma from '../config/prisma';
 import { uploadFile, deleteFile, validateFile, getSignedFileUrl } from './storage.service';
 import { isBlockedEitherWay } from './block.service';
+import { getMuteStatus } from './interaction.service';
 
 interface UpdateProfileInput {
   bio?: string;
@@ -95,6 +96,26 @@ export async function attachSignedUrls(user: any) {
 // Buscador de personas: por nombre, apellido o email exacto — nunca te muestra a vos mismo
 const DIAS_ESPERA_TRAS_RECHAZO = 7;
 
+// cuenta cuántas conexiones aceptadas tienen en común dos usuarios —
+// mismo criterio que ya usamos para "vínculos mutuos" en Personas
+async function contarConexionesMutuas(userIdA: string, userIdB: string): Promise<number> {
+  const [conexionesA, conexionesB] = await Promise.all([
+    prisma.connection.findMany({
+      where: { status: 'accepted', OR: [{ requesterId: userIdA }, { addresseeId: userIdA }] },
+      select: { requesterId: true, addresseeId: true },
+    }),
+    prisma.connection.findMany({
+      where: { status: 'accepted', OR: [{ requesterId: userIdB }, { addresseeId: userIdB }] },
+      select: { requesterId: true, addresseeId: true },
+    }),
+  ]);
+  const idsA = new Set(conexionesA.map((c) => (c.requesterId === userIdA ? c.addresseeId : c.requesterId)));
+  const idsB = new Set(conexionesB.map((c) => (c.requesterId === userIdB ? c.addresseeId : c.requesterId)));
+  let mutuos = 0;
+  for (const id of idsA) if (idsB.has(id)) mutuos++;
+  return mutuos;
+}
+
 export async function searchUsers(query: string, currentUserId: string, page: number, pageSize: number) {
   const texto = query.trim();
   if (texto.length < 2) return { items: [], total: 0, page, pageSize, totalPages: 0 };
@@ -172,11 +193,16 @@ export async function searchUsers(query: string, currentUserId: string, page: nu
         }
       }
 
+      // solo calculamos los mutuos cuando hacen falta (si ya están
+      // conectados, no tiene sentido mostrar "X en común")
+      const mutuos = estadoConexion === 'conectado' ? 0 : await contarConexionesMutuas(currentUserId, u.id);
+
       return {
         ...u,
         avatarUrl: u.avatarUrl ? await getSignedFileUrl(u.avatarUrl) : null,
         estadoConexion,
         diasRestantes,
+        mutuos,
       };
     })
   );
@@ -340,10 +366,14 @@ export async function getPublicProfile(targetUserId: string, viewerId: string) {
 
   const puedeVerContenido = esUnoMismo || !!conexionAceptada || !target.isPrivate;
 
+  const muteStatus = esUnoMismo ? { silenciado: false, expiresAt: null } : await getMuteStatus(viewerId, targetUserId);
+
   // mismo cálculo de estado que en el buscador, para que el botón del
   // perfil sea coherente con lo que ya viste en los resultados de búsqueda
-  let estadoConexion: 'ninguna' | 'pendiente_enviada' | 'conectado' | 'rechazada' = 'ninguna';
+  let estadoConexion: 'ninguna' | 'pendiente_enviada' | 'pendiente_recibida' | 'conectado' | 'rechazada' = 'ninguna';
   let diasRestantes: number | null = null;
+  let solicitudPendienteId: string | null = null;
+  let solicitudRecibidaId: string | null = null;
 
   if (!esUnoMismo) {
     const cualquierConexion = await prisma.connection.findFirst({
@@ -360,6 +390,10 @@ export async function getPublicProfile(targetUserId: string, viewerId: string) {
         estadoConexion = 'conectado';
       } else if (cualquierConexion.status === 'pending' && cualquierConexion.requesterId === viewerId) {
         estadoConexion = 'pendiente_enviada';
+        solicitudPendienteId = cualquierConexion.id;
+      } else if (cualquierConexion.status === 'pending' && cualquierConexion.requesterId === targetUserId) {
+        estadoConexion = 'pendiente_recibida';
+        solicitudRecibidaId = cualquierConexion.id;
       } else if (cualquierConexion.status === 'rejected' && cualquierConexion.requesterId === viewerId) {
         const diasPasados = cualquierConexion.respondedAt
           ? (Date.now() - cualquierConexion.respondedAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -389,5 +423,9 @@ export async function getPublicProfile(targetUserId: string, viewerId: string) {
     puedeVerContenido,
     estadoConexion,
     diasRestantes,
+    estaSilenciado: muteStatus.silenciado,
+    silenciadoHasta: muteStatus.expiresAt,
+    solicitudPendienteId,
+    solicitudRecibidaId,
   };
 }

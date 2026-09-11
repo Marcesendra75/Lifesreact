@@ -5,10 +5,11 @@
 // con pestañas de filtro por tipo. Nombre lleva al perfil.
 // ============================================
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { memoryService } from '../../services/api';
 import { REACCIONES, IconoReaccion } from './ReactionButton';
+import PersonHoverCard from '../PersonHoverCard/PersonHoverCard';
 import './ReactionButton.scss';
 
 interface Reactor {
@@ -17,12 +18,12 @@ interface Reactor {
 }
 
 interface ReactionResumenProps {
-  memoryId: string;
+  memoryId?: string;
+  commentId?: string;
   reactionCounts: Record<string, number>;
 }
 
-export default function ReactionResumen({ memoryId, reactionCounts }: ReactionResumenProps) {
-  const navigate = useNavigate();
+export default function ReactionResumen({ memoryId, commentId, reactionCounts }: ReactionResumenProps) {
   const [abierto, setAbierto] = useState(false);
   const [filtro, setFiltro] = useState<string | null>(null);
   const [reactores, setReactores] = useState<Reactor[] | null>(null);
@@ -64,7 +65,9 @@ export default function ReactionResumen({ memoryId, reactionCounts }: ReactionRe
       if (!reactores) {
         setCargando(true);
         try {
-          const res: any = await memoryService.listReactions(memoryId);
+          const res: any = commentId
+            ? await memoryService.listCommentReactions(commentId)
+            : await memoryService.listReactions(memoryId as string);
           setReactores(res.data);
         } catch {
           setReactores([]);
@@ -73,11 +76,6 @@ export default function ReactionResumen({ memoryId, reactionCounts }: ReactionRe
         }
       }
     }
-  };
-
-  const irAlPerfil = (userId: string) => {
-    setAbierto(false);
-    navigate(`/perfil/${userId}`);
   };
 
   const personasAMostrar = (reactores || []).filter(r => !filtro || r.type === filtro);
@@ -124,13 +122,19 @@ export default function ReactionResumen({ memoryId, reactionCounts }: ReactionRe
             {!cargando && personasAMostrar.map((r, i) => {
               const tipoInfo = REACCIONES.find(t => t.type === r.type)!;
               return (
-                <button key={r.user.id + i} className="reaction-desglose__persona" onClick={() => irAlPerfil(r.user.id)}>
-                  {r.user.avatarUrl
-                    ? <img src={r.user.avatarUrl} alt={r.user.firstName} />
-                    : <div className="reaction-desglose__persona-vacio">{r.user.firstName[0]}</div>
-                  }
+                <div key={r.user.id + i} className="reaction-desglose__persona">
+                  <Link to={`/perfil/${r.user.id}`} className="reaction-desglose__persona-avatar-link" onClick={() => setAbierto(false)}>
+                    {r.user.avatarUrl
+                      ? <img src={r.user.avatarUrl} alt={r.user.firstName} />
+                      : <div className="reaction-desglose__persona-vacio">{r.user.firstName[0]}</div>
+                    }
+                  </Link>
                   <div className="reaction-desglose__persona-info">
-                    <span className="reaction-desglose__persona-nombre">{r.user.firstName} {r.user.lastName}</span>
+                    <PersonHoverCard userId={r.user.id}>
+                      <Link to={`/perfil/${r.user.id}`} className="reaction-desglose__persona-nombre" onClick={() => setAbierto(false)}>
+                        {r.user.firstName} {r.user.lastName}
+                      </Link>
+                    </PersonHoverCard>
                     {!r.user.esUnoMismo && (
                       <span className={`reaction-desglose__persona-estado ${r.user.estaConectado ? 'conectado' : ''}`}>
                         {r.user.estaConectado ? 'Conectados' : 'No conectados'}
@@ -138,7 +142,7 @@ export default function ReactionResumen({ memoryId, reactionCounts }: ReactionRe
                     )}
                   </div>
                   <IconoReaccion r={tipoInfo} className="reaction-desglose__persona-reaccion" />
-                </button>
+                </div>
               );
             })}
         </div>

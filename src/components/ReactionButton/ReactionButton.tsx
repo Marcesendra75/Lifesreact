@@ -9,6 +9,7 @@ import emocionanteIcon from '../../assets/reactions/emocionante.svg';
 import inspiradorIcon from '../../assets/reactions/inspirador.svg';
 import recordareIcon from '../../assets/reactions/recordare.svg';
 import conmueveIcon from '../../assets/reactions/conmueve.svg';
+import { formatConteo } from '../../utils/format';
 import './ReactionButton.scss';
 
 // Si no convencen los íconos propios, poné esto en false y listo: vuelve a los emoji nativos
@@ -81,7 +82,7 @@ export default function ReactionButton({ reactionCounts, miReaccion, onReact }: 
           {actual
             ? <IconoReaccion r={actual} className="reaction-pill__emoji" />
             : <span className="reaction-pill__emoji">🤍</span>}
-          {total > 0 && <span className="reaction-pill__total">{total}</span>}
+          {total > 0 && <span className="reaction-pill__total">{formatConteo(total)}</span>}
         </button>
 
         {pickerAbierto && (

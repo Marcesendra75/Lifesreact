@@ -1,0 +1,161 @@
+.person-hover-wrap {
+  position: relative;
+  display: inline-block;
+  align-self: flex-start; // que nunca se estire dentro de un flex-column padre — si no, el área de hover queda más ancha que el nombre en sí
+}
+
+.person-hover-card {
+  position: fixed;
+  z-index: 600;
+  width: 240px;
+  background: #fbf9f5;
+  border: 1px solid rgba(3, 25, 46, 0.1);
+  border-top: 3px solid var(--nivel-color, #C9A84C);
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(3, 25, 46, 0.24);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: default;
+  animation: personHoverAparecer 0.15s ease-out;
+}
+
+@keyframes personHoverAparecer {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.person-hover-card__vacio {
+  font-size: 0.78rem;
+  color: #8A8279;
+  margin: 0;
+}
+
+.person-hover-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.person-hover-card__header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.person-hover-card__avatar {
+  width: 46px;
+  height: 46px;
+  max-width: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--nivel-color, #C9A84C);
+
+  &--vacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--nivel-color, #C9A84C);
+    color: white;
+    font-family: 'Newsreader', serif;
+    font-size: 1.1rem;
+  }
+}
+
+.person-hover-card__nombre {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #03192e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  display: block;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+.person-hover-card__nivel {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--nivel-color, #855324);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.person-hover-card__bio {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: #43474d;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.person-hover-card__ubicacion {
+  font-size: 0.72rem;
+  color: #8A8279;
+}
+
+.person-hover-card__accion {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(3, 25, 46, 0.08);
+}
+
+.person-hover-card__conectado {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #27ae60;
+}
+
+.person-hover-card__pendiente {
+  font-size: 0.76rem;
+  color: #8A8279;
+}
+
+.person-hover-card__conectar {
+  background: #03192e;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover { background: #0a2c4e; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.person-hover-card__par-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.person-hover-card__rechazar {
+  background: none;
+  border: 1.5px solid rgba(186, 26, 26, 0.3);
+  color: #ba1a1a;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover { background: rgba(186, 26, 26, 0.08); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.person-hover-card__error {
+  font-size: 0.7rem;
+  color: #ba1a1a;
+  margin: 6px 0 0;
+}

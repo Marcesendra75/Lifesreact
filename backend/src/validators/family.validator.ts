@@ -9,6 +9,7 @@ export const createFamilyMemberSchema = z.object({
   birthDate: z.string().optional(),
   deathDate: z.string().optional(),
   bio: z.string().trim().max(2000).optional(),
+  relacionManual: z.union([z.string().trim().max(60), z.literal('')]).optional(),
   motherId: z.union([z.string().uuid('motherId inválido'), z.literal('')]).optional(),
   fatherId: z.union([z.string().uuid('fatherId inválido'), z.literal('')]).optional(),
 });

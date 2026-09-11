@@ -120,6 +120,18 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
+  &__nombre--link {
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    display: block;
+    max-width: 100%;
+
+    &:hover { text-decoration: underline; }
+  }
+
   &__privado, &__quiere {
     display: flex; align-items: center; gap: 4px;
     font-size: 0.72rem; color: #8A8279;

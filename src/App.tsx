@@ -43,6 +43,7 @@ import LifesAdmin        from './pages/LifesAdmin/LifesAdmin/LifesAdmin';
 
 // ── Páginas principales ──
 import Feed              from './pages/Feed/Feed';
+import Guardados         from './pages/Guardados/Guardados';
 import Personas          from './pages/Personas/Personas';
 import Profile           from './pages/Profile/Profile';
 import Timeline          from './pages/Timeline/Timeline';
@@ -117,6 +118,7 @@ function App() {
           <Route element={<PrivateRoute />}>
             <Route path="/feed"                               element={<Feed />} />
             <Route path="/feed/:memoryId"                     element={<Feed />} />
+            <Route path="/guardados"                          element={<Guardados />} />
             <Route path="/personas"                           element={<Personas />} />
 
             {/* Perfil — unifica Muro Biográfico + Perfil */}

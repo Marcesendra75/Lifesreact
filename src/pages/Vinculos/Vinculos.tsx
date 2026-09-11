@@ -5,7 +5,7 @@
 // más las propuestas de tipo pendientes (recibidas y enviadas).
 // ============================================================
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   Users, Search, Heart, Briefcase, TreePine,
   Check, X, ChevronRight, UserPlus,
@@ -14,6 +14,7 @@ import { useAuth } from '../../context/AuthContext';
 import { connectionService, userService } from '../../services/api';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import MutualsModal from '../../components/MutualsModal/MutualsModal';
+import PersonHoverCard from '../../components/PersonHoverCard/PersonHoverCard';
 import './Vinculos.scss';
 
 // ── Tipos ────────────────────────────────────────────────────
@@ -342,7 +343,11 @@ export default function Vinculos() {
                         <span className="vk-card__tipo-emoji">{cfg?.emoji}</span>
                       </div>
                       <div className="vk-card__info">
-                        <span className="vk-card__nombre">{otro.firstName} {otro.lastName}</span>
+                        <PersonHoverCard userId={otro.id}>
+                          <Link to={`/perfil/${otro.id}`} className="vk-card__nombre vk-card__nombre--link">
+                            {otro.firstName} {otro.lastName}
+                          </Link>
+                        </PersonHoverCard>
                         <span className="vk-card__tipo">{cfg?.label}</span>
                         {tienePendiente && (
                           <span className="vk-card__pendiente">
@@ -394,8 +399,12 @@ export default function Vinculos() {
                           : <div className="vk-card__avatar vk-card__avatar--vacio">{s.firstName[0]}</div>
                         }
                       </div>
-                      <button className="vk-card__info vk-card__info--link" onClick={() => navigate(`/perfil/${s.id}`)}>
-                        <span className="vk-card__nombre">{s.firstName} {s.lastName}</span>
+                      <div className="vk-card__info">
+                        <PersonHoverCard userId={s.id}>
+                          <Link to={`/perfil/${s.id}`} className="vk-card__nombre vk-card__nombre--link">
+                            {s.firstName} {s.lastName}
+                          </Link>
+                        </PersonHoverCard>
                         {s.mutuos > 0 ? (
                           <span
                             className="vk-card__tipo vk-card__tipo--link"
@@ -406,7 +415,7 @@ export default function Vinculos() {
                         ) : (
                           <span className="vk-card__tipo">{s.city || 'Sugerido para vos'}</span>
                         )}
-                      </button>
+                      </div>
                       <div className="vk-card__acciones">
                         <button
                           className="vk-card__btn vk-card__btn--perfil"

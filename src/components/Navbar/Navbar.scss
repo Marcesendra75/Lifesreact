@@ -648,3 +648,40 @@ $transition:      0.28s cubic-bezier(0.4, 0, 0.2, 1);
     line-height: 1.35;
   }
 }
+
+.navbar-top__notif-item-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.navbar-top__notif-item .navbar-top__notif-item-fecha {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba($ambar-light, 0.85) !important;
+}
+
+.navbar-top__resultado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.navbar-top__resultado-nombre {
+  font-weight: 600;
+}
+
+.navbar-top__resultado .navbar-top__resultado-estado {
+  font-size: 0.72rem;
+  color: rgba($crema, 0.5) !important;
+
+  &.navbar-top__resultado-estado--conectado {
+    color: #86d99c !important;
+  }
+
+  &.navbar-top__resultado-estado--mutuos {
+    color: rgba($ambar-light, 0.85) !important;
+  }
+}

@@ -19,6 +19,10 @@ import connectionRoutes from './routes/connection.routes';
 import chapterRoutes from './routes/chapter.routes';
 import blockRoutes from './routes/block.routes';
 import notificationRoutes from './routes/notification.routes';
+import reportRoutes from './routes/report.routes';
+import interactionRoutes from './routes/interaction.routes';
+
+
 // import capsuleRoutes from './routes/capsule.routes';
 // import farewellRoutes from './routes/farewell.routes';
 // import echoRoutes from './routes/echo.routes';
@@ -45,6 +49,9 @@ app.use('/api/connections', connectionRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/blocks', blockRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/interactions', interactionRoutes);
+
 // app.use('/api/capsules', capsuleRoutes);
 // app.use('/api/farewells',farewellRoutes);
 // app.use('/api/echo',     echoRoutes);

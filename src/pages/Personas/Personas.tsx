@@ -2,11 +2,12 @@
 // LIFE'S — Personas: buscar gente y gestionar solicitudes de conexión
 // ============================================
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Search, UserPlus, Check, X, Lock, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { userService, connectionService } from '../../services/api';
 import MutualsModal from '../../components/MutualsModal/MutualsModal';
+import PersonHoverCard from '../../components/PersonHoverCard/PersonHoverCard';
 import './Personas.scss';
 
 type Tab = 'buscar' | 'solicitudes';
@@ -24,6 +25,12 @@ interface PersonaResult {
 interface Solicitud {
   id: string;
   requester: { id: string; firstName: string; lastName: string; avatarUrl?: string | null };
+  createdAt: string;
+}
+
+interface SolicitudEnviada {
+  id: string;
+  addressee: { id: string; firstName: string; lastName: string; avatarUrl?: string | null };
   createdAt: string;
 }
 
@@ -49,6 +56,7 @@ export default function Personas() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
+  const [solicitudesEnviadas, setSolicitudesEnviadas] = useState<SolicitudEnviada[]>([]);
   const [cargandoSolicitudes, setCargandoSolicitudes] = useState(true);
   const [toast, setToast] = useState('');
 
@@ -90,12 +98,22 @@ export default function Personas() {
     setCargandoSolicitudes(true);
     try {
       const res: any = await connectionService.list('pending');
-      // solo las que ME llegaron a mí (yo soy el addressee), no las que yo mandé
       setSolicitudes(res.data.filter((c: any) => c.addressee.id === user?.id));
+      setSolicitudesEnviadas(res.data.filter((c: any) => c.requester.id === user?.id));
     } catch {
-      // si falla, dejamos la lista vacía
+      // si falla, dejamos las listas vacías
     } finally {
       setCargandoSolicitudes(false);
+    }
+  };
+
+  const cancelarEnviada = async (id: string) => {
+    try {
+      await connectionService.remove(id);
+      setSolicitudesEnviadas(solicitudesEnviadas.filter(s => s.id !== id));
+      showToast('Solicitud cancelada');
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo cancelar la solicitud');
     }
   };
 
@@ -201,12 +219,16 @@ export default function Personas() {
                     : <div className="personas-card__avatar personas-card__avatar--vacio">{p.firstName[0]}</div>
                   }
                 </button>
-                <button className="personas-card__info personas-card__info--link" onClick={() => navigate(`/perfil/${p.id}`)}>
-                  <span className="personas-card__nombre">{p.firstName} {p.lastName}</span>
+                <div className="personas-card__info">
+                  <PersonHoverCard userId={p.id}>
+                    <Link to={`/perfil/${p.id}`} className="personas-card__nombre personas-card__nombre--link">
+                      {p.firstName} {p.lastName}
+                    </Link>
+                  </PersonHoverCard>
                   {p.isPrivate && (
                     <span className="personas-card__privado"><Lock size={11} strokeWidth={2} /> Perfil privado</span>
                   )}
-                </button>
+                </div>
                 {p.estadoConexion === 'conectado' ? (
                   <span className="personas-card__btn enviado"><Check size={14} strokeWidth={2} /> Conectados</span>
                 ) : p.estadoConexion === 'pendiente_enviada' ? (
@@ -241,19 +263,23 @@ export default function Personas() {
                         : <div className="personas-card__avatar personas-card__avatar--vacio">{s.firstName[0]}</div>
                       }
                     </button>
-                    <button className="personas-card__info personas-card__info--link" onClick={() => navigate(`/perfil/${s.id}`)}>
-                      <span className="personas-card__nombre">{s.firstName} {s.lastName}</span>
+                    <div className="personas-card__info">
+                      <PersonHoverCard userId={s.id}>
+                        <button className="personas-card__nombre personas-card__nombre--link" onClick={() => navigate(`/perfil/${s.id}`)}>
+                          {s.firstName} {s.lastName}
+                        </button>
+                      </PersonHoverCard>
                       {s.mutuos > 0 ? (
                         <span
                           className="personas-card__quiere personas-card__quiere--link"
-                          onClick={(e) => { e.stopPropagation(); setVerMutuosDe(s); }}
+                          onClick={() => setVerMutuosDe(s)}
                         >
                           {s.mutuos} {s.mutuos === 1 ? 'vínculo mutuo' : 'vínculos mutuos'}
                         </span>
                       ) : (
                         <span className="personas-card__quiere">{s.city || 'Sugerido para vos'}</span>
                       )}
-                    </button>
+                    </div>
                     <button
                       className={`personas-card__btn ${enviadosSugeridos.has(s.id) ? 'enviado' : ''}`}
                       onClick={() => conectarSugerido(s)}
@@ -273,6 +299,9 @@ export default function Personas() {
 
         {tab === 'solicitudes' && (
           <div className="personas-solicitudes">
+            <h2 style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#8A8279', margin: '0 0 10px' }}>
+              Te llegaron
+            </h2>
             {cargandoSolicitudes && <p className="personas-vacio">Cargando...</p>}
             {!cargandoSolicitudes && solicitudes.length === 0 && (
               <p className="personas-vacio">No tenés solicitudes pendientes.</p>
@@ -285,15 +314,49 @@ export default function Personas() {
                     : <div className="personas-card__avatar personas-card__avatar--vacio">{s.requester.firstName[0]}</div>
                   }
                 </button>
-                <button className="personas-card__info personas-card__info--link" onClick={() => navigate(`/perfil/${s.requester.id}`)}>
-                  <span className="personas-card__nombre">{s.requester.firstName} {s.requester.lastName}</span>
+                <div className="personas-card__info">
+                  <PersonHoverCard userId={s.requester.id}>
+                    <button className="personas-card__nombre personas-card__nombre--link" onClick={() => navigate(`/perfil/${s.requester.id}`)}>
+                      {s.requester.firstName} {s.requester.lastName}
+                    </button>
+                  </PersonHoverCard>
                   <span className="personas-card__quiere">quiere conectar con vos</span>
-                </button>
+                </div>
                 <div className="personas-card__acciones">
                   <button className="personas-card__icon-btn personas-card__icon-btn--ok" onClick={() => aceptar(s.id)}>
                     <Check size={16} strokeWidth={2.2} />
                   </button>
                   <button className="personas-card__icon-btn personas-card__icon-btn--no" onClick={() => rechazar(s.id)}>
+                    <X size={16} strokeWidth={2.2} />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            <h2 style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#8A8279', margin: '24px 0 10px' }}>
+              Enviadas por vos
+            </h2>
+            {!cargandoSolicitudes && solicitudesEnviadas.length === 0 && (
+              <p className="personas-vacio">No enviaste solicitudes pendientes.</p>
+            )}
+            {!cargandoSolicitudes && solicitudesEnviadas.map(s => (
+              <div key={s.id} className="personas-card">
+                <button className="personas-card__avatar-btn" onClick={() => navigate(`/perfil/${s.addressee.id}`)}>
+                  {s.addressee.avatarUrl
+                    ? <img src={s.addressee.avatarUrl} alt={s.addressee.firstName} className="personas-card__avatar" />
+                    : <div className="personas-card__avatar personas-card__avatar--vacio">{s.addressee.firstName[0]}</div>
+                  }
+                </button>
+                <div className="personas-card__info">
+                  <PersonHoverCard userId={s.addressee.id}>
+                    <button className="personas-card__nombre personas-card__nombre--link" onClick={() => navigate(`/perfil/${s.addressee.id}`)}>
+                      {s.addressee.firstName} {s.addressee.lastName}
+                    </button>
+                  </PersonHoverCard>
+                  <span className="personas-card__quiere">esperando respuesta</span>
+                </div>
+                <div className="personas-card__acciones">
+                  <button className="personas-card__icon-btn personas-card__icon-btn--no" onClick={() => cancelarEnviada(s.id)} title="Cancelar solicitud">
                     <X size={16} strokeWidth={2.2} />
                   </button>
                 </div>

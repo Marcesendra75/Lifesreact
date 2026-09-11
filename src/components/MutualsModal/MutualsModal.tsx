@@ -3,9 +3,10 @@
 // Muestra quiénes son las conexiones en común con otra persona.
 // ============================================
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { userService } from '../../services/api';
+import PersonHoverCard from '../PersonHoverCard/PersonHoverCard';
 import './MutualsModal.scss';
 
 interface Persona {
@@ -82,13 +83,19 @@ export default function MutualsModal({ userId, nombre, onClose }: MutualsModalPr
             <p className="mutuals-modal__vacio">No encontramos vínculos en común.</p>
           )}
           {!cargando && personas.map((p) => (
-            <button key={p.id} className="mutuals-modal__persona" onClick={() => irAlPerfil(p.id)}>
-              {p.avatarUrl
-                ? <img src={p.avatarUrl} alt={p.firstName} loading="eager" decoding="sync" />
-                : <div className="mutuals-modal__persona-vacio">{p.firstName[0]}</div>
-              }
-              <span>{p.firstName} {p.lastName}</span>
-            </button>
+            <div key={p.id} className="mutuals-modal__persona">
+              <button className="mutuals-modal__persona-avatar-btn" onClick={() => irAlPerfil(p.id)}>
+                {p.avatarUrl
+                  ? <img src={p.avatarUrl} alt={p.firstName} loading="eager" decoding="sync" />
+                  : <div className="mutuals-modal__persona-vacio">{p.firstName[0]}</div>
+                }
+              </button>
+              <PersonHoverCard userId={p.id}>
+                <Link to={`/perfil/${p.id}`} className="mutuals-modal__persona-nombre" onClick={onClose}>
+                  {p.firstName} {p.lastName}
+                </Link>
+              </PersonHoverCard>
+            </div>
           ))}
         </div>
       </div>

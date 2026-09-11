@@ -19,8 +19,15 @@ router.post('/partners', familyController.addPartner);
 router.delete('/partners/:id', familyController.removePartner);
 
 router.get('/my-placements', familyController.getMyPlacements);
-router.patch('/members/:id/link', familyController.linkMember);
+router.get('/pending-links', familyController.getPendingLinks);
+router.delete('/tree', familyController.deleteTree);
+router.patch('/members/:id/link', familyController.proposeLink);
+router.patch('/members/:id/accept-link', familyController.acceptLink);
+router.patch('/members/:id/reject-link', familyController.rejectLink);
+router.patch('/members/:id/cancel-link', familyController.cancelLink);
 router.delete('/members/:id/link', familyController.unlinkMember);
+router.get('/members/:id/copy-preview', familyController.previewCopy);
+router.post('/members/:id/copy', familyController.copyTree);
 router.patch('/members/:id/position', familyController.updatePosition);
 
 export default router;

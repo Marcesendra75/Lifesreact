@@ -60,6 +60,18 @@ export async function getByUser(req: AuthRequest, res: Response) {
   }
 }
 
+export async function getSaved(req: AuthRequest, res: Response) {
+  try {
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(50, parseInt(req.query.pageSize as string) || 20);
+    const result = await memoryService.listSavedMemories(req.userId as string, page, pageSize);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Error al obtener los guardados' });
+  }
+}
+
 export async function getOne(req: AuthRequest, res: Response) {
   try {
     const memory = await memoryService.getMemoryById(req.params.id, req.userId as string);
@@ -123,7 +135,7 @@ export async function listComments(req: AuthRequest, res: Response) {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const pageSize = Math.min(50, parseInt(req.query.pageSize as string) || 20);
-    const result = await memoryService.listComments(req.params.id, page, pageSize);
+    const result = await memoryService.listComments(req.params.id, req.userId as string, page, pageSize);
     res.json({ success: true, data: result });
   } catch (err) {
     console.error(err);
@@ -138,10 +150,43 @@ export async function addComment(req: AuthRequest, res: Response) {
       return res.status(400).json({ success: false, error: parsed.error.issues[0].message });
     }
 
-    const comment = await memoryService.addComment(req.params.id, req.userId as string, parsed.data.content);
+    const comment = await memoryService.addComment(req.params.id, req.userId as string, parsed.data.content, parsed.data.parentId);
     res.status(201).json({ success: true, data: comment });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message || 'Error al comentar' });
+  }
+}
+
+export async function listReplies(req: AuthRequest, res: Response) {
+  try {
+    const replies = await memoryService.listReplies(req.params.commentId, req.userId as string);
+    res.json({ success: true, data: replies });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Error al obtener las respuestas' });
+  }
+}
+
+export async function setCommentReaction(req: AuthRequest, res: Response) {
+  try {
+    const parsed = reactionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, error: parsed.error.issues[0].message });
+    }
+    const result = await memoryService.setCommentReaction(req.params.commentId, req.userId as string, parsed.data.type);
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al reaccionar' });
+  }
+}
+
+export async function listCommentReactions(req: AuthRequest, res: Response) {
+  try {
+    const result = await memoryService.listCommentReactions(req.params.commentId, req.userId as string);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Error al obtener las reacciones' });
   }
 }
 
@@ -161,5 +206,15 @@ export async function listReactions(req: AuthRequest, res: Response) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Error al obtener las reacciones' });
+  }
+}
+
+export async function share(req: AuthRequest, res: Response) {
+  try {
+    const result = await memoryService.incrementShareCount(req.params.id);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ success: false, error: 'Error al compartir' });
   }
 }

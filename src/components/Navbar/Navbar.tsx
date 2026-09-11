@@ -5,7 +5,7 @@
 // Íconos: Lucide React
 // ============================================================
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, Link } from 'react-router-dom';
 import {
   Home, Activity, GitBranch, User, Lock, Menu, Users,
   Search, Bell, ChevronDown, Settings as SettingsIcon, LogOut,
@@ -67,11 +67,6 @@ export default function Navbar() {
     }, 400);
   };
 
-  const irAPersona = (id: string) => {
-    setResultadosAbiertos(false);
-    setQuery('');
-    navigate(`/perfil/${id}`);
-  };
 
   // cerrar el desplegable de resultados con click afuera
   useEffect(() => {
@@ -97,11 +92,12 @@ export default function Navbar() {
   const [notifTotalPages, setNotifTotalPages] = useState(1);
   const [noLeidas, setNoLeidas] = useState(0);
   const notifPanelRef = useRef<HTMLDivElement>(null);
+  const notifWrapRef = useRef<HTMLDivElement>(null);
 
   const cargarNoLeidas = () => {
     notificationService.unreadCount()
       .then((res: any) => setNoLeidas(res.data.count))
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const abrirNotificaciones = async () => {
@@ -114,6 +110,14 @@ export default function Navbar() {
         setNotifItems(res.data.items);
         setNotifPage(1);
         setNotifTotalPages(res.data.totalPages);
+
+        // al abrir la campanita ya las damos por vistas — no hace falta
+        // entrar notificación por notificación para que baje el número
+        if (res.data.unreadCount > 0) {
+          setNoLeidas(0);
+          setNotifItems((prev) => prev.map((n: any) => ({ ...n, isRead: true })));
+          notificationService.markAllRead().catch(() => { });
+        }
       } catch {
         setNotifItems([]);
       } finally {
@@ -155,17 +159,30 @@ export default function Navbar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notifAbiertas, notifPage, notifTotalPages, cargandoMasNotifs]);
 
+  // cerrar el panel de notificaciones con clic afuera — mismo patrón que
+  // ya usamos para el desplegable del buscador
+  useEffect(() => {
+    if (!notifAbiertas) return;
+    const onClickFuera = (e: MouseEvent) => {
+      if (notifWrapRef.current && !notifWrapRef.current.contains(e.target as Node)) {
+        setNotifAbiertas(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickFuera);
+    return () => document.removeEventListener('mousedown', onClickFuera);
+  }, [notifAbiertas]);
+
   const tocarNotificacion = async (n: any) => {
     setNotifAbiertas(false);
     if (!n.isRead) {
       try {
         await notificationService.markRead(n.id);
         setNoLeidas((prev) => Math.max(0, prev - 1));
-      } catch {}
+      } catch { }
     }
 
-    // reacción/comentario van directo al recuerdo puntual, no al feed general
-    if ((n.type === 'reaction' || n.type === 'comment') && n.entityId) {
+    // reacción/comentario/respuesta van directo al recuerdo puntual, no al feed general
+    if ((n.type === 'reaction' || n.type === 'comment' || n.type === 'comment_reply') && n.entityId) {
       navigate(`/feed/${n.entityId}`);
       return;
     }
@@ -180,14 +197,35 @@ export default function Navbar() {
       return;
     }
 
+    if (n.type === 'family_link_proposed') {
+      navigate(`/arbol-genealogico?propuesta=${n.entityId}`);
+      return;
+    }
+
     const destinos: Record<string, string> = {
       connection_accepted: '/vinculos',
       connection_rejected: '/personas',
       relation_type_accepted: '/vinculos',
       relation_type_rejected: '/vinculos',
       relation_type_cancelled: '/vinculos',
+      family_link_accepted: '/arbol-genealogico',
+      family_link_rejected: '/arbol-genealogico',
     };
     navigate(destinos[n.type] || '/feed');
+  };
+
+  const formatFechaNotif = (iso: string): string => {
+    const fecha = new Date(iso);
+    const diffMs = Date.now() - fecha.getTime();
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1) return 'recién';
+    if (min < 60) return `hace ${min} min`;
+    const horas = Math.floor(min / 60);
+    if (horas < 24) return `hace ${horas} h`;
+    const dias = Math.floor(horas / 24);
+    if (dias === 1) return 'ayer';
+    if (dias < 7) return `hace ${dias} días`;
+    return fecha.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
   };
 
   const NOTIF_TEXTO: Record<string, (n: any) => string> = {
@@ -204,6 +242,10 @@ export default function Navbar() {
     comment: (n) => n.actorsCount > 1
       ? `${n.actor?.firstName || 'Alguien'} y ${n.actorsCount - 1} persona${n.actorsCount - 1 === 1 ? '' : 's'} más comentaron tu recuerdo`
       : `${n.actor?.firstName || 'Alguien'} comentó tu recuerdo`,
+    comment_reply: (n) => `${n.actor?.firstName || 'Alguien'} respondió tu comentario`,
+    family_link_proposed: (n) => `${n.actor?.firstName || 'Alguien'} te etiquetó en su árbol genealógico`,
+    family_link_accepted: (n) => `${n.actor?.firstName || 'Alguien'} aceptó tu etiqueta en su árbol`,
+    family_link_rejected: (n) => `${n.actor?.firstName || 'Alguien'} rechazó tu etiqueta en su árbol`,
   };
 
   const cargarPendientes = () => {
@@ -213,7 +255,7 @@ export default function Navbar() {
         const recibidas = res.data.filter((c: any) => c.addressee.id === user?.id);
         setSolicitudesPendientes(recibidas.length);
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -271,20 +313,31 @@ export default function Navbar() {
                 <p className="navbar-top__resultados-vacio">No encontramos a nadie con ese nombre.</p>
               )}
               {!buscando && resultados.map((p) => (
-                <button key={p.id} className="navbar-top__resultado" onClick={() => irAPersona(p.id)}>
+                <Link key={p.id} to={`/perfil/${p.id}`} className="navbar-top__resultado" onClick={() => { setResultadosAbiertos(false); setQuery(''); }}>
                   {p.avatarUrl
                     ? <img src={p.avatarUrl} alt={p.firstName} />
                     : <div className="navbar-top__resultado-vacio">{p.firstName[0]}</div>
                   }
-                  <span>{p.firstName} {p.lastName}</span>
-                </button>
+                  <div className="navbar-top__resultado-info">
+                    <span className="navbar-top__resultado-nombre">{p.firstName} {p.lastName}</span>
+                    <span className={`navbar-top__resultado-estado${p.estadoConexion === 'conectado' ? ' navbar-top__resultado-estado--conectado' : p.estadoConexion !== 'pendiente_enviada' && p.mutuos > 0 ? ' navbar-top__resultado-estado--mutuos' : ''}`}>
+                      {p.estadoConexion === 'conectado'
+                        ? 'Conectados'
+                        : p.estadoConexion === 'pendiente_enviada'
+                        ? 'Solicitud enviada'
+                        : p.mutuos > 0
+                        ? `${p.mutuos} conexi${p.mutuos === 1 ? 'ón' : 'ones'} en común`
+                        : null}
+                    </span>
+                  </div>
+                </Link>
               ))}
             </div>
           )}
         </div>
 
         <div className="navbar-top__acciones">
-          <div className="navbar-top__notif-wrap">
+          <div className="navbar-top__notif-wrap" ref={notifWrapRef}>
             <button className="navbar-top__icon-btn" aria-label="Notificaciones" onClick={abrirNotificaciones}>
               <Bell size={19} strokeWidth={1.8} />
               {noLeidas > 0 && <span className="navbar-top__notif-badge">{noLeidas > 9 ? '9+' : noLeidas}</span>}
@@ -308,7 +361,10 @@ export default function Navbar() {
                         ? <img src={n.actor.avatarUrl} alt={n.actor.firstName} />
                         : <div className="navbar-top__notif-item-vacio">{n.actor?.firstName?.[0] || '?'}</div>
                       }
-                      <span>{NOTIF_TEXTO[n.type]?.(n) || 'Nueva notificación'}</span>
+                      <div className="navbar-top__notif-item-texto">
+                        <span>{NOTIF_TEXTO[n.type]?.(n) || 'Nueva notificación'}</span>
+                        <span className="navbar-top__notif-item-fecha">{formatFechaNotif(n.updatedAt || n.createdAt)}</span>
+                      </div>
                     </button>
                   ))}
                   {cargandoMasNotifs && <p className="navbar-top__notif-vacio">Cargando más...</p>}

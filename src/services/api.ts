@@ -90,6 +90,8 @@ export const memoryService = {
     request(`/memories?page=${page}&pageSize=${pageSize}`),
   getFeed: (page = 1, pageSize = 20) =>
     request(`/memories/feed?page=${page}&pageSize=${pageSize}`),
+  getSaved: (page = 1, pageSize = 20) =>
+    request(`/memories/saved?page=${page}&pageSize=${pageSize}`),
   getById: (id: string) =>
     request(`/memories/${id}`),
   getByUser: (userId: string, page = 1, pageSize = 20) =>
@@ -107,14 +109,22 @@ export const memoryService = {
     request(`/memories/${id}`, 'DELETE'),
   setReaction: (id: string, type: string) =>
     request(`/memories/${id}/reaction`, 'POST', { type }),
+  share: (id: string) =>
+    request(`/memories/${id}/share`, 'POST'),
   listReactions: (id: string) =>
     request(`/memories/${id}/reactions`),
   listComments: (id: string, page = 1, pageSize = 20) =>
     request(`/memories/${id}/comments?page=${page}&pageSize=${pageSize}`),
-  addComment: (id: string, content: string) =>
-    request(`/memories/${id}/comments`, 'POST', { content }),
+  addComment: (id: string, content: string, parentId?: string) =>
+    request(`/memories/${id}/comments`, 'POST', { content, parentId }),
   deleteComment: (id: string, commentId: string) =>
     request(`/memories/${id}/comments/${commentId}`, 'DELETE'),
+  listReplies: (commentId: string) =>
+    request(`/memories/comments/${commentId}/replies`),
+  setCommentReaction: (commentId: string, type: string) =>
+    request(`/memories/comments/${commentId}/reaction`, 'POST', { type }),
+  listCommentReactions: (commentId: string) =>
+    request(`/memories/comments/${commentId}/reactions`),
 };
 
 // --- Árbol genealógico ---
@@ -143,10 +153,22 @@ export const familyService = {
   updatePosition: (id: string, posX: number, posY: number) =>
     request(`/family/members/${id}/position`, 'PATCH', { posX, posY }),
   getMyPlacements: () => request('/family/my-placements'),
-  linkMember: (id: string, userId: string) =>
+  getPendingLinks: () => request('/family/pending-links'),
+  deleteTree: () => request('/family/tree', 'DELETE'),
+  proposeLink: (id: string, userId: string) =>
     request(`/family/members/${id}/link`, 'PATCH', { userId }),
+  acceptLink: (id: string) =>
+    request(`/family/members/${id}/accept-link`, 'PATCH'),
+  rejectLink: (id: string) =>
+    request(`/family/members/${id}/reject-link`, 'PATCH'),
+  cancelLink: (id: string) =>
+    request(`/family/members/${id}/cancel-link`, 'PATCH'),
   unlinkMember: (id: string) =>
     request(`/family/members/${id}/link`, 'DELETE'),
+  previewCopyTree: (id: string) =>
+    request(`/family/members/${id}/copy-preview`),
+  copyTree: (id: string, fusiones: { sourceId: string; existingId: string }[] = []) =>
+    request(`/family/members/${id}/copy`, 'POST', { fusiones }),
 };
 
 // --- Conexiones (invitar / aceptar / rechazar) ---
@@ -264,4 +286,23 @@ export const notificationService = {
     request(`/notifications/${id}/read`, 'PATCH'),
   markAllRead: () =>
     request('/notifications/read-all', 'PATCH'),
+};
+
+export const reportService = {
+  create: (entityType: 'memory' | 'comment' | 'user', entityId: string, reason: string, detalle?: string) =>
+    request('/reports', 'POST', { entityType, entityId, reason, detalle }),
+};
+
+export const interactionService = {
+  hide: (memoryId: string) => request(`/interactions/hide/${memoryId}`, 'POST'),
+  unhide: (memoryId: string) => request(`/interactions/hide/${memoryId}`, 'DELETE'),
+  mute: (userId: string, duracion: 'temporal' | 'permanente' = 'permanente') =>
+    request('/interactions/mute', 'POST', { userId, duracion }),
+  unmute: (userId: string) => request(`/interactions/mute/${userId}`, 'DELETE'),
+  listMuted: () => request('/interactions/mute'),
+  save: (memoryId: string) => request(`/interactions/save/${memoryId}`, 'POST'),
+  unsave: (memoryId: string) => request(`/interactions/save/${memoryId}`, 'DELETE'),
+  listSavedIds: () => request(`/interactions/save`),
+  hideComment: (commentId: string) => request(`/interactions/hide-comment/${commentId}`, 'POST'),
+  unhideComment: (commentId: string) => request(`/interactions/hide-comment/${commentId}`, 'DELETE'),
 };

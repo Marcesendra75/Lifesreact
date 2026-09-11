@@ -105,20 +105,57 @@ export async function getTree(req: AuthRequest, res: Response) {
   }
 }
 
-export async function linkMember(req: AuthRequest, res: Response) {
+export async function proposeLink(req: AuthRequest, res: Response) {
   try {
     const parsed = linkMemberSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ success: false, error: parsed.error.issues[0].message });
     }
-    const member = await familyService.linkFamilyMemberToUser(
+    const member = await familyService.proposeFamilyLink(
       req.params.id,
       req.userId as string,
       parsed.data.userId
     );
     res.json({ success: true, data: member });
   } catch (err: any) {
-    res.status(400).json({ success: false, error: err.message || 'Error al vincular' });
+    res.status(400).json({ success: false, error: err.message || 'Error al etiquetar' });
+  }
+}
+
+export async function acceptLink(req: AuthRequest, res: Response) {
+  try {
+    const member = await familyService.acceptFamilyLink(req.params.id, req.userId as string);
+    res.json({ success: true, data: member });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al aceptar' });
+  }
+}
+
+export async function rejectLink(req: AuthRequest, res: Response) {
+  try {
+    await familyService.rejectFamilyLink(req.params.id, req.userId as string);
+    res.json({ success: true, message: 'Propuesta rechazada' });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al rechazar' });
+  }
+}
+
+export async function cancelLink(req: AuthRequest, res: Response) {
+  try {
+    const member = await familyService.cancelFamilyLink(req.params.id, req.userId as string);
+    res.json({ success: true, data: member });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al cancelar' });
+  }
+}
+
+export async function getPendingLinks(req: AuthRequest, res: Response) {
+  try {
+    const pendientes = await familyService.getPendingFamilyLinks(req.userId as string);
+    res.json({ success: true, data: pendientes });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Error al obtener las propuestas' });
   }
 }
 
@@ -151,5 +188,34 @@ export async function getMyPlacements(req: AuthRequest, res: Response) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Error al obtener tus ubicaciones' });
+  }
+}
+
+export async function previewCopy(req: AuthRequest, res: Response) {
+  try {
+    const result = await familyService.previewCopyTree(req.params.id, req.userId as string);
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al previsualizar la copia' });
+  }
+}
+
+export async function copyTree(req: AuthRequest, res: Response) {
+  try {
+    const fusiones = Array.isArray(req.body?.fusiones) ? req.body.fusiones : [];
+    const result = await familyService.copyFamilyTree(req.params.id, req.userId as string, fusiones);
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al copiar el árbol' });
+  }
+}
+
+export async function deleteTree(req: AuthRequest, res: Response) {
+  try {
+    const result = await familyService.deleteEntireTree(req.userId as string);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Error al eliminar el árbol' });
   }
 }

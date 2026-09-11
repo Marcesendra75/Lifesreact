@@ -74,6 +74,30 @@ export const notify = {
     notificarAgrupado({ userId, type: 'reaction', actorId, entityId: memoryId }),
   comment: (userId: string, actorId: string, memoryId: string) =>
     notificarAgrupado({ userId, type: 'comment', actorId, entityId: memoryId }),
+  commentReply: (userId: string, actorId: string, memoryId: string) => {
+    if (userId === actorId) return Promise.resolve(undefined);
+    return prisma.notification.create({
+      data: { userId, type: 'comment_reply', actorId, entityType: 'memory', entityId: memoryId, actorIds: [actorId], actorsCount: 1 },
+    });
+  },
+  familyLinkProposed: (userId: string, actorId: string, memberId: string) => {
+    if (userId === actorId) return Promise.resolve(undefined);
+    return prisma.notification.create({
+      data: { userId, type: 'family_link_proposed', actorId, entityType: 'family_member', entityId: memberId, actorIds: [actorId], actorsCount: 1 },
+    });
+  },
+  familyLinkAccepted: (userId: string, actorId: string, memberId: string) => {
+    if (userId === actorId) return Promise.resolve(undefined);
+    return prisma.notification.create({
+      data: { userId, type: 'family_link_accepted', actorId, entityType: 'family_member', entityId: memberId, actorIds: [actorId], actorsCount: 1 },
+    });
+  },
+  familyLinkRejected: (userId: string, actorId: string, memberId: string) => {
+    if (userId === actorId) return Promise.resolve(undefined);
+    return prisma.notification.create({
+      data: { userId, type: 'family_link_rejected', actorId, entityType: 'family_member', entityId: memberId, actorIds: [actorId], actorsCount: 1 },
+    });
+  },
 };
 
 export async function listNotifications(userId: string, page: number, pageSize: number) {

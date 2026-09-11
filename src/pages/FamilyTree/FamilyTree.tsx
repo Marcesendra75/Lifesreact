@@ -3,16 +3,17 @@
 // Conectado al backend real: motherId/fatherId/parejas
 // se traducen a roles y generaciones calculados en el cliente
 // ============================================
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   ArrowLeft, Search, Share2, X, ZoomIn, ZoomOut, Maximize2,
   Crosshair, ChevronRight, Users, User, Heart, Baby,
   UserCheck, Clock, Edit2, TreePine, Map as MapIcon,
   Download, BookOpen, UserPlus, Cake, GitBranch,
-  Check, Camera,
+  Check, Camera, Tag, Bell, Trash2,
 } from 'lucide-react';
-import { familyService } from '../../services/api';
+import { familyService, connectionService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import arbolFondo from './arbol-fondo.webp';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './FamilyTree.scss';
@@ -34,6 +35,9 @@ interface TreeNode {
   posX?: number | null;
   posY?: number | null;
   hijosNombres?: string[];
+  linkedUserId?: string | null;
+  linkPendienteUserId?: string | null;
+  relacionManual?: string | null;
 }
 
 type FamilyTab = 'all' | 'yo' | 'pareja' | 'hijos' | 'padres' | 'abuelos' | 'bisabuelos' | 'hermanos';
@@ -137,7 +141,13 @@ function calcularRolesYGeneraciones(members: any[], partners: any[], yoId: strin
       if (!id || !byId.has(id)) return;
       const persona = byId.get(id);
       gen.set(id, generacion);
-      role.set(id, `${etiquetaAscendencia(persona.gender, generacion)} ${ladoPaterno ? 'paterno' : 'materno'}`);
+      // el "paterno"/"materno" tiene que concordar en género con la
+      // persona en sí ("Abuela materna", no "Abuela materno") — el
+      // "lado" (de dónde viene) es un dato aparte del género de quien lo es
+      const lado = persona.gender === 'female'
+        ? (ladoPaterno ? 'paterna' : 'materna')
+        : (ladoPaterno ? 'paterno' : 'materno');
+      role.set(id, `${etiquetaAscendencia(persona.gender, generacion)} ${lado}`);
       if (generacion < 3) {
         recorrerAscendencia(persona.fatherId, ladoPaterno, generacion + 1);
         recorrerAscendencia(persona.motherId, ladoPaterno, generacion + 1);
@@ -164,6 +174,23 @@ function calcularRolesYGeneraciones(members: any[], partners: any[], yoId: strin
         role.set(m.id, m.gender === 'male' ? 'Hermano' : m.gender === 'female' ? 'Hermana' : 'Hermano/a');
       }
     });
+
+    // ── Tíos/as: hermanos de tu madre o de tu padre ──
+    const marcarTios = (progenitor: any, lado: 'materno' | 'paterno') => {
+      if (!progenitor) return;
+      members.forEach((m) => {
+        if (m.id === progenitor.id || gen.has(m.id)) return;
+        const compartePadre = progenitor.fatherId && m.fatherId === progenitor.fatherId;
+        const carteMadre = progenitor.motherId && m.motherId === progenitor.motherId;
+        if (compartePadre || carteMadre) {
+          gen.set(m.id, 1);
+          const etiqueta = m.gender === 'male' ? 'Tío' : m.gender === 'female' ? 'Tía' : 'Tío/a';
+          role.set(m.id, `${etiqueta} ${lado}`);
+        }
+      });
+    };
+    if (yo.fatherId && byId.has(yo.fatherId)) marcarTios(byId.get(yo.fatherId), 'paterno');
+    if (yo.motherId && byId.has(yo.motherId)) marcarTios(byId.get(yo.motherId), 'materno');
 
     // ── Pareja ──
     let yoPartnerId: string | null = null;
@@ -212,6 +239,17 @@ function calcularRolesYGeneraciones(members: any[], partners: any[], yoId: strin
       });
     });
 
+    // ── Sobrinos/as: hijos de un hermano/a tuyo ──
+    members.forEach((m) => {
+      const rolDeM = role.get(m.id);
+      if (rolDeM !== 'Hermano' && rolDeM !== 'Hermana' && rolDeM !== 'Hermano/a') return;
+      members.forEach((h) => {
+        if (gen.has(h.id) || (h.motherId !== m.id && h.fatherId !== m.id)) return;
+        gen.set(h.id, -1);
+        role.set(h.id, h.gender === 'male' ? 'Sobrino' : h.gender === 'female' ? 'Sobrina' : 'Sobrino/a');
+      });
+    });
+
     // ── Hijos, nietos y bisnietos ──
     const hijosDe = (padreId: string) => members.filter((m) => m.motherId === padreId || m.fatherId === padreId);
     hijosDe(yo.id).forEach((h) => {
@@ -241,6 +279,7 @@ function calcularRolesYGeneraciones(members: any[], partners: any[], yoId: strin
     if (rol === 'Pareja') return null; // sin relación de sangre
     if (['Padre', 'Madre', 'Hijo', 'Hija', 'Hijo/a', 'Hermano', 'Hermana', 'Hermano/a'].includes(rol)) return 50;
     if (rol.toLowerCase().includes('abuelo') || rol.toLowerCase().includes('abuela')) return 25;
+    if (rol.toLowerCase().startsWith('tío') || rol.toLowerCase().startsWith('tía')) return 25;
     if (['Nieto', 'Nieta', 'Nieto/a'].includes(rol)) return 25;
     if (rol.toLowerCase().includes('bisabuelo') || rol.toLowerCase().includes('bisabuela')) return 13;
     return null; // familiar suelto, todavía no calculamos su parentesco real
@@ -248,7 +287,7 @@ function calcularRolesYGeneraciones(members: any[], partners: any[], yoId: strin
 
   return members.map((m) => {
     const g = gen.get(m.id) ?? 1;
-    const rol = role.get(m.id) || 'Familiar';
+    const rol = m.relacionManual || role.get(m.id) || 'Familiar';
     const hijosNombres = members
       .filter((h) => h.motherId === m.id || h.fatherId === m.id)
       .map((h) => h.firstName);
@@ -269,12 +308,17 @@ function calcularRolesYGeneraciones(members: any[], partners: any[], yoId: strin
       posX: m.posX,
       posY: m.posY,
       hijosNombres,
+      linkedUserId: m.linkedUserId,
+      linkPendienteUserId: m.linkPendienteUserId,
+      relacionManual: m.relacionManual,
     };
   });
 }
 
 export default function FamilyTree() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [members, setMembers] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
@@ -326,6 +370,7 @@ export default function FamilyTree() {
   const [newRolPropio, setNewRolPropio] = useState<'madre' | 'padre'>('madre');
   const [newAscendenciaId, setNewAscendenciaId] = useState('');
   const [newHijosCompartidos, setNewHijosCompartidos] = useState<string[]>([]);
+  const [newHermanosCompartidos, setNewHermanosCompartidos] = useState<string[]>([]);
   const [newImgFile, setNewImgFile] = useState<File | null>(null);
   const [newImgPreview, setNewImgPreview] = useState('');
 
@@ -339,12 +384,14 @@ export default function FamilyTree() {
   const [editVive, setEditVive] = useState(true);
   const [editDeath, setEditDeath] = useState('');
   const [editDesc, setEditDesc] = useState('');
+  const [editRelacionManual, setEditRelacionManual] = useState('');
   const [editAnchorId, setEditAnchorId] = useState('');
   const [editRelacion, setEditRelacion] = useState('');
   const [editOriginalRelacion, setEditOriginalRelacion] = useState('');
   const [editRolPropio, setEditRolPropio] = useState<'madre' | 'padre'>('madre');
   const [editAscendenciaId, setEditAscendenciaId] = useState('');
   const [editHijosCompartidos, setEditHijosCompartidos] = useState<string[]>([]);
+  const [editHermanosCompartidos, setEditHermanosCompartidos] = useState<string[]>([]);
   const [editImgFile, setEditImgFile] = useState<File | null>(null);
   const [editImgPreview, setEditImgPreview] = useState('');
 
@@ -352,16 +399,65 @@ export default function FamilyTree() {
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
   const [eliminando, setEliminando] = useState(false);
 
+  // ── Vaciar el árbol entero (siempre queda tu propio nodo) ──
+  const [confirmandoVaciarArbol, setConfirmandoVaciarArbol] = useState(false);
+  const [vaciandoArbol, setVaciandoArbol] = useState(false);
+
+  // ── Etiquetar a una persona real (con aceptación) ──
+  const [etiquetando, setEtiquetando] = useState(false);
+  const [misConexiones, setMisConexiones] = useState<any[]>([]);
+  const [buscarEtiquetaQ, setBuscarEtiquetaQ] = useState('');
+  const [cargandoConexiones, setCargandoConexiones] = useState(false);
+  const [enviandoEtiqueta, setEnviandoEtiqueta] = useState(false);
+  const [desvinculando, setDesvinculando] = useState(false);
+
+  // ── Propuestas de etiquetado que te llegaron a vos (de árboles ajenos) ──
+  const [propuestasOpen, setPropuestasOpen] = useState(false);
+  const [propuestas, setPropuestas] = useState<any[]>([]);
+  const [cargandoPropuestas, setCargandoPropuestas] = useState(false);
+
+  // ── Pantalla de detalle de una propuesta puntual (reemplaza el
+  // aceptar/rechazar rápido — acá se ve el contexto completo, y una vez
+  // aceptada aparece el paso de "copiar árbol") ──
+  const [detalleAbierto, setDetalleAbierto] = useState(false);
+  const [detallePropuesta, setDetallePropuesta] = useState<any | null>(null);
+  const [detalleEnviando, setDetalleEnviando] = useState(false);
+  const [detalleAceptada, setDetalleAceptada] = useState(false);
+  const [detalleReciprocalId, setDetalleReciprocalId] = useState<string | null>(null);
+  const [detalleCopyPreview, setDetalleCopyPreview] = useState<{ total: number; primeraVez: boolean; fusionesPosibles: any[] } | null>(null);
+  const [detalleFusionesElegidas, setDetalleFusionesElegidas] = useState<Set<string>>(new Set());
+  const [detalleCargandoPreview, setDetalleCargandoPreview] = useState(false);
+  const [detalleCopiando, setDetalleCopiando] = useState(false);
+
+  // ── "Copiar árbol" desde el modal normal de alguien ya vinculado ──
+  const [previewCopiaModal, setPreviewCopiaModal] = useState<{ total: number; primeraVez: boolean; fusionesPosibles: any[] } | null>(null);
+  const [fusionesElegidasModal, setFusionesElegidasModal] = useState<Set<string>>(new Set());
+  const [cargandoPreviewModal, setCargandoPreviewModal] = useState(false);
+  const [copiandoDesdeModal, setCopiandoDesdeModal] = useState(false);
+
   const wrapRef = useRef<HTMLDivElement>(null);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const cargaCountRef = useRef(0);
   const hasDraggedRef = useRef(false);
   const mouseDownPos = useRef({ x: 0, y: 0 });
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
   const [dragNodePos, setDragNodePos] = useState<{ x: number; y: number } | null>(null);
-  const nodeDragStart = useRef({ mouseX: 0, mouseY: 0, nodeX: 0, nodeY: 0 });
+  const nodeDragStart = useRef({ mouseX: 0, mouseY: 0, nodeX: 0, nodeY: 0, offsetX: 0, offsetY: 0 });
+  const lastMouseClientRef = useRef({ x: 0, y: 0 });
+  // espejo del pan en un ref — durante el arrastre lo necesitamos al
+  // instante, sin esperar al próximo render de React
+  const panXRef = useRef(0);
+  const panYRef = useRef(0);
+  useEffect(() => { panXRef.current = panX; }, [panX]);
+  useEffect(() => { panYRef.current = panY; }, [panY]);
   const inputFotoEditRef = useRef<HTMLInputElement>(null);
   const inputFotoNewRef = useRef<HTMLInputElement>(null);
+  // el modal solo se cierra si el click EMPEZÓ y TERMINÓ en el fondo —
+  // así una selección de texto que arrancás adentro y soltás afuera no lo cierra
+  const mouseDownOnOverlayRef = useRef(false);
+  const [verFotoGrande, setVerFotoGrande] = useState(false);
 
   useEffect(() => { cargarArbol(); }, []);
 
@@ -395,6 +491,78 @@ export default function FamilyTree() {
     };
   }, []);
 
+  // ── Autoscroll al arrastrar un nodo cerca del borde ──
+  // mientras estás moviendo una persona, si te acercás al borde del
+  // recuadro (esté o no en pantalla completa) el lienzo se desplaza solo,
+  // así podés soltar la rama en cualquier lugar sin que "rebote" al centro
+  useEffect(() => {
+    if (!draggingNodeId) return;
+    const EDGE = 60;   // px desde el borde donde arranca el autoscroll
+    const SPEED = 6;   // velocidad máxima, en px por frame — más suave para poder soltar con precisión
+    let frameId: number;
+
+    const tick = () => {
+      const rect = wrapRef.current?.getBoundingClientRect();
+      if (rect) {
+        const { x: mx, y: my } = lastMouseClientRef.current;
+        const localX = mx - rect.left;
+        const localY = my - rect.top;
+        let dPanX = 0, dPanY = 0;
+        if (localX < EDGE) dPanX = SPEED * (1 - localX / EDGE);
+        else if (localX > rect.width - EDGE) dPanX = -SPEED * (1 - (rect.width - localX) / EDGE);
+        if (localY < EDGE) dPanY = SPEED * (1 - localY / EDGE);
+        else if (localY > rect.height - EDGE) dPanY = -SPEED * (1 - (rect.height - localY) / EDGE);
+
+        if (dPanX || dPanY) {
+          panXRef.current += dPanX;
+          panYRef.current += dPanY;
+          setPanX(panXRef.current);
+          setPanY(panYRef.current);
+        }
+
+        // única fuente de verdad para la posición del nodo mientras se
+        // arrastra: se recalcula cada cuadro a partir del mouse y el pan
+        // actuales, así nunca compite con ningún otro cálculo
+        const worldX = (mx - rect.left - panXRef.current) / zoom + nodeDragStart.current.offsetX;
+        const worldY = (my - rect.top - panYRef.current) / zoom + nodeDragStart.current.offsetY;
+        setDragNodePos({ x: worldX, y: worldY });
+      }
+      frameId = requestAnimationFrame(tick);
+    };
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, [draggingNodeId, zoom]);
+
+  // ── Termina el arrastre de un nodo con el mouse soltado en CUALQUIER
+  // lugar de la pantalla, no solo si soltás adentro del recuadro del árbol
+  useEffect(() => {
+    if (!draggingNodeId) return;
+    const onWindowMouseUp = async () => {
+      const id = draggingNodeId;
+      const finalPos = dragNodePos;
+      if (!finalPos) {
+        setDraggingNodeId(null);
+        setDragNodePos(null);
+        return;
+      }
+      const scaleX = wrapSize.w / 800, scaleY = wrapSize.h / 560;
+      try {
+        await familyService.updatePosition(id, finalPos.x / scaleX, finalPos.y / scaleY);
+        await cargarArbol();
+      } catch (err: any) {
+        showToast(`⚠️ ${err.message || 'Error al guardar la posición'}`);
+      } finally {
+        // recién ahora soltamos el nodo — así se queda quieto, exactamente
+        // donde lo soltaste, durante todo el ida-y-vuelta al servidor, en
+        // vez de caer a la posición vieja y "saltar" cuando llega lo nuevo
+        setDraggingNodeId(null);
+        setDragNodePos(null);
+      }
+    };
+    window.addEventListener('mouseup', onWindowMouseUp);
+    return () => window.removeEventListener('mouseup', onWindowMouseUp);
+  }, [draggingNodeId, dragNodePos, wrapSize]);
+
   // Escape cierra el modal/popup que esté abierto en ese momento, el más "de arriba" primero
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -411,8 +579,20 @@ export default function FamilyTree() {
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
-  const treeData = calcularRolesYGeneraciones(members, partners, yoId);
-  const positions = computeLayout(treeData, wrapSize.w, wrapSize.h);
+  // Memoizados a propósito: este cálculo es pesado (recorre ascendencia,
+  // hermanos, cuñados, sobrinos...) y antes se rehacía en CADA frame
+  // mientras arrastrabas un nodo (60 veces por segundo), aunque nada de
+  // esto hubiera cambiado — eso era lo que hacía "titilar" algunos
+  // círculos durante el arrastre. Ahora solo se recalcula cuando de
+  // verdad cambian los datos del árbol o el tamaño del lienzo.
+  const treeData = useMemo(
+    () => calcularRolesYGeneraciones(members, partners, yoId),
+    [members, partners, yoId]
+  );
+  const positions = useMemo(
+    () => computeLayout(treeData, wrapSize.w, wrapSize.h),
+    [treeData, wrapSize.w, wrapSize.h]
+  );
 
   // posición real de cualquier nodo, respetando el arrastre en vivo si se está moviendo
   const getPos = (id: string) => (draggingNodeId === id && dragNodePos) ? dragNodePos : positions[id];
@@ -429,10 +609,261 @@ export default function FamilyTree() {
     return path;
   };
 
-  const openModal = (node: TreeNode) => { setModalNode(node); setHighlightPath(getAncestorPath(node.id)); };
+  const openModal = (node: TreeNode) => {
+    setModalNode(node);
+    setHighlightPath(getAncestorPath(node.id));
+    setPreviewCopiaModal(null);
+    // volvemos a preguntar puntualmente por esta persona al abrir su
+    // modal — así, si del otro lado ya aceptó/rechazó, se refleja acá sin
+    // tener que refrescar toda la página (solo cerrando y reabriendo)
+    familyService.getMember(node.id)
+      .then((res: any) => {
+        setMembers(prev => prev.map(m => m.id === node.id ? res.data : m));
+      })
+      .catch(() => {});
+  };
 
+  const closeModal = () => { setModalNode(null); setHighlightPath([]); setEtiquetando(false); setPreviewCopiaModal(null); };
 
-  const closeModal = () => { setModalNode(null); setHighlightPath([]); };
+  // si el modal de detalle está abierto, lo mantenemos sincronizado con
+  // los datos más frescos de treeData (por ejemplo, después del refetch
+  // puntual que dispara openModal)
+  useEffect(() => {
+    if (!modalNode) return;
+    const actualizado = treeData.find(n => n.id === modalNode.id);
+    if (actualizado) setModalNode(actualizado);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [treeData]);
+
+  const abrirEtiquetado = async () => {
+    setEtiquetando(true);
+    setBuscarEtiquetaQ('');
+    if (misConexiones.length === 0) {
+      setCargandoConexiones(true);
+      try {
+        const res: any = await connectionService.list('accepted');
+        setMisConexiones(res.data);
+      } catch {
+        setMisConexiones([]);
+      } finally {
+        setCargandoConexiones(false);
+      }
+    }
+  };
+
+  const proponerEtiqueta = async (targetUserId: string, nombre: string) => {
+    if (!modalNode) return;
+    setEnviandoEtiqueta(true);
+    try {
+      await familyService.proposeLink(modalNode.id, targetUserId);
+      showToast(`✓ Le enviaste la etiqueta a ${nombre} — falta que la acepte`);
+      setEtiquetando(false);
+      await cargarArbol();
+      setModalNode(prev => prev && prev.id === modalNode.id ? { ...prev, linkPendienteUserId: targetUserId } : prev);
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'No se pudo etiquetar'}`);
+    } finally {
+      setEnviandoEtiqueta(false);
+    }
+  };
+
+  const cancelarPropuestaPropia = async () => {
+    if (!modalNode) return;
+    try {
+      await familyService.cancelLink(modalNode.id);
+      showToast('Propuesta cancelada');
+      await cargarArbol();
+      setModalNode(prev => prev && prev.id === modalNode.id ? { ...prev, linkPendienteUserId: null } : prev);
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'No se pudo cancelar'}`);
+    }
+  };
+
+  const desvincularPersona = async () => {
+    if (!modalNode) return;
+    setDesvinculando(true);
+    try {
+      await familyService.unlinkMember(modalNode.id);
+      showToast('Se desvinculó a la persona de este familiar');
+      await cargarArbol();
+      setModalNode(prev => prev && prev.id === modalNode.id ? { ...prev, linkedUserId: null } : prev);
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'No se pudo desvincular'}`);
+    } finally {
+      setDesvinculando(false);
+    }
+  };
+
+  // se cargan al entrar al árbol, así el numerito del header ya aparece
+  // sin que haga falta abrir el panel primero
+  useEffect(() => {
+    setCargandoPropuestas(true);
+    familyService.getPendingLinks()
+      .then((res: any) => setPropuestas(res.data))
+      .catch(() => setPropuestas([]))
+      .finally(() => setCargandoPropuestas(false));
+  }, []);
+
+  // esto sí reacciona cada vez que cambia la URL — así, si ya estabas
+  // parado en el árbol y tocás la notificación de nuevo, igual se abre
+  // el detalle (antes solo funcionaba en la primera carga de la página)
+  useEffect(() => {
+    const propuestaId = searchParams.get('propuesta');
+    if (!propuestaId) return;
+    const encontrada = propuestas.find((p: any) => p.memberId === propuestaId);
+    if (encontrada) {
+      abrirDetallePropuesta(encontrada);
+      setSearchParams({}, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, propuestas]);
+
+  const abrirPropuestas = () => setPropuestasOpen(v => !v);
+
+  const toggleSearch = () => {
+    if (searchOpen) { setSearchOpen(false); setSearchQ(''); }
+    else setSearchOpen(true);
+  };
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onClickFuera = (e: MouseEvent) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickFuera);
+    return () => document.removeEventListener('mousedown', onClickFuera);
+  }, [searchOpen]);
+
+  const compartirInvitacion = async () => {
+    const texto = `Te invito a armar tu árbol genealógico conmigo en Life's — descargá la app y empezá tu legado: ${window.location.origin}/`;
+    try {
+      await navigator.clipboard.writeText(texto);
+      showToast('✓ Invitación copiada — pegala donde quieras compartirla');
+    } catch {
+      showToast('⚠️ No se pudo copiar la invitación');
+    }
+  };
+
+  const abrirDetallePropuesta = (p: any) => {
+    setPropuestasOpen(false);
+    setDetallePropuesta(p);
+    setDetalleAbierto(true);
+    setDetalleAceptada(false);
+    setDetalleReciprocalId(null);
+    setDetalleCopyPreview(null);
+  };
+
+  const cerrarDetalle = () => {
+    setDetalleAbierto(false);
+    setDetallePropuesta(null);
+    setDetalleAceptada(false);
+    setDetalleReciprocalId(null);
+    setDetalleCopyPreview(null);
+  };
+
+  const aceptarDetalle = async () => {
+    if (!detallePropuesta) return;
+    setDetalleEnviando(true);
+    try {
+      const res: any = await familyService.acceptLink(detallePropuesta.memberId);
+      setDetalleAceptada(true);
+      setDetalleReciprocalId(res.data.reciprocalMemberId);
+      setPropuestas(prev => prev.filter(p => p.memberId !== detallePropuesta.memberId));
+      // sin esto, el nodo recíproco recién creado no aparecía en tu propio
+      // árbol hasta refrescar la página — ahora se ve al toque, aunque
+      // cierres el detalle sin llegar a copiar nada todavía
+      await cargarArbol();
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'No se pudo aceptar'}`);
+    } finally {
+      setDetalleEnviando(false);
+    }
+  };
+
+  const rechazarDetalle = async () => {
+    if (!detallePropuesta) return;
+    setDetalleEnviando(true);
+    try {
+      await familyService.rejectLink(detallePropuesta.memberId);
+      setPropuestas(prev => prev.filter(p => p.memberId !== detallePropuesta.memberId));
+      cerrarDetalle();
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'No se pudo rechazar'}`);
+    } finally {
+      setDetalleEnviando(false);
+    }
+  };
+
+  // apenas se acepta, ya buscamos cuántas personas nuevas trae copiar
+  useEffect(() => {
+    if (!detalleAceptada || !detalleReciprocalId) return;
+    setDetalleCargandoPreview(true);
+    familyService.previewCopyTree(detalleReciprocalId)
+      .then((res: any) => {
+        setDetalleCopyPreview(res.data);
+        setDetalleFusionesElegidas(new Set(res.data.fusionesPosibles.map((f: any) => f.sourceId)));
+      })
+      .catch(() => setDetalleCopyPreview(null))
+      .finally(() => setDetalleCargandoPreview(false));
+  }, [detalleAceptada, detalleReciprocalId]);
+
+  const copiarArbolDesdeDetalle = async () => {
+    if (!detalleReciprocalId || !detalleCopyPreview) return;
+    setDetalleCopiando(true);
+    try {
+      const fusiones = detalleCopyPreview.fusionesPosibles
+        .filter((f: any) => detalleFusionesElegidas.has(f.sourceId))
+        .map((f: any) => ({ sourceId: f.sourceId, existingId: f.existingId }));
+      const res: any = await familyService.copyTree(detalleReciprocalId, fusiones);
+      showToast(`✓ Se agregaron ${res.data.creados} persona${res.data.creados === 1 ? '' : 's'} a tu árbol`);
+      await cargarArbol();
+      cerrarDetalle();
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'No se pudo copiar el árbol'}`);
+    } finally {
+      setDetalleCopiando(false);
+    }
+  };
+
+  // ── Copiar árbol desde el modal normal de alguien ya vinculado ──
+  const abrirPreviewCopiaModal = async () => {
+    if (!modalNode) return;
+    setCargandoPreviewModal(true);
+    setPreviewCopiaModal(null);
+    try {
+      const res: any = await familyService.previewCopyTree(modalNode.id);
+      setPreviewCopiaModal(res.data);
+      setFusionesElegidasModal(new Set(res.data.fusionesPosibles.map((f: any) => f.sourceId)));
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'No se pudo revisar su árbol'}`);
+    } finally {
+      setCargandoPreviewModal(false);
+    }
+  };
+
+  const confirmarCopiaModal = async () => {
+    if (!modalNode || !previewCopiaModal) return;
+    setCopiandoDesdeModal(true);
+    try {
+      const fusiones = previewCopiaModal.fusionesPosibles
+        .filter((f: any) => fusionesElegidasModal.has(f.sourceId))
+        .map((f: any) => ({ sourceId: f.sourceId, existingId: f.existingId }));
+      const res: any = await familyService.copyTree(modalNode.id, fusiones);
+      showToast(`✓ Se agregaron ${res.data.creados} persona${res.data.creados === 1 ? '' : 's'} a tu árbol`);
+      setPreviewCopiaModal(null);
+      await cargarArbol();
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'No se pudo copiar'}`);
+    } finally {
+      setCopiandoDesdeModal(false);
+    }
+  };
 
   const abrirEdicion = (node: TreeNode) => {
     setEditId(node.id);
@@ -442,6 +873,7 @@ export default function FamilyTree() {
     setEditGender(node.gender || '');
     setEditBirth(''); setEditDeath(''); setEditVive(!node.isDead);
     setEditDesc(node.desc || '');
+    setEditRelacionManual(node.relacionManual || '');
     setEditImgFile(null); setEditImgPreview(node.img || '');
 
     let anchorId = yoNode?.id || '';
@@ -503,6 +935,15 @@ export default function FamilyTree() {
     setEditAscendenciaId(ascendenciaId);
     const yaCompartidos = hijosDeYo.filter(h => h.motherId === node.id || h.fatherId === node.id).map(h => h.id);
     setEditHijosCompartidos(yaCompartidos);
+    // igual que arriba, pero para el checklist de "¿es también madre/padre
+    // de estos hermanos?" — precargamos quiénes ya tienen a esta persona
+    // como ese progenitor, para que el checklist refleje el estado real
+    const yaHermanosCompartidos = (relacion === 'madre' || relacion === 'padre')
+      ? treeData
+        .filter(n => n.id !== node.id && n.id !== yoNode?.id && (relacion === 'madre' ? n.motherId === node.id : n.fatherId === node.id))
+        .map(n => n.id)
+      : [];
+    setEditHermanosCompartidos(yaHermanosCompartidos);
     setEditOpen(true);
   };
 
@@ -523,6 +964,21 @@ export default function FamilyTree() {
   const guardarEdicion = async () => {
     if (!editFirstName.trim()) { showToast('⚠️ El nombre no puede estar vacío'); return; }
     if (!editAnchorNode) { showToast('⚠️ Elegí con quién es la relación'); return; }
+    if ((editRelacion === 'abuelo' || editRelacion === 'abuela') && editAnchorNode.motherId && editAnchorNode.fatherId && !editAscendenciaId) {
+      showToast('⚠️ Elegí de qué lado (madre o padre)'); return;
+    }
+    if ((editRelacion === 'abuelo' || editRelacion === 'abuela') && !editAnchorNode.motherId && !editAnchorNode.fatherId) {
+      showToast(`⚠️ Primero agregá a la madre o al padre de ${editAnchorNode.name}`); return;
+    }
+    if ((editRelacion === 'nieto' || editRelacion === 'nieta') && hijosDeEditAnchor.length === 0) {
+      showToast(`⚠️ Primero agregá un hijo o hija de ${editAnchorNode.name}`); return;
+    }
+    if ((editRelacion === 'nieto' || editRelacion === 'nieta') && hijosDeEditAnchor.length > 1 && !editAscendenciaId) {
+      showToast('⚠️ Elegí de cuál de sus hijos'); return;
+    }
+    if ((editRelacion === 'hermano' || editRelacion === 'hermana') && !editAnchorNode.motherId && !editAnchorNode.fatherId) {
+      showToast(`⚠️ Para marcarlo como hermano/a de ${editAnchorNode.name}, primero agregale una madre o un padre — es lo que los conecta como hermanos`); return;
+    }
     try {
       const fields: Record<string, string> = { firstName: editFirstName.trim() };
       if (editLastName.trim()) fields.lastName = editLastName.trim();
@@ -530,6 +986,7 @@ export default function FamilyTree() {
       if (editBirth) fields.birthDate = editBirth;
       fields.deathDate = editVive ? '' : (editDeath || '');
       if (editDesc) fields.bio = editDesc;
+      fields.relacionManual = editRelacionManual.trim();
 
       const nodoActual = treeData.find(n => n.id === editId);
 
@@ -545,14 +1002,12 @@ export default function FamilyTree() {
           if (nodoActual?.motherId === editAnchorNode.id) fields.motherId = '';
         }
       } else if (editRelacion === 'abuelo' || editRelacion === 'abuela') {
-        const progenitorId = editAscendenciaId || editAnchorNode.fatherId || editAnchorNode.motherId || '';
-        if (editRolPropio === 'madre') {
-          fields.motherId = progenitorId;
-          if (nodoActual?.fatherId === progenitorId) fields.fatherId = '';
-        } else {
-          fields.fatherId = progenitorId;
-          if (nodoActual?.motherId === progenitorId) fields.motherId = '';
-        }
+        // el vínculo real no va en ESTA persona — va en su nieto/a (el
+        // progenitor), que es quien pasa a tenerla como madre/padre. Acá
+        // solo limpiamos cualquier motherId/fatherId viejo que hubiera
+        // quedado mal en ella (de una edición anterior con este bug)
+        fields.motherId = '';
+        fields.fatherId = '';
       } else if (editRelacion === 'nieto' || editRelacion === 'nieta') {
         const hijoId = (hijosDeEditAnchor.length === 1 ? hijosDeEditAnchor[0].id : editAscendenciaId) || '';
         if (editRolPropio === 'madre') {
@@ -567,10 +1022,29 @@ export default function FamilyTree() {
         fields.fatherId = '';
       }
 
-      await familyService.updateMember(editId as string, fields, editImgFile || undefined);
+      const resPropio: any = await familyService.updateMember(editId as string, fields, editImgFile || undefined);
 
-      if (editRelacion === 'madre') await familyService.updateMember(editAnchorNode.id, { motherId: editId as string });
-      if (editRelacion === 'padre') await familyService.updateMember(editAnchorNode.id, { fatherId: editId as string });
+      if (editRelacion === 'abuelo' || editRelacion === 'abuela') {
+        const progenitorId = editAscendenciaId || editAnchorNode.fatherId || editAnchorNode.motherId || '';
+        if (progenitorId) {
+          if (editRolPropio === 'madre') await familyService.updateMember(progenitorId, { motherId: editId as string });
+          else await familyService.updateMember(progenitorId, { fatherId: editId as string });
+        }
+      }
+
+      if (editRelacion === 'madre' || editRelacion === 'padre') {
+        const slotHermanos = editRelacion === 'madre' ? 'motherId' : 'fatherId';
+        await familyService.updateMember(editAnchorNode.id, { [slotHermanos]: editId as string });
+        for (const hermano of hermanosDeEditAnchorList) {
+          const actual = slotHermanos === 'motherId' ? hermano.motherId : hermano.fatherId;
+          const deberiaEstarMarcado = editHermanosCompartidos.includes(hermano.id);
+          if (deberiaEstarMarcado && actual !== editId) {
+            await familyService.updateMember(hermano.id, { [slotHermanos]: editId as string });
+          } else if (!deberiaEstarMarcado && actual === editId) {
+            await familyService.updateMember(hermano.id, { [slotHermanos]: '' });
+          }
+        }
+      }
       if (editRelacion === 'pareja') {
         const yaEsPareja = partners.some((p: any) =>
           (p.memberAId === editAnchorNode.id && p.memberBId === editId) || (p.memberBId === editAnchorNode.id && p.memberAId === editId)
@@ -602,6 +1076,18 @@ export default function FamilyTree() {
 
       await cargarArbol();
       setEditOpen(false);
+      // actualizamos el modal de detalle (si seguía abierto atrás) con los
+      // datos frescos de la propia respuesta del guardado — no hace falta
+      // esperar a que se recalcule todo el árbol para ver el cambio reflejado
+      setModalNode(prev => prev && prev.id === editId
+        ? {
+          ...prev,
+          img: resPropio.data.photoUrl,
+          name: `${resPropio.data.firstName} ${resPropio.data.lastName || ''}`.trim(),
+          desc: resPropio.data.bio || undefined,
+        }
+        : prev
+      );
       showToast('✓ Persona actualizada');
     } catch (err: any) {
       showToast(`⚠️ ${err.message || 'Error al guardar'}`);
@@ -611,7 +1097,7 @@ export default function FamilyTree() {
   const cerrarAddPanel = () => {
     setAddPanelOpen(false);
     setNewFirstName(''); setNewLastName(''); setNewGender(''); setNewBirth(''); setNewDeath('');
-    setNewDesc(''); setNewVive(true); setNewAnchorId(''); setNewRelacion(''); setNewRolPropio('madre'); setNewAscendenciaId(''); setNewHijosCompartidos([]);
+    setNewDesc(''); setNewVive(true); setNewAnchorId(''); setNewRelacion(''); setNewRolPropio('madre'); setNewAscendenciaId(''); setNewHijosCompartidos([]); setNewHermanosCompartidos([]);
     setNewImgFile(null); setNewImgPreview('');
   };
 
@@ -621,6 +1107,18 @@ export default function FamilyTree() {
   const hijosDeAnchor = anchorNode ? treeData.filter(n => n.motherId === anchorNode.id || n.fatherId === anchorNode.id) : [];
   const editAnchorNode = treeData.find(n => n.id === editAnchorId) || yoNode;
   const hijosDeEditAnchor = editAnchorNode ? treeData.filter(n => n.motherId === editAnchorNode.id || n.fatherId === editAnchorNode.id) : [];
+
+  // hermanos ya existentes del "ancla" — comparten con él/ella su otro
+  // progenitor. Sirve para, al sumarle una madre/padre nueva, ofrecer
+  // reconectarlos también a ellos en el mismo paso (en vez de a mano)
+  const hermanosDeAnchor = (anchor: any) => anchor
+    ? treeData.filter(n => n.id !== anchor.id && (
+      (anchor.motherId && n.motherId === anchor.motherId) ||
+      (anchor.fatherId && n.fatherId === anchor.fatherId)
+    ))
+    : [];
+  const hermanosDeNewAnchor = hermanosDeAnchor(anchorNode);
+  const hermanosDeEditAnchorList = hermanosDeAnchor(editAnchorNode);
 
   const GENERO_IMPLICITO: Record<string, string> = {
     madre: 'female', padre: 'male', hermana: 'female', hermano: 'male',
@@ -644,6 +1142,9 @@ export default function FamilyTree() {
     if ((newRelacion === 'nieto' || newRelacion === 'nieta') && hijosDeAnchor.length > 1 && !newAscendenciaId) {
       showToast('⚠️ Elegí de cuál de sus hijos'); return;
     }
+    if ((newRelacion === 'hermano' || newRelacion === 'hermana') && !anchorNode.motherId && !anchorNode.fatherId) {
+      showToast(`⚠️ Para marcarlo como hermano/a de ${anchorNode.name}, primero agregale una madre o un padre — es lo que los conecta como hermanos`); return;
+    }
 
     try {
       const fields: Record<string, string> = { firstName: newFirstName.trim() };
@@ -661,10 +1162,6 @@ export default function FamilyTree() {
       if (newRelacion === 'hijo' || newRelacion === 'hija') {
         if (newRolPropio === 'madre') fields.motherId = anchorNode.id; else fields.fatherId = anchorNode.id;
       }
-      if (newRelacion === 'abuelo' || newRelacion === 'abuela') {
-        const progenitorId = newAscendenciaId || anchorNode.fatherId || anchorNode.motherId as string;
-        if (newRolPropio === 'madre') fields.motherId = progenitorId; else fields.fatherId = progenitorId;
-      }
       if (newRelacion === 'nieto' || newRelacion === 'nieta') {
         const hijoId = hijosDeAnchor.length === 1 ? hijosDeAnchor[0].id : newAscendenciaId;
         if (newRolPropio === 'madre') fields.motherId = hijoId; else fields.fatherId = hijoId;
@@ -673,8 +1170,25 @@ export default function FamilyTree() {
       const res: any = await familyService.createMember(fields, newImgFile || undefined);
       const nuevoId = res.data.id;
 
-      if (newRelacion === 'madre') await familyService.updateMember(anchorNode.id, { motherId: nuevoId });
-      if (newRelacion === 'padre') await familyService.updateMember(anchorNode.id, { fatherId: nuevoId });
+      if (newRelacion === 'abuelo' || newRelacion === 'abuela') {
+        const progenitorId = newAscendenciaId || anchorNode.fatherId || anchorNode.motherId as string;
+        if (newRolPropio === 'madre') await familyService.updateMember(progenitorId, { motherId: nuevoId });
+        else await familyService.updateMember(progenitorId, { fatherId: nuevoId });
+      }
+
+      if (newRelacion === 'madre' || newRelacion === 'padre') {
+        const slotHermanos = newRelacion === 'madre' ? 'motherId' : 'fatherId';
+        await familyService.updateMember(anchorNode.id, { [slotHermanos]: nuevoId });
+        for (const hermano of hermanosDeNewAnchor) {
+          const actual = slotHermanos === 'motherId' ? hermano.motherId : hermano.fatherId;
+          const deberiaEstarMarcado = newHermanosCompartidos.includes(hermano.id);
+          if (deberiaEstarMarcado) {
+            await familyService.updateMember(hermano.id, { [slotHermanos]: nuevoId });
+          } else if (actual === nuevoId) {
+            await familyService.updateMember(hermano.id, { [slotHermanos]: '' });
+          }
+        }
+      }
       if (newRelacion === 'pareja') {
         await familyService.addPartner(anchorNode.id, nuevoId);
         const slot = genero === 'female' ? 'motherId' : genero === 'male' ? 'fatherId' : null;
@@ -742,17 +1256,56 @@ export default function FamilyTree() {
           </div>
         </div>
         <div className="ft-header__actions">
-          <button className="ft-header__btn" onClick={() => setSearchOpen(!searchOpen)}><Search size={18} strokeWidth={1.8} /></button>
-          <button className="ft-header__btn"><Share2 size={18} strokeWidth={1.8} /></button>
+          <div className="ft-header__search-wrap" ref={searchWrapRef}>
+            <input
+              ref={searchInputRef}
+              className={`ft-header__search-input${searchOpen ? ' is-open' : ''}`}
+              placeholder="Buscar familiar..."
+              value={searchQ}
+              onChange={e => setSearchQ(e.target.value)}
+            />
+            <button className="ft-header__btn" onClick={toggleSearch}><Search size={18} strokeWidth={1.8} /></button>
+          </div>
+          <button className="ft-header__btn ft-header__btn--propuestas" onClick={abrirPropuestas} title="Propuestas de etiquetado">
+            <Bell size={18} strokeWidth={1.8} />
+            {propuestas.length > 0 && <span className="ft-header__badge">{propuestas.length}</span>}
+          </button>
+          <button className="ft-header__btn" onClick={compartirInvitacion} title="Invitar a alguien a Life's">
+            <Share2 size={18} strokeWidth={1.8} />
+          </button>
+          <button className="ft-header__btn ft-header__btn--peligro" onClick={() => setConfirmandoVaciarArbol(true)} title="Vaciar todo el árbol">
+            <Trash2 size={18} strokeWidth={1.8} />
+          </button>
         </div>
       </header>
 
-      {searchOpen && (
-        <div className="ft-search-bar">
-          <Search size={16} strokeWidth={1.8} />
-          <input autoFocus placeholder="Buscar familiar..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
-          {searchQ && <button onClick={() => setSearchQ('')}><X size={16} strokeWidth={1.8} /></button>}
-        </div>
+      {propuestasOpen && (
+        <>
+          <div className="ft-menu-backdrop-arbol" onClick={() => setPropuestasOpen(false)} />
+          <div className="ft-propuestas-panel">
+            <div className="ft-propuestas-panel__header">
+              <span>Propuestas de etiquetado</span>
+              <button onClick={() => setPropuestasOpen(false)}><X size={16} strokeWidth={1.8} /></button>
+            </div>
+            {cargandoPropuestas && <p className="ft-propuestas-panel__vacio">Cargando...</p>}
+            {!cargandoPropuestas && propuestas.length === 0 && (
+              <p className="ft-propuestas-panel__vacio">No tenés propuestas pendientes.</p>
+            )}
+            {!cargandoPropuestas && propuestas.map((p: any) => (
+              <button key={p.memberId} className="ft-propuestas-panel__item" onClick={() => abrirDetallePropuesta(p)}>
+                {p.owner.avatarUrl
+                  ? <img src={p.owner.avatarUrl} alt={p.owner.firstName} />
+                  : <div className="ft-propuestas-panel__item-vacio">{p.owner.firstName[0]}</div>
+                }
+                <div className="ft-propuestas-panel__item-info">
+                  <strong>{p.owner.firstName} {p.owner.lastName}</strong>
+                  <span>te agregó a su árbol como "{p.firstName} {p.lastName || ''}"</span>
+                </div>
+                <ChevronRight size={16} strokeWidth={1.8} className="ft-propuestas-panel__item-arrow" />
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       {cargando && cargaCountRef.current === 0 && <div className="ft-toast" style={{ position: 'relative', margin: '20px auto', width: 'fit-content' }}>Cargando tu árbol...</div>}
@@ -768,15 +1321,10 @@ export default function FamilyTree() {
         }}
         onMouseMove={e => {
           if (draggingNodeId) {
-            const dx = e.clientX - nodeDragStart.current.mouseX;
-            const dy = e.clientY - nodeDragStart.current.mouseY;
-            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+            lastMouseClientRef.current = { x: e.clientX, y: e.clientY };
+            if (Math.abs(e.clientX - nodeDragStart.current.mouseX) > 5 || Math.abs(e.clientY - nodeDragStart.current.mouseY) > 5) {
               hasDraggedRef.current = true;
             }
-            setDragNodePos({
-              x: nodeDragStart.current.nodeX + dx / zoom,
-              y: nodeDragStart.current.nodeY + dy / zoom,
-            });
             return;
           }
           if (!isDragging) return;
@@ -785,25 +1333,18 @@ export default function FamilyTree() {
           }
           setPanX(e.clientX - dragStart.x); setPanY(e.clientY - dragStart.y);
         }}
-        onMouseUp={async () => {
-          if (draggingNodeId && dragNodePos) {
-            const id = draggingNodeId;
-            const finalPos = dragNodePos;
-            const scaleX = wrapSize.w / 800, scaleY = wrapSize.h / 560;
-            try {
-              await familyService.updatePosition(id, finalPos.x / scaleX, finalPos.y / scaleY);
-              await cargarArbol();
-            } catch (err: any) {
-              showToast(`⚠️ ${err.message || 'Error al guardar la posición'}`);
-            } finally {
-              setDraggingNodeId(null);
-              setDragNodePos(null);
-            }
-            return;
-          }
+        onMouseUp={() => {
+          // el arrastre de un nodo ahora se termina con el listener global
+          // de window (más abajo), no acá — así funciona aunque sueltes
+          // el mouse afuera del recuadro
           setIsDragging(false);
         }}
-        onMouseLeave={() => { setIsDragging(false); setDraggingNodeId(null); setDragNodePos(null); }}
+        onMouseLeave={() => {
+          setIsDragging(false);
+          // el arrastre de un NODO no se cancela al salir del recuadro —
+          // sigue vivo (con autoscroll) hasta que soltás el mouse en
+          // cualquier lugar de la pantalla
+        }}
         onWheel={e => {
           if (!esPantallaCompleta) return;
           e.preventDefault();
@@ -903,8 +1444,15 @@ export default function FamilyTree() {
                     const p = positions[node.id];
                     if (!p) return;
                     hasDraggedRef.current = false;
+                    lastMouseClientRef.current = { x: e.clientX, y: e.clientY };
                     setDraggingNodeId(node.id);
-                    nodeDragStart.current = { mouseX: e.clientX, mouseY: e.clientY, nodeX: p.x, nodeY: p.y };
+                    const rect = wrapRef.current?.getBoundingClientRect();
+                    const worldXAlClick = rect ? (e.clientX - rect.left - panX) / zoom : 0;
+                    const worldYAlClick = rect ? (e.clientY - rect.top - panY) / zoom : 0;
+                    nodeDragStart.current = {
+                      mouseX: e.clientX, mouseY: e.clientY, nodeX: p.x, nodeY: p.y,
+                      offsetX: p.x - worldXAlClick, offsetY: p.y - worldYAlClick,
+                    };
                   }}
                   onClick={() => { if (hasDraggedRef.current) return; openModal(node); }}>
                   <div className="ft-node__glow" style={{ background: cfg.glow, opacity: isHighlighted ? 1 : 0.5 }} />
@@ -998,8 +1546,10 @@ export default function FamilyTree() {
                   {treeData.filter(CATEGORY_MAP[activeTab]).map(node => (
                     <div key={node.id} className="ft-person-card" onClick={() => openModal(node)}>
                       <div className="ft-person-card__ring" style={{ background: getGenConfig(node.gen).ring }}>
-                        <img src={node.img || `https://i.pravatar.cc/44?u=${node.id}`} alt={node.name}
-                          style={{ filter: node.isDead ? 'grayscale(0.6) sepia(0.3)' : 'none' }} />
+                        {node.img
+                          ? <img src={node.img} alt={node.name} style={{ filter: node.isDead ? 'grayscale(0.6) sepia(0.3)' : 'none' }} />
+                          : <div className="ft-person-card__ring-vacio">{node.name.charAt(0)}</div>
+                        }
                       </div>
                       <div className="ft-person-card__info">
                         <div className="ft-person-card__name">{node.name} {node.isDead ? '🕯️' : ''}</div>
@@ -1034,7 +1584,14 @@ export default function FamilyTree() {
 
       {/* ══ MODAL VER PERSONA ══ */}
       {modalNode && (
-        <div className="ft-modal-overlay" onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
+        <div
+          className="ft-modal-overlay"
+          onMouseDown={e => { mouseDownOnOverlayRef.current = e.target === e.currentTarget; }}
+          onMouseUp={e => {
+            if (mouseDownOnOverlayRef.current && e.target === e.currentTarget) closeModal();
+            mouseDownOnOverlayRef.current = false;
+          }}
+        >
           <div className="ft-modal">
             <div className="ft-modal__banner">
               <div className="ft-modal__banner-bg" style={{ background: getGenConfig(modalNode.gen).ring }}>
@@ -1042,16 +1599,28 @@ export default function FamilyTree() {
                 <button className="ft-modal__close" onClick={closeModal}><X size={18} strokeWidth={1.8} /></button>
               </div>
               <div className="ft-modal__avatar-wrap">
-                <div className="ft-modal__avatar-ring" style={{ background: getGenConfig(modalNode.gen).ring }}>
-                  <img src={modalNode.img || `https://i.pravatar.cc/72?u=${modalNode.id}`} alt={modalNode.name}
-                    style={{ filter: modalNode.isDead ? 'grayscale(0.5) sepia(0.4)' : 'none' }} />
+                <div
+                  className="ft-modal__avatar-ring"
+                  style={{ background: getGenConfig(modalNode.gen).ring, cursor: modalNode.img ? 'zoom-in' : 'default' }}
+                  onClick={() => modalNode.img && setVerFotoGrande(true)}
+                >
+                  {modalNode.img
+                    ? <img src={modalNode.img} alt={modalNode.name} style={{ filter: modalNode.isDead ? 'grayscale(0.5) sepia(0.4)' : 'none' }} />
+                    : <div className="ft-modal__avatar-vacio">{modalNode.name.charAt(0)}</div>
+                  }
                 </div>
                 {modalNode.isDead && <div className="ft-modal__candle-big">🕯️</div>}
               </div>
             </div>
             <div className="ft-modal__body">
               <div className="ft-modal__head">
-                <h3 className="ft-modal__name">{modalNode.name}</h3>
+                {modalNode.linkedUserId ? (
+                  <Link to={`/perfil/${modalNode.linkedUserId}`} className="ft-modal__name ft-modal__name--link">
+                    {modalNode.name}
+                  </Link>
+                ) : (
+                  <h3 className="ft-modal__name">{modalNode.name}</h3>
+                )}
                 <span className="ft-modal__role">{modalNode.role}</span>
                 {modalNode.isDead && <span className="ft-modal__dead-badge">✝ En memoria</span>}
               </div>
@@ -1076,6 +1645,122 @@ export default function FamilyTree() {
               {modalNode.desc && <p className="ft-modal__desc">"{modalNode.desc}"</p>}
 
 
+              {modalNode.role !== 'Yo' && (
+                <div className="ft-modal__etiquetado">
+                  {modalNode.linkedUserId ? (
+                    <>
+                      <div className="ft-modal__etiquetado-estado">
+                        <Check size={14} strokeWidth={2} /> Vinculado con una cuenta real
+                        <button onClick={desvincularPersona} disabled={desvinculando}>
+                          {desvinculando ? 'Desvinculando...' : 'Desvincular'}
+                        </button>
+                      </div>
+                      {!previewCopiaModal && !cargandoPreviewModal && (
+                        <button className="ft-modal__btn-etiquetar" onClick={abrirPreviewCopiaModal}>
+                          Copiar su árbol
+                        </button>
+                      )}
+                      {cargandoPreviewModal && <p className="ft-modal__etiquetado-vacio">Revisando su árbol...</p>}
+                      {previewCopiaModal && previewCopiaModal.total === 0 && (
+                        <p className="ft-modal__etiquetado-vacio">Ya tenés todo lo de su árbol copiado.</p>
+                      )}
+                      {previewCopiaModal && previewCopiaModal.total > 0 && (
+                        <div className="ft-modal__copiar-confirm ft-modal__copiar-confirm--col">
+                          {previewCopiaModal.fusionesPosibles.length > 0 && (
+                            <div className="ft-modal__fusiones">
+                              <span className="ft-modal__fusiones-titulo">Encontramos personas que ya tenías cargadas — ¿son la misma?</span>
+                              {previewCopiaModal.fusionesPosibles.map((f: any) => (
+                                <label key={f.sourceId} className="ft-add-check">
+                                  <input
+                                    type="checkbox"
+                                    checked={fusionesElegidasModal.has(f.sourceId)}
+                                    onChange={e => {
+                                      setFusionesElegidasModal(prev => {
+                                        const s = new Set(prev);
+                                        e.target.checked ? s.add(f.sourceId) : s.delete(f.sourceId);
+                                        return s;
+                                      });
+                                    }}
+                                  />
+                                  {f.sourceName} = {f.existingName} (tu {f.slot})
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                          <div className="ft-modal__copiar-confirm-row">
+                            <span>
+                              {previewCopiaModal.primeraVez
+                                ? `Se sumarán ${previewCopiaModal.total} persona${previewCopiaModal.total === 1 ? '' : 's'} nuevas.`
+                                : `${previewCopiaModal.total} persona${previewCopiaModal.total === 1 ? '' : 's'} nueva${previewCopiaModal.total === 1 ? '' : 's'} desde la última copia.`}
+                            </span>
+                            <button disabled={copiandoDesdeModal} onClick={confirmarCopiaModal}>
+                              {copiandoDesdeModal ? 'Copiando...' : 'Confirmar copia'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : modalNode.linkPendienteUserId ? (
+                    <div className="ft-modal__etiquetado-estado">
+                      <Clock size={14} strokeWidth={1.8} /> Esperando que acepte la etiqueta
+                      <button onClick={cancelarPropuestaPropia}>Cancelar</button>
+                    </div>
+                  ) : etiquetando ? (
+                    <div className="ft-modal__etiquetado-lista">
+                      {cargandoConexiones && <p className="ft-modal__etiquetado-vacio">Cargando tus conexiones...</p>}
+                      {!cargandoConexiones && misConexiones.length === 0 && (
+                        <p className="ft-modal__etiquetado-vacio">
+                          Todavía no tenés conexiones. Etiquetar solo funciona con personas ya conectadas —
+                          si esta persona no usa Life's todavía, tocá el ícono de compartir (📤) arriba del árbol para invitarla.
+                        </p>
+                      )}
+                      {!cargandoConexiones && misConexiones.length > 0 && (
+                        <input
+                          type="text"
+                          className="ft-modal__etiquetado-buscador"
+                          placeholder="Buscar en tus conexiones..."
+                          value={buscarEtiquetaQ}
+                          onChange={e => setBuscarEtiquetaQ(e.target.value)}
+                          autoFocus
+                        />
+                      )}
+                      {!cargandoConexiones && misConexiones.length > 0 && (
+                        <div className="ft-modal__etiquetado-conexiones">
+                          {misConexiones
+                            .filter((c: any) => {
+                              if (!buscarEtiquetaQ.trim()) return true;
+                              const otro = c.requesterId === user?.id ? c.addressee : c.requester;
+                              return `${otro.firstName} ${otro.lastName || ''}`.toLowerCase().includes(buscarEtiquetaQ.toLowerCase());
+                            })
+                            .map((c: any) => {
+                              const otro = c.requesterId === user?.id ? c.addressee : c.requester;
+                              return (
+                                <button
+                                  key={c.id}
+                                  className="ft-modal__etiquetado-persona"
+                                  disabled={enviandoEtiqueta}
+                                  onClick={() => proponerEtiqueta(otro.id, otro.firstName)}
+                                >
+                                  {otro.avatarUrl
+                                    ? <img src={otro.avatarUrl} alt={otro.firstName} />
+                                    : <div className="ft-modal__etiquetado-persona-vacio">{otro.firstName[0]}</div>
+                                  }
+                                  <span>{otro.firstName} {otro.lastName}</span>
+                                </button>
+                              );
+                            })}
+                        </div>
+                      )}
+                      <button className="ft-modal__etiquetado-cerrar" onClick={() => setEtiquetando(false)}>Cancelar</button>
+                    </div>
+                  ) : (
+                    <button className="ft-modal__btn-etiquetar" onClick={abrirEtiquetado}>
+                      <Tag size={14} strokeWidth={1.8} /> Etiquetar a esta persona
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="ft-modal__actions">
                 <button className="ft-modal__btn-secondary" onClick={closeModal}>Cerrar</button>
                 <button className="ft-modal__btn-primary" onClick={() => abrirEdicion(modalNode)}>
@@ -1094,7 +1779,14 @@ export default function FamilyTree() {
 
       {/* ══ MODAL EDICIÓN ══ */}
       {editOpen && (
-        <div className="ft-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setEditOpen(false); }}>
+        <div
+          className="ft-modal-overlay"
+          onMouseDown={e => { mouseDownOnOverlayRef.current = e.target === e.currentTarget; }}
+          onMouseUp={e => {
+            if (mouseDownOnOverlayRef.current && e.target === e.currentTarget) setEditOpen(false);
+            mouseDownOnOverlayRef.current = false;
+          }}
+        >
           <div className="ft-add-panel" style={{ position: 'relative', bottom: 'auto', borderRadius: 16, maxWidth: 440, margin: 'auto' }}>
             <div className="ft-add-panel__header">
               <h3>Editar persona</h3>
@@ -1212,21 +1904,52 @@ export default function FamilyTree() {
               {editRelacion === 'pareja' && hijosDeEditAnchor.length > 0 && (
                 <div className="ft-checklist-wrap">
                   <label>¿Es también madre/padre de alguno de estos hijos? {!editGender && '(elegí primero el Género arriba)'}</label>
-                  {hijosDeEditAnchor.map(h => (
-                    <label key={h.id} className="ft-add-check">
-                      <input
-                        type="checkbox"
-                        disabled={!editGender}
-                        checked={editHijosCompartidos.includes(h.id)}
-                        onChange={e => {
-                          setEditHijosCompartidos(prev =>
-                            e.target.checked ? [...prev, h.id] : prev.filter(id => id !== h.id)
-                          );
-                        }}
-                      />
-                      {h.name}
-                    </label>
-                  ))}
+                  {hijosDeEditAnchor.map(h => {
+                    const slot = editGender === 'female' ? 'motherId' : editGender === 'male' ? 'fatherId' : null;
+                    const actualId = slot === 'motherId' ? h.motherId : slot === 'fatherId' ? h.fatherId : null;
+                    const otroYaAsignado = actualId && actualId !== editId ? treeData.find(n => n.id === actualId) : null;
+                    return (
+                      <label key={h.id} className="ft-add-check">
+                        <input
+                          type="checkbox"
+                          disabled={!editGender}
+                          checked={editHijosCompartidos.includes(h.id)}
+                          onChange={e => {
+                            setEditHijosCompartidos(prev =>
+                              e.target.checked ? [...prev, h.id] : prev.filter(id => id !== h.id)
+                            );
+                          }}
+                        />
+                        {h.name}
+                        {otroYaAsignado && <span className="ft-add-check__pista"> — ya tiene a {otroYaAsignado.name} como {slot === 'motherId' ? 'madre' : 'padre'}</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+
+              {(editRelacion === 'madre' || editRelacion === 'padre') && editAnchorNode && hermanosDeEditAnchorList.length > 0 && (
+                <div className="ft-checklist-wrap">
+                  <label>¿Es también {editRelacion} de alguno de estos hermanos de {editAnchorNode.name}?</label>
+                  {hermanosDeEditAnchorList.map(h => {
+                    const actualId = editRelacion === 'madre' ? h.motherId : h.fatherId;
+                    const otroYaAsignado = actualId && actualId !== editId ? treeData.find(n => n.id === actualId) : null;
+                    return (
+                      <label key={h.id} className="ft-add-check">
+                        <input
+                          type="checkbox"
+                          checked={editHermanosCompartidos.includes(h.id)}
+                          onChange={e => {
+                            setEditHermanosCompartidos(prev =>
+                              e.target.checked ? [...prev, h.id] : prev.filter(id => id !== h.id)
+                            );
+                          }}
+                        />
+                        {h.name}
+                        {otroYaAsignado && <span className="ft-add-check__pista"> — ya tiene a {otroYaAsignado.name} como {editRelacion}</span>}
+                      </label>
+                    );
+                  })}
                 </div>
               )}
 
@@ -1251,6 +1974,16 @@ export default function FamilyTree() {
                 </>
               )}
               <div className="ft-add-field"><label>Nota biográfica</label><textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={2} /></div>
+              <div className="ft-add-field">
+                <label>Relación mostrada (opcional)</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Sobrina, Tío segundo, Madrina..."
+                  value={editRelacionManual}
+                  onChange={e => setEditRelacionManual(e.target.value)}
+                />
+                <span className="ft-add-field__hint">Si lo dejás vacío, se calcula solo según el parentesco. Escribí acá solo si el cálculo automático no da con el rol correcto.</span>
+              </div>
               <div className="ft-add-panel__btns">
                 <button className="ft-add-panel__cancel" onClick={() => setEditOpen(false)}><X size={14} strokeWidth={1.8} />Cancelar</button>
                 <button className="ft-add-panel__submit" onClick={guardarEdicion}><Check size={14} strokeWidth={1.8} />Guardar cambios</button>
@@ -1390,21 +2123,52 @@ export default function FamilyTree() {
               {newRelacion === 'pareja' && hijosDeAnchor.length > 0 && (
                 <div className="ft-checklist-wrap">
                   <label>¿Es también madre/padre de alguno de estos hijos? {!newGender && '(elegí primero el Género arriba)'}</label>
-                  {hijosDeAnchor.map(h => (
-                    <label key={h.id} className="ft-add-check">
-                      <input
-                        type="checkbox"
-                        disabled={!newGender}
-                        checked={newHijosCompartidos.includes(h.id)}
-                        onChange={e => {
-                          setNewHijosCompartidos(prev =>
-                            e.target.checked ? [...prev, h.id] : prev.filter(id => id !== h.id)
-                          );
-                        }}
-                      />
-                      {h.name}
-                    </label>
-                  ))}
+                  {hijosDeAnchor.map(h => {
+                    const slot = newGender === 'female' ? 'motherId' : newGender === 'male' ? 'fatherId' : null;
+                    const actualId = slot === 'motherId' ? h.motherId : slot === 'fatherId' ? h.fatherId : null;
+                    const otroYaAsignado = actualId ? treeData.find(n => n.id === actualId) : null;
+                    return (
+                      <label key={h.id} className="ft-add-check">
+                        <input
+                          type="checkbox"
+                          disabled={!newGender}
+                          checked={newHijosCompartidos.includes(h.id)}
+                          onChange={e => {
+                            setNewHijosCompartidos(prev =>
+                              e.target.checked ? [...prev, h.id] : prev.filter(id => id !== h.id)
+                            );
+                          }}
+                        />
+                        {h.name}
+                        {otroYaAsignado && <span className="ft-add-check__pista"> — ya tiene a {otroYaAsignado.name} como {slot === 'motherId' ? 'madre' : 'padre'}</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+
+              {(newRelacion === 'madre' || newRelacion === 'padre') && anchorNode && hermanosDeNewAnchor.length > 0 && (
+                <div className="ft-checklist-wrap">
+                  <label>¿Es también {newRelacion} de alguno de estos hermanos de {anchorNode.name}?</label>
+                  {hermanosDeNewAnchor.map(h => {
+                    const actualId = newRelacion === 'madre' ? h.motherId : h.fatherId;
+                    const otroYaAsignado = actualId ? treeData.find(n => n.id === actualId) : null;
+                    return (
+                      <label key={h.id} className="ft-add-check">
+                        <input
+                          type="checkbox"
+                          checked={newHermanosCompartidos.includes(h.id)}
+                          onChange={e => {
+                            setNewHermanosCompartidos(prev =>
+                              e.target.checked ? [...prev, h.id] : prev.filter(id => id !== h.id)
+                            );
+                          }}
+                        />
+                        {h.name}
+                        {otroYaAsignado && <span className="ft-add-check__pista"> — ya tiene a {otroYaAsignado.name} como {newRelacion}</span>}
+                      </label>
+                    );
+                  })}
                 </div>
               )}
 
@@ -1441,10 +2205,38 @@ export default function FamilyTree() {
         </>
       )}
 
+      {confirmandoVaciarArbol && (
+        <ConfirmModal
+          titulo="Vaciar todo el árbol"
+          mensaje={`Esto va a eliminar a las personas que cargaste a mano en tu árbol. No se puede deshacer. Las personas vinculadas a una cuenta real (vos incluido) no se tocan — para desvincular a alguien puntual, usá "Desvincular" en su propio perfil.`}
+          textoConfirmar={vaciandoArbol ? 'Vaciando...' : 'Sí, vaciar todo'}
+          peligroso
+          onConfirm={async () => {
+            setVaciandoArbol(true);
+            try {
+              const res: any = await familyService.deleteTree();
+              await cargarArbol();
+              setConfirmandoVaciarArbol(false);
+              showToast(`✓ Se eliminaron ${res.data.eliminados} personas del árbol`);
+            } catch (err: any) {
+              showToast(`⚠️ ${err.message || 'Error al vaciar el árbol'}`);
+            } finally {
+              setVaciandoArbol(false);
+            }
+          }}
+          onCancel={() => setConfirmandoVaciarArbol(false)}
+        />
+      )}
+
       {confirmandoEliminar && modalNode && (
         <ConfirmModal
           titulo="Eliminar del árbol"
-          mensaje={`¿Eliminar a ${modalNode.name} del árbol? Esta acción no se puede deshacer.`}
+          mensaje={(() => {
+            const hijosDelEliminado = treeData.filter(n => n.motherId === modalNode.id || n.fatherId === modalNode.id);
+            const base = `¿Eliminar a ${modalNode.name} del árbol? Esta acción no se puede deshacer.`;
+            if (hijosDelEliminado.length === 0) return base;
+            return `${base} ${modalNode.name} tiene ${hijosDelEliminado.length} hijo${hijosDelEliminado.length === 1 ? '' : 's'} en el árbol (${hijosDelEliminado.map(h => h.name).join(', ')}) — van a quedar sin ese vínculo, y tendrías que reconectarlos a mano si volvés a agregar a esta persona.`;
+          })()}
           textoConfirmar={eliminando ? 'Eliminando...' : 'Sí, eliminar'}
           peligroso
           onConfirm={async () => {
@@ -1464,6 +2256,87 @@ export default function FamilyTree() {
           }}
           onCancel={() => setConfirmandoEliminar(false)}
         />
+      )}
+
+      {verFotoGrande && modalNode?.img && (
+        <div className="ft-foto-grande-overlay" onClick={() => setVerFotoGrande(false)}>
+          <button className="ft-foto-grande-cerrar" onClick={() => setVerFotoGrande(false)}><X size={20} strokeWidth={2} /></button>
+          <img src={modalNode.img} alt={modalNode.name} onClick={e => e.stopPropagation()} />
+        </div>
+      )}
+
+      {detalleAbierto && detallePropuesta && (
+        <div className="ft-modal-overlay" onClick={e => { if (e.target === e.currentTarget) cerrarDetalle(); }}>
+          <div className="ft-detalle-modal">
+            <button className="ft-detalle-modal__cerrar" onClick={cerrarDetalle}><X size={18} strokeWidth={1.8} /></button>
+
+            <div className="ft-detalle-modal__header">
+              {detallePropuesta.owner.avatarUrl
+                ? <img src={detallePropuesta.owner.avatarUrl} alt={detallePropuesta.owner.firstName} />
+                : <div className="ft-detalle-modal__avatar-vacio">{detallePropuesta.owner.firstName[0]}</div>
+              }
+              <div>
+                <strong>{detallePropuesta.owner.firstName} {detallePropuesta.owner.lastName}</strong>
+                <p>te agregó a su árbol genealógico como <b>"{detallePropuesta.firstName} {detallePropuesta.lastName || ''}"</b></p>
+              </div>
+            </div>
+
+            {!detalleAceptada ? (
+              <div className="ft-detalle-modal__acciones">
+                <button className="ft-detalle-modal__rechazar" disabled={detalleEnviando} onClick={rechazarDetalle}>
+                  Rechazar
+                </button>
+                <button className="ft-detalle-modal__aceptar" disabled={detalleEnviando} onClick={aceptarDetalle}>
+                  {detalleEnviando ? 'Aceptando...' : 'Aceptar etiqueta'}
+                </button>
+              </div>
+            ) : (
+              <div className="ft-detalle-modal__copiar">
+                <p className="ft-detalle-modal__copiar-texto">
+                  ✓ Etiqueta aceptada. ¿Querés copiar el árbol de {detallePropuesta.owner.firstName} al tuyo?
+                </p>
+                {detalleCargandoPreview && <p className="ft-detalle-modal__copiar-vacio">Revisando su árbol...</p>}
+                {!detalleCargandoPreview && detalleCopyPreview && detalleCopyPreview.total === 0 && (
+                  <p className="ft-detalle-modal__copiar-vacio">Ya tenés todo lo de su árbol copiado — no hay nada nuevo para traer.</p>
+                )}
+                {!detalleCargandoPreview && detalleCopyPreview && detalleCopyPreview.total > 0 && (
+                  <>
+                    {detalleCopyPreview.fusionesPosibles.length > 0 && (
+                      <div className="ft-modal__fusiones">
+                        <span className="ft-modal__fusiones-titulo">Encontramos personas que ya tenías cargadas — ¿son la misma?</span>
+                        {detalleCopyPreview.fusionesPosibles.map((f: any) => (
+                          <label key={f.sourceId} className="ft-add-check">
+                            <input
+                              type="checkbox"
+                              checked={detalleFusionesElegidas.has(f.sourceId)}
+                              onChange={e => {
+                                setDetalleFusionesElegidas(prev => {
+                                  const s = new Set(prev);
+                                  e.target.checked ? s.add(f.sourceId) : s.delete(f.sourceId);
+                                  return s;
+                                });
+                              }}
+                            />
+                            {f.sourceName} = {f.existingName} (tu {f.slot})
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <p className="ft-detalle-modal__copiar-conteo">
+                      {detalleCopyPreview.primeraVez
+                        ? `Se van a sumar ${detalleCopyPreview.total} persona${detalleCopyPreview.total === 1 ? '' : 's'} de su árbol al tuyo.`
+                        : `Hay ${detalleCopyPreview.total} persona${detalleCopyPreview.total === 1 ? '' : 's'} nueva${detalleCopyPreview.total === 1 ? '' : 's'} desde la última vez.`}
+                    </p>
+                    <button className="ft-detalle-modal__copiar-btn" disabled={detalleCopiando} onClick={copiarArbolDesdeDetalle}>
+                      {detalleCopiando ? 'Copiando...' : 'Copiar árbol'}
+                    </button>
+                  </>
+                )}
+                <button className="ft-detalle-modal__cerrar-simple" onClick={cerrarDetalle}>Listo, cerrar</button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {toast && <div className="ft-toast">{toast}</div>}

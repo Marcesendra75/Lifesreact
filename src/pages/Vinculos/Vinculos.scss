@@ -1,6 +1,8 @@
 // ============================================================
 // LIFE'S — Vinculos.scss
 // ============================================================
+@use 'sass:color';
+
 $noche: #03192E;
 $crema: #fbf9f5;
 $ambar: #C9932A;
@@ -247,6 +249,19 @@ $exito: #27ae60;
 }
 
 .vk-card__nombre { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.vk-card__nombre--link {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: $noche;
+  display: block;
+  max-width: 100%;
+
+  &:hover { text-decoration: underline; }
+}
 .vk-card__tipo { font-size: 0.7rem; color: $ambar; font-weight: 700; }
 .vk-card__pendiente { font-size: 0.65rem; color: $piedra; font-style: italic; }
 
@@ -397,5 +412,5 @@ $exito: #27ae60;
   text-decoration: underline;
   transition: color 0.15s;
 
-  &:hover { color: darken($ambar, 12%); }
+  &:hover { color: color.adjust($ambar, $lightness: -12%); }
 }

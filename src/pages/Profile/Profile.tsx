@@ -8,14 +8,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Activity, GitBranch, Map, Image, Shield, Coins,
   Film, Zap, Hourglass, Mail, CreditCard, Lock,
-  Users, LayoutDashboard, BookOpen, Heart, MessageCircle,
+  Users, LayoutDashboard, BookOpen, Heart, MessageCircle, Bookmark,
   ChevronDown, UserX, Flag, Settings as SettingsIcon, MoreHorizontal,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { userService, chapterService, memoryService, connectionService, blockService } from '../../services/api';
+import { userService, chapterService, memoryService, connectionService, blockService, interactionService } from '../../services/api';
 import ImageCropModal from '../../components/ImageCropModal/ImageCropModal';
 import FotoViewerModal from '../../components/FotoViewerModal/FotoViewerModal';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
+import ReportModal from '../../components/ReportModal/ReportModal';
 import './Profile.scss';
 
 // ── Tipos ──────────────────────────────────────────────────
@@ -60,8 +61,12 @@ interface PerfilAjeno {
   estaConectado: boolean;
   connectionId: string | null;
   puedeVerContenido: boolean;
-  estadoConexion: 'ninguna' | 'pendiente_enviada' | 'conectado' | 'rechazada';
+  estadoConexion: 'ninguna' | 'pendiente_enviada' | 'pendiente_recibida' | 'conectado' | 'rechazada';
   diasRestantes: number | null;
+  estaSilenciado: boolean;
+  silenciadoHasta: string | null;
+  solicitudPendienteId: string | null;
+  solicitudRecibidaId: string | null;
 }
 
 const NIVEL_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -80,6 +85,7 @@ const SECCIONES = [
   { icono: <GitBranch size={22} strokeWidth={1.6} />, label: 'Árbol Genealógico', desc: 'Tu linaje y raíces', path: '/arbol-genealogico', vault: false, color: '#03192e', bg: 'rgba(3,25,46,0.06)' },
   { icono: <Map size={22} strokeWidth={1.6} />, label: 'Mapa del Linaje', desc: 'Lugares de tu historia', path: '/mapa-linaje', vault: false, color: '#735c00', bg: 'rgba(115,92,0,0.08)' },
   { icono: <Image size={22} strokeWidth={1.6} />, label: 'Recuerdos', desc: 'Fotos, videos y momentos', path: '/feed', vault: false, color: '#855324', bg: 'rgba(133,83,36,0.06)' },
+  { icono: <Bookmark size={22} strokeWidth={1.6} />, label: 'Guardados', desc: 'Publicaciones que guardaste', path: '/guardados', vault: false, color: '#3a5a8a', bg: 'rgba(58,90,138,0.06)' },
   { icono: <Shield size={22} strokeWidth={1.6} />, label: 'Caja Fuerte', desc: 'Documentos privados', path: '/caja-fuerte', vault: true, color: '#C9A84C', bg: 'rgba(201,168,76,0.1)' },
   { icono: <Coins size={22} strokeWidth={1.6} />, label: 'Caja de Valores', desc: 'Ahorro y herencia', path: '/caja-de-valores', vault: true, color: '#C9A84C', bg: 'rgba(201,168,76,0.08)' },
   { icono: <Film size={22} strokeWidth={1.6} />, label: 'Último Tributo', desc: 'Tu video de despedida', path: '/ultimo-tributo', vault: true, color: '#03192e', bg: 'rgba(3,25,46,0.06)' },
@@ -112,6 +118,8 @@ export default function Profile() {
   const [tooltipRechazoAbierto, setTooltipRechazoAbierto] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [confirmandoBloqueo, setConfirmandoBloqueo] = useState(false);
+  const [toast, setToast] = useState('');
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
   // cerrar el menú desplegable con Escape
   useEffect(() => {
@@ -175,6 +183,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) return;
+    window.scrollTo({ top: 0 }); // si venías de un lugar scrolleado (ej. un hilo de comentarios), arrancamos arriba
     if (esOtroPerfil) {
       cargarPerfilAjeno();
     } else {
@@ -211,28 +220,60 @@ export default function Profile() {
       setCargandoMemoriesAjenas(false);
     }
   }
-  const showToastReportar = () => {
-    alert('El sistema de reportes todavía no está implementado — lo sumamos en el próximo bloque de moderación.');
-  };
+  const [reportando, setReportando] = useState(false);
 
   const conectar = async () => {
     if (!perfilAjeno) return;
     try {
-      await connectionService.sendRequestById(perfilAjeno.id);
+      const res: any = await connectionService.sendRequestById(perfilAjeno.id);
       setEstadoConexion('enviada');
+      setPerfilAjeno({ ...perfilAjeno, estadoConexion: 'pendiente_enviada', solicitudPendienteId: res.data.id });
     } catch (err: any) {
-      alert(err.message || 'No se pudo enviar la solicitud');
+      showToast(err.message || 'No se pudo enviar la solicitud');
     }
   };
 
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
+  const [confirmandoCancelarSolicitud, setConfirmandoCancelarSolicitud] = useState(false);
+
+  const aceptarDesdeElPerfil = async () => {
+    if (!perfilAjeno?.solicitudRecibidaId) return;
+    try {
+      await connectionService.accept(perfilAjeno.solicitudRecibidaId);
+      setPerfilAjeno({ ...perfilAjeno, estaConectado: true, connectionId: perfilAjeno.solicitudRecibidaId, estadoConexion: 'conectado', solicitudRecibidaId: null });
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo aceptar la solicitud');
+    }
+  };
+
+  const rechazarDesdeElPerfil = async () => {
+    if (!perfilAjeno?.solicitudRecibidaId) return;
+    try {
+      await connectionService.reject(perfilAjeno.solicitudRecibidaId);
+      setPerfilAjeno({ ...perfilAjeno, estadoConexion: 'ninguna', solicitudRecibidaId: null });
+    } catch (err: any) {
+      showToast(err.message || 'No se pudo rechazar la solicitud');
+    }
+  };
+
+  const confirmarCancelarSolicitud = async () => {
+    if (!perfilAjeno?.solicitudPendienteId) return;
+    setConfirmandoCancelarSolicitud(false);
+    try {
+      await connectionService.remove(perfilAjeno.solicitudPendienteId);
+      setEstadoConexion('ninguna');
+      setPerfilAjeno({ ...perfilAjeno, estadoConexion: 'ninguna', solicitudPendienteId: null });
+    } catch (err: any) {
+      alert(err.message || 'No se pudo cancelar la solicitud');
+    }
+  };
 
   const confirmarEliminarAmigo = async () => {
     if (!perfilAjeno?.connectionId) return;
     setConfirmandoEliminar(false);
     try {
       await connectionService.remove(perfilAjeno.connectionId);
-      await cargarPerfilAjeno();
+      setPerfilAjeno({ ...perfilAjeno, estaConectado: false, connectionId: null, estadoConexion: 'ninguna' });
     } catch (err: any) {
       alert(err.message || 'No se pudo eliminar la conexión');
     }
@@ -246,6 +287,29 @@ export default function Profile() {
       navigate('/personas');
     } catch (err: any) {
       alert(err.message || 'No se pudo bloquear');
+    }
+  };
+
+  const elegirSilencio = async (duracion: 'temporal' | 'permanente') => {
+    if (!perfilAjeno) return;
+    try {
+      await interactionService.mute(perfilAjeno.id, duracion);
+      const silenciadoHasta = duracion === 'temporal'
+        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+      setPerfilAjeno({ ...perfilAjeno, estaSilenciado: true, silenciadoHasta });
+    } catch (err: any) {
+      alert(err.message || 'No se pudo silenciar');
+    }
+  };
+
+  const quitarSilencio = async () => {
+    if (!perfilAjeno) return;
+    try {
+      await interactionService.unmute(perfilAjeno.id);
+      setPerfilAjeno({ ...perfilAjeno, estaSilenciado: false, silenciadoHasta: null });
+    } catch (err: any) {
+      alert(err.message || 'No se pudo quitar el silencio');
     }
   };
 
@@ -425,137 +489,188 @@ export default function Profile() {
       )}
 
       {heroListo && (
-      <div className="profile-hero">
-        <div className="profile-hero__imagen">
-          <div
-            className="profile-hero__portada"
-            style={
-              (esOtroPerfil ? perfilAjeno?.coverUrl : coverUrl)
-                ? { backgroundImage: `url(${esOtroPerfil ? perfilAjeno?.coverUrl : coverUrl})` }
-                : { background: '#03192E' }
-            }
-            onClick={() => !esOtroPerfil && coverUrl && setViendoFoto('portada')}
-          />
-          <div className="profile-hero__portada-overlay" />
-          {!esOtroPerfil && (
-            <>
-              <button
-                className="profile-hero__portada-editar"
-                onClick={(e) => { e.stopPropagation(); portadaInputRef.current?.click(); }}
-              >
-                📷 Editar portada
-              </button>
-              <input ref={portadaInputRef} type="file" accept="image/*" onChange={elegirPortada} hidden />
-            </>
-          )}
-        </div>
-
-        <div className="profile-hero__contenido">
-          <div className="profile-hero__avatar-wrap">
+        <div className="profile-hero">
+          <div className="profile-hero__imagen">
             <div
-              className="profile-hero__nivel-ring"
-              style={{ '--nivel-color': nivelCfg.color } as React.CSSProperties}
-              onClick={() => !esOtroPerfil && avatarUrl && setViendoFoto('avatar')}
-            >
-              {(esOtroPerfil ? perfilAjeno?.avatarUrl : avatarUrl)
-                ? (
-                  <img
-                    key={esOtroPerfil ? perfilAjeno!.avatarUrl! : avatarUrl}
-                    src={esOtroPerfil ? perfilAjeno!.avatarUrl! : avatarUrl}
-                    alt={datosHero.firstName}
-                    className="profile-hero__avatar"
-                    onLoad={(e) => e.currentTarget.classList.add('cargada')}
-                  />
-                )
-                : <div className="profile-hero__avatar profile-hero__avatar--vacio">{datosHero.firstName[0]}{datosHero.lastName[0]}</div>
+              className="profile-hero__portada"
+              style={
+                (esOtroPerfil ? perfilAjeno?.coverUrl : coverUrl)
+                  ? { backgroundImage: `url(${esOtroPerfil ? perfilAjeno?.coverUrl : coverUrl})` }
+                  : { background: '#03192E' }
               }
-            </div>
-            <div className="profile-hero__nivel-badge" style={{ background: nivelCfg.bg, color: nivelCfg.color }}>
-              {nivelCfg.label}
-            </div>
+              onClick={() => !esOtroPerfil && coverUrl && setViendoFoto('portada')}
+            />
+            <div className="profile-hero__portada-overlay" />
             {!esOtroPerfil && (
               <>
                 <button
-                  type="button"
-                  className="profile-hero__avatar-editar"
-                  onClick={() => avatarInputRef.current?.click()}
+                  className="profile-hero__portada-editar"
+                  onClick={(e) => { e.stopPropagation(); portadaInputRef.current?.click(); }}
                 >
-                  📷
+                  📷 Editar portada
                 </button>
-                <input ref={avatarInputRef} type="file" accept="image/*" onChange={elegirAvatar} hidden />
+                <input ref={portadaInputRef} type="file" accept="image/*" onChange={elegirPortada} hidden />
               </>
             )}
           </div>
 
-          <div className="profile-hero__info">
-            <h1 className="profile-hero__nombre">{datosHero.firstName} {datosHero.lastName}</h1>
-            {(esOtroPerfil ? perfilAjeno?.bio : bio) && (
-              <p className="profile-hero__frase">"{esOtroPerfil ? perfilAjeno?.bio : bio}"</p>
-            )}
-            <div className="profile-hero__meta">
-              {((esOtroPerfil ? perfilAjeno?.city : city) || (esOtroPerfil ? perfilAjeno?.country : country)) && (
-                <span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-                  {[esOtroPerfil ? perfilAjeno?.city : city, esOtroPerfil ? perfilAjeno?.country : country].filter(Boolean).join(', ')}
-                </span>
+          <div className="profile-hero__contenido">
+            <div className="profile-hero__avatar-wrap">
+              <div
+                className="profile-hero__nivel-ring"
+                style={{ '--nivel-color': nivelCfg.color } as React.CSSProperties}
+                onClick={() => !esOtroPerfil && avatarUrl && setViendoFoto('avatar')}
+              >
+                {(esOtroPerfil ? perfilAjeno?.avatarUrl : avatarUrl)
+                  ? (
+                    <img
+                      key={esOtroPerfil ? perfilAjeno!.avatarUrl! : avatarUrl}
+                      src={esOtroPerfil ? perfilAjeno!.avatarUrl! : avatarUrl}
+                      alt={datosHero.firstName}
+                      className="profile-hero__avatar"
+                      onLoad={(e) => e.currentTarget.classList.add('cargada')}
+                    />
+                  )
+                  : <div className="profile-hero__avatar profile-hero__avatar--vacio">{datosHero.firstName[0]}{datosHero.lastName[0]}</div>
+                }
+              </div>
+              <div className="profile-hero__nivel-badge" style={{ background: nivelCfg.bg, color: nivelCfg.color }}>
+                {nivelCfg.label}
+              </div>
+              {!esOtroPerfil && (
+                <>
+                  <button
+                    type="button"
+                    className="profile-hero__avatar-editar"
+                    onClick={() => avatarInputRef.current?.click()}
+                  >
+                    📷
+                  </button>
+                  <input ref={avatarInputRef} type="file" accept="image/*" onChange={elegirAvatar} hidden />
+                </>
               )}
             </div>
-          </div>
 
-          <div className="profile-hero__acciones">
-            {esOtroPerfil ? (
-              <>
-                {perfilAjeno?.estaConectado ? (
-                  <div className="profile-hero__menu-wrap">
-                    <button className="profile-hero__ya-vinculado profile-hero__ya-vinculado--btn" onClick={() => setMenuAbierto(v => !v)}>
-                      ✓ Conectados <ChevronDown size={14} strokeWidth={2} />
-                    </button>
-                    {menuAbierto && (
-                      <>
-                        <div className="profile-hero__menu-backdrop" onClick={() => setMenuAbierto(false)} />
-                        <div className="profile-hero__menu">
-                          <button onClick={() => { setMenuAbierto(false); setConfirmandoEliminar(true); }}>
-                            <UserX size={15} strokeWidth={1.8} /> Eliminar de mis amigos
-                          </button>
-                          <button onClick={() => { setMenuAbierto(false); setConfirmandoBloqueo(true); }}>
-                            <UserX size={15} strokeWidth={1.8} /> Bloquear
-                          </button>
-                          <button onClick={() => { setMenuAbierto(false); showToastReportar(); }}>
-                            <Flag size={15} strokeWidth={1.8} /> Reportar
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : estadoConexion === 'enviada' || perfilAjeno?.estadoConexion === 'pendiente_enviada' ? (
-                  <span className="profile-hero__solicitud-enviada">Solicitud enviada</span>
-                ) : perfilAjeno?.estadoConexion === 'rechazada' ? (
-                  <div style={{ position: 'relative' }}>
+            <div className="profile-hero__info">
+              <h1 className="profile-hero__nombre">{datosHero.firstName} {datosHero.lastName}</h1>
+              {(esOtroPerfil ? perfilAjeno?.bio : bio) && (
+                <p className="profile-hero__frase">"{esOtroPerfil ? perfilAjeno?.bio : bio}"</p>
+              )}
+              <div className="profile-hero__meta">
+                {((esOtroPerfil ? perfilAjeno?.city : city) || (esOtroPerfil ? perfilAjeno?.country : country)) && (
+                  <span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                    {[esOtroPerfil ? perfilAjeno?.city : city, esOtroPerfil ? perfilAjeno?.country : country].filter(Boolean).join(', ')}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="profile-hero__acciones">
+              {esOtroPerfil ? (
+                <>
+                  {perfilAjeno?.estadoConexion === 'pendiente_recibida' ? (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="profile-hero__conectar" onClick={aceptarDesdeElPerfil}>Aceptar solicitud</button>
+                      <button className="profile-hero__editar" onClick={rechazarDesdeElPerfil}>Rechazar</button>
+                    </div>
+                  ) : perfilAjeno?.estaConectado ? (
+                    <div className="profile-hero__menu-wrap">
+                      <button className="profile-hero__ya-vinculado profile-hero__ya-vinculado--btn" onClick={() => setMenuAbierto(v => !v)}>
+                        ✓ Conectados <ChevronDown size={14} strokeWidth={2} />
+                      </button>
+                      {menuAbierto && (
+                        <>
+                          <div className="profile-hero__menu-backdrop" onClick={() => setMenuAbierto(false)} />
+                          <div className="profile-hero__menu">
+                            {perfilAjeno.estaSilenciado ? (
+                              <button onClick={() => { setMenuAbierto(false); quitarSilencio(); }}>
+                                Desilenciar
+                              </button>
+                            ) : (
+                              <>
+                                <button onClick={() => { setMenuAbierto(false); elegirSilencio('permanente'); }}>
+                                  Silenciar
+                                </button>
+                                <button onClick={() => { setMenuAbierto(false); elegirSilencio('temporal'); }}>
+                                  Silenciar por 30 días
+                                </button>
+                              </>
+                            )}
+                            <button onClick={() => { setMenuAbierto(false); setConfirmandoEliminar(true); }}>
+                              Eliminar de mis amigos
+                            </button>
+                            <button onClick={() => { setMenuAbierto(false); setConfirmandoBloqueo(true); }}>
+                              Bloquear
+                            </button>
+                            <button onClick={() => { setMenuAbierto(false); setReportando(true); }}>
+                              Reportar
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : estadoConexion === 'enviada' || perfilAjeno?.estadoConexion === 'pendiente_enviada' ? (
                     <button
                       className="profile-hero__solicitud-enviada"
-                      style={{ background: 'rgba(186,26,26,0.08)', borderColor: 'rgba(186,26,26,0.25)', color: '#ba1a1a', border: '1.5px solid', cursor: 'pointer' }}
-                      onClick={() => setTooltipRechazoAbierto(v => !v)}
+                      style={{ cursor: 'pointer', border: 'none' }}
+                      onClick={() => setConfirmandoCancelarSolicitud(true)}
                     >
-                      Rechazada
+                      Solicitud enviada ✕
                     </button>
-                    {tooltipRechazoAbierto && (
-                      <>
-                        <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setTooltipRechazoAbierto(false)} />
-                        <div style={{
-                          position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 10,
-                          background: '#03192e', color: 'white', fontSize: '0.75rem', lineHeight: 1.4,
-                          padding: '10px 14px', borderRadius: 10, width: 220, boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-                        }}>
-                          Esta persona rechazó tu solicitud. Podés volver a intentarlo en {perfilAjeno.diasRestantes} día{perfilAjeno.diasRestantes === 1 ? '' : 's'}.
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <button className="profile-hero__conectar" onClick={conectar}>Conectar</button>
-                )}
+                  ) : perfilAjeno?.estadoConexion === 'rechazada' ? (
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        className="profile-hero__solicitud-enviada"
+                        style={{ background: 'rgba(186,26,26,0.08)', borderColor: 'rgba(186,26,26,0.25)', color: '#ba1a1a', border: '1.5px solid', cursor: 'pointer' }}
+                        onClick={() => setTooltipRechazoAbierto(v => !v)}
+                      >
+                        Rechazada
+                      </button>
+                      {tooltipRechazoAbierto && (
+                        <>
+                          <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setTooltipRechazoAbierto(false)} />
+                          <div style={{
+                            position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 10,
+                            background: '#03192e', color: 'white', fontSize: '0.75rem', lineHeight: 1.4,
+                            padding: '10px 14px', borderRadius: 10, width: 220, boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                          }}>
+                            Esta persona rechazó tu solicitud. Podés volver a intentarlo en {perfilAjeno.diasRestantes} día{perfilAjeno.diasRestantes === 1 ? '' : 's'}.
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <button className="profile-hero__conectar" onClick={conectar}>Conectar</button>
+                  )}
 
-                {!perfilAjeno?.estaConectado && (
+                  {!perfilAjeno?.estaConectado && (
+                    <div className="profile-hero__menu-wrap">
+                      <button className="profile-hero__mas-btn" onClick={() => setMenuAbierto(v => !v)} aria-label="Más opciones">
+                        <MoreHorizontal size={18} strokeWidth={1.8} />
+                      </button>
+                      {menuAbierto && (
+                        <>
+                          <div className="profile-hero__menu-backdrop" onClick={() => setMenuAbierto(false)} />
+                          <div className="profile-hero__menu">
+                            <button onClick={() => { setMenuAbierto(false); setConfirmandoBloqueo(true); }}>
+                              <UserX size={15} strokeWidth={1.8} /> Bloquear
+                            </button>
+                            <button onClick={() => { setMenuAbierto(false); setReportando(true); }}>
+                              <Flag size={15} strokeWidth={1.8} /> Reportar
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <button className="profile-hero__editar" onClick={() => abrirDrawer('perfil')}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                    Editar perfil
+                  </button>
                   <div className="profile-hero__menu-wrap">
                     <button className="profile-hero__mas-btn" onClick={() => setMenuAbierto(v => !v)} aria-label="Más opciones">
                       <MoreHorizontal size={18} strokeWidth={1.8} />
@@ -564,69 +679,62 @@ export default function Profile() {
                       <>
                         <div className="profile-hero__menu-backdrop" onClick={() => setMenuAbierto(false)} />
                         <div className="profile-hero__menu">
-                          <button onClick={() => { setMenuAbierto(false); setConfirmandoBloqueo(true); }}>
-                            <UserX size={15} strokeWidth={1.8} /> Bloquear
+                          <button onClick={() => { setMenuAbierto(false); navigate('/configuracion'); }}>
+                            <SettingsIcon size={15} strokeWidth={1.8} /> Configuración
                           </button>
-                          <button onClick={() => { setMenuAbierto(false); showToastReportar(); }}>
-                            <Flag size={15} strokeWidth={1.8} /> Reportar
+                          <button onClick={() => { setMenuAbierto(false); logout(); }}>
+                            Cerrar sesión
                           </button>
                         </div>
                       </>
                     )}
                   </div>
-                )}
-              </>
-            ) : (
-              <>
-                <button className="profile-hero__editar" onClick={() => abrirDrawer('perfil')}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-                  Editar perfil
-                </button>
-                <div className="profile-hero__menu-wrap">
-                  <button className="profile-hero__mas-btn" onClick={() => setMenuAbierto(v => !v)} aria-label="Más opciones">
-                    <MoreHorizontal size={18} strokeWidth={1.8} />
-                  </button>
-                  {menuAbierto && (
-                    <>
-                      <div className="profile-hero__menu-backdrop" onClick={() => setMenuAbierto(false)} />
-                      <div className="profile-hero__menu">
-                        <button onClick={() => { setMenuAbierto(false); navigate('/configuracion'); }}>
-                          <SettingsIcon size={15} strokeWidth={1.8} /> Configuración
-                        </button>
-                        <button onClick={() => { setMenuAbierto(false); logout(); }}>
-                          Cerrar sesión
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </>
+                </>
+              )}
+            </div>
+
+            {confirmandoBloqueo && (
+              <ConfirmModal
+                titulo="Bloquear a esta persona"
+                mensaje={`¿Bloquear a ${perfilAjeno?.firstName}? Ya no van a poder ver sus perfiles ni conectarse, y se elimina cualquier conexión que tuvieran.`}
+                textoConfirmar="Sí, bloquear"
+                peligroso
+                onConfirm={confirmarBloqueo}
+                onCancel={() => setConfirmandoBloqueo(false)}
+              />
+            )}
+
+            {confirmandoEliminar && (
+              <ConfirmModal
+                titulo="Eliminar de mis amigos"
+                mensaje={`¿Eliminar a ${perfilAjeno?.firstName} de tus conexiones? Van a dejar de estar conectados, pero podrán volver a conectarse en el futuro.`}
+                textoConfirmar="Sí, eliminar"
+                peligroso
+                onConfirm={confirmarEliminarAmigo}
+                onCancel={() => setConfirmandoEliminar(false)}
+              />
+            )}
+
+            {confirmandoCancelarSolicitud && (
+              <ConfirmModal
+                titulo="Cancelar solicitud"
+                mensaje={`¿Cancelar la solicitud de conexión que le enviaste a ${perfilAjeno?.firstName}?`}
+                textoConfirmar="Sí, cancelar"
+                peligroso
+                onConfirm={confirmarCancelarSolicitud}
+                onCancel={() => setConfirmandoCancelarSolicitud(false)}
+              />
+            )}
+
+            {reportando && (
+              <ReportModal
+                entityType="user"
+                entityId={perfilAjeno?.id || ''}
+                onClose={() => setReportando(false)}
+              />
             )}
           </div>
-
-          {confirmandoBloqueo && (
-            <ConfirmModal
-              titulo="Bloquear a esta persona"
-              mensaje={`¿Bloquear a ${perfilAjeno?.firstName}? Ya no van a poder ver sus perfiles ni conectarse, y se elimina cualquier conexión que tuvieran.`}
-              textoConfirmar="Sí, bloquear"
-              peligroso
-              onConfirm={confirmarBloqueo}
-              onCancel={() => setConfirmandoBloqueo(false)}
-            />
-          )}
-
-          {confirmandoEliminar && (
-            <ConfirmModal
-              titulo="Eliminar de mis amigos"
-              mensaje={`¿Eliminar a ${perfilAjeno?.firstName} de tus conexiones? Van a dejar de estar conectados, pero podrán volver a conectarse en el futuro.`}
-              textoConfirmar="Sí, eliminar"
-              peligroso
-              onConfirm={confirmarEliminarAmigo}
-              onCancel={() => setConfirmandoEliminar(false)}
-            />
-          )}
         </div>
-      </div>
       )}
 
       {heroListo && esOtroPerfil && !perfilAjeno?.puedeVerContenido && (
@@ -1011,6 +1119,8 @@ export default function Profile() {
           onClose={() => setViendoRecuerdoAjeno(null)}
         />
       )}
+
+      {toast && <div className="feed-toast">{toast}</div>}
 
     </div>
   );

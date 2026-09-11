@@ -69,9 +69,9 @@
 
     h3 {
       font-family: 'Newsreader', serif;
-      font-size: 1.1rem;
-      color: #03192e;
-      margin: 0 0 12px;
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: #43474d;
     }
   }
 
@@ -84,7 +84,7 @@
     margin-bottom: 12px;
     position: relative;
 
-    > button, > span {
+    button, span {
       display: flex;
       align-items: center;
       gap: 6px;
@@ -96,13 +96,16 @@
       padding: 0;
     }
 
-    > button.active { color: #ba1a1a; }
+    button.active { color: #ba1a1a; }
 
-    // acá el resumen va inline junto al resto, no centrado como en el Feed
+    // el resumen queda pegado al extremo derecho — todos los números
+    // de conteo (like/comentario/compartir) quedan agrupados a la
+    // izquierda, y el resumen es aparte, solo para ver el detalle
     .reaction-resumen-wrap {
       position: static;
       transform: none;
       width: auto;
+      margin-left: auto;
     }
   }
 
@@ -131,10 +134,16 @@
   &__comentario {
     display: flex;
     flex-direction: column;
-    font-size: 0.82rem;
+    font-size: 0.88rem;
 
-    strong { color: #03192e; }
-    span { color: #43474d; }
+    strong { color: #03192e; font-weight: 700; }
+    span { color: #1c232c; line-height: 1.4; }
+  }
+
+  &__comentario--respondiendo {
+    background: rgba(201, 168, 76, 0.1);
+    border-radius: 8px;
+    padding: 6px 8px;
   }
 
   &__vacio {
@@ -180,4 +189,449 @@
       cursor: pointer;
     }
   }
+}
+
+.foto-viewer__panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 36px; // deja lugar para que no se pise con la X de cerrar el modal (arriba a la derecha)
+
+  h3 { margin: 0 0 16px; }
+}
+
+.foto-viewer__menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.foto-viewer__more {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8A8279;
+  padding: 4px;
+  display: flex;
+  transition: color 0.2s;
+  &:hover { color: #03192e; }
+}
+
+.foto-viewer__menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+}
+
+.foto-viewer__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 200;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(3, 25, 46, 0.18);
+  border: 1px solid rgba(3, 25, 46, 0.08);
+  overflow: hidden;
+  min-width: 170px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    color: #03192e;
+    text-align: left;
+    transition: background 0.15s;
+    &:hover { background: rgba(133, 83, 36, 0.06); }
+  }
+}
+
+.foto-viewer__comentario-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.foto-viewer__comentario-menu-wrap {
+  position: static;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  &:has(.foto-viewer__menu) {
+    opacity: 1; // si el menú está abierto, el "..." se queda visible aunque saques el mouse del comentario
+  }
+}
+
+.foto-viewer__comentario:hover .foto-viewer__comentario-menu-wrap {
+  opacity: 1;
+}
+
+.foto-viewer__comentario-more {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8A8279;
+  padding: 2px;
+  display: flex;
+  transition: color 0.15s;
+  &:hover { color: #03192e; }
+}
+
+.foto-viewer__menu--comentario {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 160px;
+  z-index: 400;
+}
+
+.foto-viewer__menu-eliminar {
+  color: #ba1a1a !important;
+}
+
+.foto-viewer__ocultos {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(3, 25, 46, 0.1);
+}
+
+.foto-viewer__ocultos-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8A8279;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.foto-viewer__comentario--oculto {
+  opacity: 0.6;
+}
+
+.foto-viewer__mostrar-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #855324;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0;
+
+  &:hover { text-decoration: underline; }
+}
+
+.foto-viewer__comentario-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.foto-viewer__comentario-responder {
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #43474d;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover { color: #03192e; }
+}
+
+.foto-viewer__ver-respuestas {
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #855324;
+  cursor: pointer;
+  margin: 6px 0 0 8px;
+  padding: 0;
+}
+
+.foto-viewer__respuestas {
+  margin-left: 24px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(3, 25, 46, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  animation: fotoViewerDesplegar 0.18s ease-out;
+}
+
+.foto-viewer__comentario--respuesta {
+  position: relative;
+  padding-bottom: 0;
+
+  // el "codo" que conecta la línea vertical del hilo con esta respuesta puntual
+  &::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: -12px;
+    width: 12px;
+    height: 2px;
+    background: rgba(3, 25, 46, 0.12);
+  }
+}
+
+.foto-viewer__respuesta-acciones-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.foto-viewer__comentario-eliminar-simple {
+  background: none;
+  border: none;
+  color: #ba1a1a;
+  cursor: pointer;
+  padding: 0;
+}
+
+.foto-viewer__nuevo-comentario-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.foto-viewer__respondiendo-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #43474d;
+  background: rgba(3, 25, 46, 0.05);
+  padding: 6px 10px;
+  border-radius: 8px 8px 0 0;
+
+  button {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #43474d;
+    font-size: 0.85rem;
+  }
+}
+
+// ── Ajustes de reacciones dentro de comentarios/respuestas (más compactas
+// que en el post, y el picker abre hacia abajo para no cortarse contra
+// el scroll del panel de comentarios) ──
+.foto-viewer__comentario-acciones {
+  .reaction-resumen-wrap {
+    position: static;
+    transform: none;
+    width: auto;
+  }
+
+  .reaction-pill {
+    width: 46px;
+    padding: 3px 6px;
+    gap: 3px;
+    justify-content: center;
+  }
+
+  .reaction-pill__emoji {
+    width: 14px;
+    height: 14px;
+    max-width: 14px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .reaction-pill__total {
+    font-size: 0.7rem;
+  }
+
+  .reaction-resumen {
+    padding: 2px 5px;
+  }
+
+  .reaction-resumen__icon {
+    width: 14px;
+    height: 14px;
+    max-width: 14px;
+  }
+
+  .reaction-panel {
+    bottom: auto;
+    top: calc(100% + 6px);
+  }
+}
+
+.foto-viewer__respuesta-input {
+  margin-top: 8px;
+  animation: fotoViewerDesplegar 0.18s ease-out;
+
+  .foto-viewer__nuevo-comentario {
+    margin-top: 0;
+  }
+}
+
+@keyframes fotoViewerDesplegar {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.foto-viewer__autor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.foto-viewer__autor-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.foto-viewer__fecha {
+  font-size: 0.72rem;
+  color: #8A8279;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+.foto-viewer__autor-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #03192e;
+
+  &:hover span { text-decoration: underline; }
+}
+
+.foto-viewer__autor-avatar {
+  width: 30px;
+  height: 30px;
+  max-width: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+
+  &--vacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #C9A84C;
+    color: white;
+    font-size: 0.8rem;
+    font-family: 'Newsreader', serif;
+  }
+}
+
+.foto-viewer__comentario-autor {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  color: #03192e;
+
+  &:hover { text-decoration: underline; }
+}
+
+.foto-viewer__comentario .foto-viewer__tag {
+  color: #6f97cf !important;
+  font-weight: 700;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+.foto-viewer__fecha-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.foto-viewer__fecha-tooltip {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: #03192e;
+  color: white;
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.foto-viewer__comentario-fecha-wrap {
+  position: relative;
+}
+
+.foto-viewer__comentario-fecha {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  color: #8A8279;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover { text-decoration: underline; }
+}
+
+.foto-viewer__compartir {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #43474d;
+  padding: 0;
+  margin-left: auto;
+
+  &:hover { color: #855324; }
+}
+
+.foto-viewer__toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #03192e;
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(3, 25, 46, 0.3);
+  z-index: 500;
 }

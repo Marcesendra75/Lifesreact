@@ -3,6 +3,7 @@ import { uploadFile, deleteFile, validateFile, getSignedFileUrl } from './storag
 import { areConnected } from './connection.service';
 import { isBlockedEitherWay } from './block.service';
 import { notify } from './notification.service';
+import { getHiddenMemoryIds, getMutedUserIds, getHiddenCommentIds, listSavedMemoryIds } from './interaction.service';
 
 interface CreateMemoryInput {
   userId: string;
@@ -70,15 +71,28 @@ export async function getFeed(userId: string, page: number, pageSize: number) {
   );
   const authorIds = [userId, ...connectionIds];
 
+  // sacamos del feed lo que el usuario ocultó puntualmente, y todo lo que
+  // venga de gente que silenció (sin romper la conexión ni avisarle a nadie)
+  const [hiddenIds, mutedIds] = await Promise.all([
+    getHiddenMemoryIds(userId),
+    getMutedUserIds(userId),
+  ]);
+  const autoresVisibles = authorIds.filter((id) => !mutedIds.includes(id));
+
+  const where = {
+    userId: { in: autoresVisibles },
+    id: { notIn: hiddenIds },
+  };
+
   const [items, total] = await Promise.all([
     prisma.memory.findMany({
-      where: { userId: { in: authorIds } },
+      where,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
     }),
-    prisma.memory.count({ where: { userId: { in: authorIds } } }),
+    prisma.memory.count({ where }),
   ]);
 
   const withExtras = await Promise.all(items.map((m) => enrichFeedMemory(m, userId)));
@@ -127,6 +141,37 @@ export async function getMemoryById(id: string, viewerId?: string) {
   const memory = await prisma.memory.findUnique({ where: { id } });
   if (!memory) return null;
   return enrichMemory(memory, viewerId);
+}
+
+// ── Publicaciones guardadas ──
+// Trae los recuerdos que el usuario guardó, con los mismos datos que el feed
+// (autor, reacciones, comentarios). Si guardaste algo de alguien que después
+// te bloqueó (o vos a él), lo salteamos en vez de romper la lista.
+export async function listSavedMemories(userId: string, page: number, pageSize: number) {
+  const idsGuardadosEnOrden = await listSavedMemoryIds(userId);
+
+  const memorias = await prisma.memory.findMany({
+    where: { id: { in: idsGuardadosEnOrden } },
+    include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+  });
+
+  const noBloqueadas: typeof memorias = [];
+  for (const m of memorias) {
+    if (m.userId === userId || !(await isBlockedEitherWay(userId, m.userId))) {
+      noBloqueadas.push(m);
+    }
+  }
+
+  // reordenamos según el orden real en que se guardaron (más reciente primero,
+  // ya que listSavedMemoryIds las trae en ese orden)
+  const porId = new Map(noBloqueadas.map((m) => [m.id, m]));
+  const ordenadas = idsGuardadosEnOrden.map((id) => porId.get(id)).filter((m): m is NonNullable<typeof m> => !!m);
+
+  const total = ordenadas.length;
+  const pagina = ordenadas.slice((page - 1) * pageSize, page * pageSize);
+  const withExtras = await Promise.all(pagina.map((m) => enrichFeedMemory(m, userId)));
+
+  return { items: withExtras, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }
 
 // ¿el viewer puede ver los recuerdos de ownerId? (es él mismo, o están conectados)
@@ -232,8 +277,16 @@ export async function setReaction(memoryId: string, userId: string, type: string
   return { miReaccion, reactionCounts };
 }
 
+export async function incrementShareCount(memoryId: string) {
+  const memory = await prisma.memory.update({
+    where: { id: memoryId },
+    data: { sharesCount: { increment: 1 } },
+  });
+  return { sharesCount: memory.sharesCount };
+}
+
 // ── Comentarios ──
-export async function addComment(memoryId: string, userId: string, content: string) {
+export async function addComment(memoryId: string, userId: string, content: string, parentId?: string) {
   const memory = await prisma.memory.findUnique({ where: { id: memoryId } });
   if (!memory) throw new Error('Recuerdo no encontrado');
 
@@ -256,30 +309,82 @@ export async function addComment(memoryId: string, userId: string, content: stri
     }
   }
 
+  // Un solo nivel de anidamiento: si respondés una respuesta, se "achata"
+  // contra la raíz del hilo — pero igual notificamos puntualmente a la
+  // persona a la que le respondiste, no al dueño de la raíz
+  let parentIdFinal: string | null = null;
+  let aQuienNotificar: string | null = null;
+
+  if (parentId) {
+    const comentarioRespondido = await prisma.memoryComment.findUnique({ where: { id: parentId } });
+    if (!comentarioRespondido || comentarioRespondido.memoryId !== memoryId) {
+      throw new Error('El comentario que intentás responder no existe');
+    }
+    parentIdFinal = comentarioRespondido.parentId ?? comentarioRespondido.id;
+    aQuienNotificar = comentarioRespondido.userId;
+  }
+
   const comment = await prisma.memoryComment.create({
-    data: { memoryId, userId, content },
+    data: { memoryId, userId, content, parentId: parentIdFinal, replyToUserId: aQuienNotificar },
     include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
   });
 
-  await notify.comment(memory.userId, userId, memoryId);
+  if (aQuienNotificar) {
+    await notify.commentReply(aQuienNotificar, userId, memoryId);
+  } else {
+    await notify.comment(memory.userId, userId, memoryId);
+  }
 
-  return attachCommenterAvatar(comment);
+  return enrichComment(comment, userId, !parentIdFinal);
 }
 
-export async function listComments(memoryId: string, page: number, pageSize: number) {
-  const [items, total] = await Promise.all([
+export async function listComments(memoryId: string, viewerId: string, page: number, pageSize: number) {
+  const ocultosIds = await getHiddenCommentIds(viewerId);
+  // acá solo traemos los comentarios raíz — las respuestas se piden aparte
+  // con listReplies, contraídas detrás de un "Ver N respuestas" por defecto
+  const where = { memoryId, parentId: null, id: { notIn: ocultosIds } };
+
+  const [items, total, ocultosDeEstePost] = await Promise.all([
     prisma.memoryComment.findMany({
-      where: { memoryId },
+      where,
       orderBy: { createdAt: 'asc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
     }),
-    prisma.memoryComment.count({ where: { memoryId } }),
+    prisma.memoryComment.count({ where }),
+    // los que ocultaste, pero solo los de ESTE post y solo raíz
+    prisma.memoryComment.findMany({
+      where: { memoryId, parentId: null, id: { in: ocultosIds } },
+      orderBy: { createdAt: 'asc' },
+      include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+    }),
   ]);
 
-  const withUrls = await Promise.all(items.map(attachCommenterAvatar));
-  return { items: withUrls, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  const [withUrls, ocultosConUrls] = await Promise.all([
+    Promise.all(items.map((c) => enrichComment(c, viewerId, true))),
+    Promise.all(ocultosDeEstePost.map((c) => enrichComment(c, viewerId, true))),
+  ]);
+
+  return {
+    items: withUrls,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+    ocultos: ocultosConUrls,
+  };
+}
+
+// ── Respuestas de un hilo (se piden aparte, al desplegar "Ver N respuestas") ──
+export async function listReplies(commentId: string, viewerId: string) {
+  const ocultosIds = await getHiddenCommentIds(viewerId);
+  const replies = await prisma.memoryComment.findMany({
+    where: { parentId: commentId, id: { notIn: ocultosIds } },
+    orderBy: { createdAt: 'asc' },
+    include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+  });
+  return Promise.all(replies.map((r) => enrichComment(r, viewerId, false)));
 }
 
 export async function deleteComment(commentId: string, userId: string) {
@@ -318,6 +423,67 @@ export async function listReactions(memoryId: string, viewerId: string) {
   })));
 }
 
+// ── Reacciones a comentarios (mismo sistema de 4 tipos que los recuerdos) ──
+export async function setCommentReaction(commentId: string, userId: string, type: string) {
+  const comment = await prisma.memoryComment.findUnique({ where: { id: commentId } });
+  if (!comment) throw new Error('Comentario no encontrado');
+
+  const existing = await prisma.commentReaction.findUnique({
+    where: { commentId_userId: { commentId, userId } },
+  });
+
+  let miReaccion: string | null = type;
+
+  try {
+    if (existing && existing.type === type) {
+      await prisma.commentReaction.delete({ where: { id: existing.id } });
+      miReaccion = null;
+    } else if (existing) {
+      await prisma.commentReaction.update({ where: { id: existing.id }, data: { type: type as any } });
+    } else {
+      await prisma.commentReaction.create({ data: { commentId, userId, type: type as any } });
+    }
+  } catch (err: any) {
+    if (err.code !== 'P2025' && err.code !== 'P2002') throw err;
+    const actual = await prisma.commentReaction.findUnique({ where: { commentId_userId: { commentId, userId } } });
+    miReaccion = actual?.type || null;
+  }
+
+  const reactionCounts = await contarReaccionesComentario(commentId);
+  return { miReaccion, reactionCounts };
+}
+
+export async function listCommentReactions(commentId: string, viewerId: string) {
+  const reactions = await prisma.commentReaction.findMany({
+    where: { commentId },
+    orderBy: { createdAt: 'desc' },
+    include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+  });
+
+  return Promise.all(reactions.map(async (r) => ({
+    type: r.type,
+    user: {
+      id: r.user.id,
+      firstName: r.user.firstName,
+      lastName: r.user.lastName,
+      avatarUrl: r.user.avatarUrl ? await getSignedFileUrl(r.user.avatarUrl) : null,
+      esUnoMismo: r.user.id === viewerId,
+      estaConectado: r.user.id === viewerId ? false : await areConnected(viewerId, r.user.id),
+    },
+  })));
+}
+
+async function contarReaccionesComentario(commentId: string) {
+  const conteos = await prisma.commentReaction.groupBy({
+    by: ['type'],
+    where: { commentId },
+    _count: true,
+  });
+  const reactionCounts = contadoresVacios();
+  conteos.forEach((c) => { (reactionCounts as any)[c.type] = c._count; });
+  return reactionCounts;
+}
+
 async function contarReacciones(memoryId: string) {
   const conteos = await prisma.memoryReaction.groupBy({
     by: ['type'],
@@ -331,16 +497,26 @@ async function contarReacciones(memoryId: string) {
 
 // ── Helpers ──
 async function enrichMemory(memory: any, viewerId?: string) {
-  const [mediaUrl, reactionCounts, commentsCount, miReaccion] = await Promise.all([
+  const [mediaUrl, reactionCounts, commentsCount, miReaccion, autor] = await Promise.all([
     memory.mediaKey ? getSignedFileUrl(memory.mediaKey) : Promise.resolve(null),
     contarReacciones(memory.id),
     prisma.memoryComment.count({ where: { memoryId: memory.id } }),
     viewerId
       ? prisma.memoryReaction.findUnique({ where: { memoryId_userId: { memoryId: memory.id, userId: viewerId } } })
       : Promise.resolve(null),
+    prisma.user.findUnique({ where: { id: memory.userId }, select: { id: true, firstName: true, lastName: true, avatarUrl: true } }),
   ]);
 
-  return { ...memory, mediaUrl, reactionCounts, commentsCount, miReaccion: miReaccion?.type || null };
+  const autorAvatarUrl = autor?.avatarUrl ? await getSignedFileUrl(autor.avatarUrl) : null;
+
+  return {
+    ...memory,
+    mediaUrl,
+    reactionCounts,
+    commentsCount,
+    miReaccion: miReaccion?.type || null,
+    user: autor ? { id: autor.id, firstName: autor.firstName, lastName: autor.lastName, avatarUrl: autorAvatarUrl } : undefined,
+  };
 }
 
 // como enrichMemory, pero además trae y firma la foto del autor (el feed muestra varios autores, no solo vos)
@@ -363,7 +539,19 @@ async function enrichFeedMemory(memory: any, viewerId: string) {
   };
 }
 
-async function attachCommenterAvatar(comment: any) {
-  const avatarUrl = comment.user?.avatarUrl ? await getSignedFileUrl(comment.user.avatarUrl) : null;
-  return { ...comment, user: { ...comment.user, avatarUrl } };
+async function enrichComment(comment: any, viewerId: string, incluirRepliesCount: boolean) {
+  const [avatarUrl, reactionCounts, miReaccion, repliesCount] = await Promise.all([
+    comment.user?.avatarUrl ? getSignedFileUrl(comment.user.avatarUrl) : Promise.resolve(null),
+    contarReaccionesComentario(comment.id),
+    prisma.commentReaction.findUnique({ where: { commentId_userId: { commentId: comment.id, userId: viewerId } } }),
+    incluirRepliesCount ? prisma.memoryComment.count({ where: { parentId: comment.id } }) : Promise.resolve(0),
+  ]);
+
+  return {
+    ...comment,
+    user: { ...comment.user, avatarUrl },
+    reactionCounts,
+    miReaccion: miReaccion?.type || null,
+    repliesCount,
+  };
 }

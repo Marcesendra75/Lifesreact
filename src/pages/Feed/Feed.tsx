@@ -3,19 +3,23 @@
 // Conectado al backend real: tus recuerdos + los de tus conexiones aceptadas
 // ============================================
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
   Plus,
   LayoutList, Grid, Activity, Camera,
-  Heart, MessageCircle, Edit2, MoreHorizontal, Trash2, Share2,
+  Heart, MessageCircle, Edit2, MoreHorizontal, Trash2, Share2, Flag,
+  Bookmark, EyeOff, VolumeX, UserX,
 } from 'lucide-react';
-import { memoryService, chapterService } from '../../services/api';
+import { memoryService, chapterService, interactionService, blockService } from '../../services/api';
+import { formatConteo } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
 import CrearRecuerdoModal from '../../components/CrearRecuerdoModal/CrearRecuerdoModal';
 import FotoViewerModal from '../../components/FotoViewerModal/FotoViewerModal';
 import ReactionButton from '../../components/ReactionButton/ReactionButton';
 import ReactionResumen from '../../components/ReactionButton/ReactionResumen';
+import ReportModal from '../../components/ReportModal/ReportModal';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
+import PersonHoverCard from '../../components/PersonHoverCard/PersonHoverCard';
 import './Feed.scss';
 
 type Vista = 'feed' | 'galeria' | 'cronologia';
@@ -36,8 +40,14 @@ interface FeedItem {
   reactionCounts: Record<string, number>;
   miReaccion: string | null;
   commentsCount: number;
+  sharesCount: number;
   createdAt: string;
   user: { id: string; firstName: string; lastName: string; avatarUrl?: string | null };
+}
+
+function formatFechaHora(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString('es-AR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function tiempoRelativo(iso: string): string {
@@ -74,16 +84,21 @@ export default function Feed() {
   const [viendoPost, setViendoPost] = useState<FeedItem | null>(null);
 
   const [menuAbiertoId, setMenuAbiertoId] = useState<string | null>(null);
+  const [reportandoPostId, setReportandoPostId] = useState<string | null>(null);
+  const [guardadosIds, setGuardadosIds] = useState<Set<string>>(new Set());
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState('');
   const [eliminandoId, setEliminandoId] = useState<string | null>(null);
+  const [confirmandoBloqueo, setConfirmandoBloqueo] = useState<{ userId: string; nombre: string } | null>(null);
   const [toast, setToast] = useState('');
+  const [tooltipFechaId, setTooltipFechaId] = useState<string | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
   useEffect(() => {
     cargarFeed(1);
     chapterService.list().then((res: any) => setMisCapitulos(res.data)).catch(() => {});
+    interactionService.listSavedIds().then((res: any) => setGuardadosIds(new Set(res.data))).catch(() => {});
   }, []);
 
   // si entraste por un link directo a un recuerdo puntual, lo abrimos solo
@@ -100,6 +115,7 @@ export default function Feed() {
         reactionCounts: res.data.reactionCounts,
         miReaccion: res.data.miReaccion,
         commentsCount: res.data.commentsCount,
+        sharesCount: res.data.sharesCount || 0,
         createdAt: res.data.createdAt,
         user: { id: res.data.userId, firstName: '', lastName: '', avatarUrl: null },
       });
@@ -180,6 +196,12 @@ export default function Feed() {
     } catch {
       showToast('⚠️ No se pudo copiar el link');
     }
+    try {
+      const res: any = await memoryService.share(id);
+      setItems(prev => prev.map(i => i.id === id ? { ...i, sharesCount: res.data.sharesCount } : i));
+    } catch {
+      // si falla el conteo, no le arruinamos la experiencia de compartir por esto
+    }
   };
 
   const reaccionar = async (id: string, type: string) => {
@@ -194,6 +216,65 @@ export default function Feed() {
   const irAPerfil = (userId: string) => {
     if (user && userId === user.id) navigate('/perfil');
     else navigate(`/perfil/${userId}`);
+  };
+
+    const toggleGuardar = async (memoryId: string) => {
+    setMenuAbiertoId(null);
+    const yaGuardado = guardadosIds.has(memoryId);
+    try {
+      if (yaGuardado) {
+        await interactionService.unsave(memoryId);
+        setGuardadosIds(prev => { const s = new Set(prev); s.delete(memoryId); return s; });
+        setToast('Se quitó de guardados');
+      } else {
+        await interactionService.save(memoryId);
+        setGuardadosIds(prev => new Set(prev).add(memoryId));
+        setToast('Guardado');
+      }
+    } catch (err: any) {
+      setToast(err.message || 'Error');
+    }
+  };
+
+  const ocultarPost = async (memoryId: string) => {
+    setMenuAbiertoId(null);
+    try {
+      await interactionService.hide(memoryId);
+      setItems(items.filter(i => i.id !== memoryId));
+      setToast('Publicación ocultada');
+    } catch (err: any) {
+      setToast(err.message || 'Error al ocultar');
+    }
+  };
+
+  const silenciarAutor = async (userId: string, nombre: string) => {
+    setMenuAbiertoId(null);
+    if (!window.confirm(`¿Silenciar a ${nombre}? No vas a ver más sus publicaciones en tu feed, y no se le avisa.`)) return;
+    try {
+      await interactionService.mute(userId);
+      setItems(items.filter(i => i.userId !== userId));
+      setToast(`Silenciaste a ${nombre}`);
+    } catch (err: any) {
+      setToast(err.message || 'Error al silenciar');
+    }
+  };
+
+  const bloquearAutorDesdeFeed = (userId: string, nombre: string) => {
+    setMenuAbiertoId(null);
+    setConfirmandoBloqueo({ userId, nombre });
+  };
+
+  const confirmarBloqueoDesdeFeed = async () => {
+    if (!confirmandoBloqueo) return;
+    const { userId, nombre } = confirmandoBloqueo;
+    setConfirmandoBloqueo(null);
+    try {
+      await blockService.block(userId);
+      setItems(items.filter(i => i.userId !== userId));
+      setToast(`Bloqueaste a ${nombre}`);
+    } catch (err: any) {
+      setToast(err.message || 'Error al bloquear');
+    }
   };
 
   const iniciarEdicion = (post: FeedItem) => {
@@ -304,29 +385,64 @@ export default function Feed() {
                     }
                   </button>
                   <div className="feed-post__meta">
-                    <button className="feed-post__autor-btn" onClick={() => irAPerfil(post.userId)}>
+                    <PersonHoverCard userId={post.userId}>
+                    <Link to={user && post.userId === user.id ? '/perfil' : `/perfil/${post.userId}`} className="feed-post__autor-btn">
                       {post.user.firstName} {post.user.lastName}
-                    </button>
-                    <span className="feed-post__tiempo">{tiempoRelativo(post.createdAt)}</span>
-                  </div>
-                  {user && post.userId === user.id && (
-                    <div className="feed-post__menu-wrap">
-                      <button className="feed-post__more" onClick={() => setMenuAbiertoId(menuAbiertoId === post.id ? null : post.id)}>
-                        <MoreHorizontal size={18} strokeWidth={1.8}/>
+                    </Link>
+                    </PersonHoverCard>
+                    <div className="feed-post__fecha-wrap">
+                      <button
+                        className="feed-post__tiempo"
+                        onClick={() => setTooltipFechaId(tooltipFechaId === post.id ? null : post.id)}
+                        onMouseEnter={() => setTooltipFechaId(post.id)}
+                        onMouseLeave={() => setTooltipFechaId(prev => prev === post.id ? null : prev)}
+                      >
+                        {tiempoRelativo(post.createdAt)}
                       </button>
-                      {menuAbiertoId === post.id && (
-                        <>
-                          <div className="feed-post__menu-backdrop" onClick={() => setMenuAbiertoId(null)} />
-                          <div className="feed-post__menu">
-                            <button onClick={() => iniciarEdicion(post)}><Edit2 size={14} strokeWidth={1.8}/> Editar</button>
-                            <button className="feed-post__menu-eliminar" onClick={() => { setEliminandoId(post.id); setMenuAbiertoId(null); }}>
-                              <Trash2 size={14} strokeWidth={1.8}/> Eliminar
-                            </button>
-                          </div>
-                        </>
+                      {tooltipFechaId === post.id && (
+                        <div className="feed-post__fecha-tooltip">{formatFechaHora(post.createdAt)}</div>
                       )}
                     </div>
-                  )}
+                  </div>
+                  <div className="feed-post__menu-wrap">
+                    <button className="feed-post__more" onClick={() => setMenuAbiertoId(menuAbiertoId === post.id ? null : post.id)}>
+                      <MoreHorizontal size={18} strokeWidth={1.8}/>
+                    </button>
+                    {menuAbiertoId === post.id && (
+                      <>
+                        <div className="feed-post__menu-backdrop" onClick={() => setMenuAbiertoId(null)} />
+                        <div className="feed-post__menu">
+                          <button onClick={() => toggleGuardar(post.id)}>
+                            <Bookmark size={14} strokeWidth={1.8} color={guardadosIds.has(post.id) ? '#855324' : 'currentColor'} fill={guardadosIds.has(post.id) ? '#855324' : 'none'} />
+                            {guardadosIds.has(post.id) ? 'Quitar de guardados' : 'Guardar publicación'}
+                          </button>
+                          {user && post.userId === user.id ? (
+                            <>
+                              <button onClick={() => iniciarEdicion(post)}><Edit2 size={14} strokeWidth={1.8}/> Editar</button>
+                              <button className="feed-post__menu-eliminar" onClick={() => { setEliminandoId(post.id); setMenuAbiertoId(null); }}>
+                                <Trash2 size={14} strokeWidth={1.8}/> Eliminar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => ocultarPost(post.id)}>
+                                <EyeOff size={14} strokeWidth={1.8}/> Ocultar esta publicación
+                              </button>
+                              <button onClick={() => silenciarAutor(post.userId, post.user.firstName)}>
+                                <VolumeX size={14} strokeWidth={1.8}/> Silenciar a {post.user.firstName}
+                              </button>
+                              <button onClick={() => bloquearAutorDesdeFeed(post.userId, post.user.firstName)}>
+                                <UserX size={14} strokeWidth={1.8}/> Bloquear a {post.user.firstName}
+                              </button>
+                              <button onClick={() => { setReportandoPostId(post.id); setMenuAbiertoId(null); }}>
+                                <Flag size={14} strokeWidth={1.8}/> Reportar
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="feed-post__body">
                   {editandoId === post.id ? (
@@ -356,10 +472,10 @@ export default function Feed() {
                     onReact={(type) => reaccionar(post.id, type)}
                   />
                   <button className="feed-post__accion" onClick={() => setViendoPost(post)}>
-                    <MessageCircle size={16} strokeWidth={1.8}/> {post.commentsCount}
+                    <MessageCircle size={16} strokeWidth={1.8}/> {post.commentsCount > 0 && formatConteo(post.commentsCount)}
                   </button>
                   <button className="feed-post__accion" onClick={() => compartir(post.id)}>
-                    <Share2 size={16} strokeWidth={1.8}/>
+                    <Share2 size={16} strokeWidth={1.8}/> {post.sharesCount > 0 && formatConteo(post.sharesCount)}
                   </button>
                   <ReactionResumen memoryId={post.id} reactionCounts={post.reactionCounts} />
                 </div>
@@ -384,13 +500,13 @@ export default function Feed() {
                   : <img src={post.mediaUrl!} alt={post.caption || 'Recuerdo'}/>
                 }
                 <div className="feed-galeria__overlay">
-                  <span className="feed-galeria__autor">
+                  <Link to={user && post.userId === user.id ? '/perfil' : `/perfil/${post.userId}`} className="feed-galeria__autor" onClick={(e) => e.stopPropagation()}>
                     {post.user.avatarUrl
                       ? <img src={post.user.avatarUrl} alt={post.user.firstName}/>
                       : <div className="feed-galeria__avatar-vacio">{post.user.firstName[0]}</div>
                     }
                     {post.user.firstName}
-                  </span>
+                  </Link>
                   {post.caption && <p className="feed-galeria__titulo">{post.caption.slice(0, 40)}{post.caption.length > 40 ? '...' : ''}</p>}
                   <div className="feed-galeria__stats">
                     <span><Heart size={12} strokeWidth={1.8}/>{Object.values(post.reactionCounts || {}).reduce((a, b) => a + b, 0)}</span>
@@ -413,13 +529,13 @@ export default function Feed() {
                 {i < itemsFiltrados.length - 1 && <div className="feed-crono-item__line"/>}
                 <div className="feed-crono-item__content">
                   <div className="feed-crono-item__header">
-                    <button className="feed-crono-item__autor" onClick={() => irAPerfil(post.userId)}>
+                    <Link to={user && post.userId === user.id ? '/perfil' : `/perfil/${post.userId}`} className="feed-crono-item__autor">
                       {post.user.avatarUrl
                         ? <img src={post.user.avatarUrl} alt={post.user.firstName}/>
                         : <div className="feed-galeria__avatar-vacio">{post.user.firstName[0]}</div>
                       }
                       {post.user.firstName}
-                    </button>
+                    </Link>
                     <span className="feed-crono-item__tiempo">{tiempoRelativo(post.createdAt)}</span>
                   </div>
                   <h4 className="feed-crono-item__titulo" onClick={() => setViendoPost(post)} style={{cursor:'pointer'}}>
@@ -453,8 +569,13 @@ export default function Feed() {
           memoryId={viendoPost.id}
           imageUrl={viendoPost.mediaUrl || ''}
           titulo={viendoPost.caption || `Recuerdo de ${viendoPost.user.firstName}`}
+          authorId={viendoPost.userId}
+          authorName={viendoPost.user.firstName}
           onClose={(actualizado) => {
-            if (actualizado) {
+            if (actualizado?.oculta) {
+              setItems(items.filter(i => i.id !== viendoPost.id));
+              setToast('Publicación ocultada');
+            } else if (actualizado) {
               setItems(items.map(i => i.id === viendoPost.id ? { ...i, ...actualizado } : i));
             }
             setViendoPost(null);
@@ -473,6 +594,32 @@ export default function Feed() {
           onCancel={() => setEliminandoId(null)}
         />
       )}
+
+      {confirmandoBloqueo && (
+        <ConfirmModal
+          titulo="Bloquear a esta persona"
+          mensaje={`¿Bloquear a ${confirmandoBloqueo.nombre}? Ya no van a poder verse los perfiles ni conectarse.`}
+          textoConfirmar="Sí, bloquear"
+          peligroso
+          onConfirm={confirmarBloqueoDesdeFeed}
+          onCancel={() => setConfirmandoBloqueo(null)}
+        />
+      )}
+
+      {reportandoPostId && (() => {
+        const post = items.find(i => i.id === reportandoPostId);
+        return (
+          <ReportModal
+            entityType="memory"
+            entityId={reportandoPostId}
+            memoryId={reportandoPostId}
+            authorId={post?.userId}
+            authorName={post?.user.firstName}
+            onClose={() => setReportandoPostId(null)}
+            onHidden={() => setItems(items.filter(i => i.id !== reportandoPostId))}
+          />
+        );
+      })()}
 
       {toast && <div className="feed-toast">{toast}</div>}
 

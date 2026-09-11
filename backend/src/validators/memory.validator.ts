@@ -25,6 +25,7 @@ export const createCommentSchema = z.object({
     .trim()
     .min(1, 'El comentario no puede estar vacío')
     .max(1000, 'El comentario no puede superar los 1000 caracteres'),
+  parentId: z.string().uuid('parentId inválido').optional(),
 });
 
 export const reactionSchema = z.object({

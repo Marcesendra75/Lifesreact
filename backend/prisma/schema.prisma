@@ -64,8 +64,16 @@ model User {
   chapters       Chapter[]
   memoryReactions MemoryReaction[]
   memoryComments  MemoryComment[]
+  commentReactions CommentReaction[]
+  hiddenMemories HiddenMemory[] @relation("HiddenMemoriesByUser")
+  mutesMade      Mute[]         @relation("MutesMade")
+  mutedBy        Mute[]         @relation("MutedBy")
+  savedMemories  SavedMemory[]  @relation("SavedMemoriesByUser")
+  hiddenComments HiddenComment[] @relation("HiddenCommentsByUser")
 
   @@map("users") // el nombre real de la tabla en Postgres queda en minúscula y plural, como ya tenías
+
+  reportsMade Report[] @relation("ReportsMade")
 }
 
 enum NotificationType {
@@ -78,6 +86,10 @@ enum NotificationType {
   relation_type_cancelled
   reaction
   comment
+  comment_reply
+  family_link_proposed
+  family_link_accepted
+  family_link_rejected
 }
 
 model Notification {
@@ -119,11 +131,15 @@ model Memory {
   mediaKey  String? @map("media_key")   // el key que guarda storage.service.ts, no la URL
   mediaType MediaType? @map("media_type")
 
-   chapterId String?  @map("chapter_id")
+  chapterId String?  @map("chapter_id")
   chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  sharesCount Int @default(0) @map("shares_count")
 
   reactions MemoryReaction[]
   comments  MemoryComment[]
+  hiddenBy HiddenMemory[] @relation("HiddenByUsers")
+  savedBy  SavedMemory[]  @relation("SavedByUsers")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt      @map("updated_at")
@@ -150,6 +166,9 @@ model FamilyMember {
   deathDate DateTime? @map("death_date") @db.Date
   photoKey  String?  @map("photo_key") // reusa el mismo storage.service.ts de Memories
   bio       String?  @db.Text
+  // pisa el rol calculado automáticamente (Hermano, Abuela, etc.) cuando
+  // el cálculo no contempla el parentesco real — vos decidís qué dice
+  relacionManual String? @map("relacion_manual")
 
   motherId  String?  @map("mother_id")
   mother    FamilyMember?   @relation("MotherChildren", fields: [motherId], references: [id], onDelete: SetNull)
@@ -170,6 +189,17 @@ model FamilyMember {
 
   linkedUserId String?  @map("linked_user_id")
   linkedUser   User?    @relation("FamilyLinkedUser", fields: [linkedUserId], references: [id], onDelete: SetNull)
+
+  // Propuesta de etiquetado esperando respuesta — el vínculo real (arriba)
+  // solo se completa cuando la otra persona acepta
+  linkPendienteUserId String?   @map("link_pendiente_user_id")
+  linkPropuestoEn     DateTime? @map("link_propuesto_en")
+
+  // "Copiar árbol": de qué fila (de OTRO árbol) es copia esta — sirve para
+  // no duplicar nunca al volver a copiar, y para saber qué es nuevo
+  copiedFromId String?         @map("copied_from_id")
+  copiedFrom   FamilyMember?   @relation("CopiedFrom", fields: [copiedFromId], references: [id], onDelete: SetNull)
+  copiasDeEste FamilyMember[]  @relation("CopiedFrom")
 
   @@index([ownerId])
   @@map("family_members")
@@ -277,8 +307,36 @@ model MemoryComment {
   content   String   @db.Text
   createdAt DateTime @default(now()) @map("created_at")
 
+  // Un solo nivel de anidamiento: las respuestas a una respuesta también
+  // cuelgan de la raíz — el "a quién le respondiste" se resuelve en el
+  // service (para la notificación puntual), no acá en el modelo.
+  parentId  String?         @map("parent_id")
+  parent    MemoryComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   MemoryComment[] @relation("CommentReplies")
+
+  // a quién le respondiste puntualmente (no necesariamente la raíz del
+  // hilo) — solo para poder linkear la etiqueta "@Nombre" a su perfil
+  replyToUserId String? @map("reply_to_user_id")
+
+  reactions CommentReaction[]
+  hiddenBy  HiddenComment[] @relation("HiddenByUsers")
+
   @@index([memoryId, createdAt])
+  @@index([parentId])
   @@map("memory_comments")
+}
+
+model CommentReaction {
+  id        String       @id @default(uuid())
+  commentId String       @map("comment_id")
+  comment   MemoryComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String       @map("user_id")
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      ReactionType
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  @@unique([commentId, userId])
+  @@map("comment_reactions")
 }
 
 model Chapter {
@@ -299,4 +357,107 @@ model Chapter {
 
   @@index([ownerId])
   @@map("chapters")
+}
+
+enum ReportEntityType {
+  memory
+  comment
+  user
+}
+
+enum ReportReason {
+  spam
+  contenido_inapropiado
+  acoso
+  discurso_odio
+  violencia
+  desnudez_sexual
+  informacion_falsa
+  suplantacion
+  otro
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  actioned
+  dismissed
+}
+
+model Report {
+  id          String           @id @default(uuid())
+  reporterId  String           @map("reporter_id")
+  reporter    User             @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  entityType  ReportEntityType @map("entity_type")
+  entityId    String           @map("entity_id")
+
+  reason      ReportReason
+  detalle     String?          // texto libre, solo se usa si reason = "otro"
+
+  status      ReportStatus     @default(pending)
+
+  // Clasificación automática (OpenAI Moderation) — se calcula al crear el
+  // reporte, para que el día que exista panel de moderación humano, ya
+  // llegue pre-priorizado por severidad, sin tener que reprocesar nada.
+  aiFlagged    Boolean         @default(false) @map("ai_flagged")
+  aiCategories String[]        @default([]) @map("ai_categories")
+  aiScore      Float?          @map("ai_score")
+
+  createdAt   DateTime         @default(now()) @map("created_at")
+  reviewedAt  DateTime?        @map("reviewed_at")
+
+  @@unique([reporterId, entityType, entityId])
+  @@index([status, createdAt])
+  @@index([entityType, entityId])
+  @@map("reports")
+}
+
+model HiddenMemory {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation("HiddenMemoriesByUser", fields: [userId], references: [id], onDelete: Cascade)
+  memoryId  String   @map("memory_id")
+  memory    Memory   @relation("HiddenByUsers", fields: [memoryId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, memoryId])
+  @@map("hidden_memories")
+}
+
+model Mute {
+  id        String    @id @default(uuid())
+  muterId   String    @map("muter_id")
+  muter     User      @relation("MutesMade", fields: [muterId], references: [id], onDelete: Cascade)
+  mutedId   String    @map("muted_id")
+  muted     User      @relation("MutedBy", fields: [mutedId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime? @map("expires_at")
+
+  @@unique([muterId, mutedId])
+  @@map("mutes")
+}
+
+model SavedMemory {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation("SavedMemoriesByUser", fields: [userId], references: [id], onDelete: Cascade)
+  memoryId  String   @map("memory_id")
+  memory    Memory   @relation("SavedByUsers", fields: [memoryId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, memoryId])
+  @@map("saved_memories")
+}
+
+model HiddenComment {
+  id        String        @id @default(uuid())
+  userId    String        @map("user_id")
+  user      User          @relation("HiddenCommentsByUser", fields: [userId], references: [id], onDelete: Cascade)
+  commentId String        @map("comment_id")
+  comment   MemoryComment @relation("HiddenByUsers", fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@unique([userId, commentId])
+  @@map("hidden_comments")
 }

@@ -355,6 +355,32 @@
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: v.$font-body;
+    cursor: pointer;
+
+    &:hover { color: #855324; }
+  }
+
+  &__fecha-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  &__fecha-tooltip {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: #03192e;
+    color: white;
+    font-size: 0.68rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 50;
+    pointer-events: none;
   }
 
   &__more {
@@ -1271,4 +1297,11 @@
   box-shadow: 0 8px 24px rgba(3, 25, 46, 0.3);
   z-index: 500;
   animation: reaccionesPop 0.2s ease both;
+}
+
+// El wrapper de PersonHoverCard es un elemento nuevo entre el nombre y la
+// hora — si tu regla de espaciado original dependía de que fueran hermanos
+// directos, se pierde. Esto restaura la separación sin tocar nada más.
+.feed-post__meta .person-hover-wrap {
+  margin-right: 8px;
 }
