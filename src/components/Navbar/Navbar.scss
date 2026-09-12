@@ -665,6 +665,32 @@ $transition:      0.28s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.74rem;
   font-weight: 600;
   color: rgba($ambar-light, 0.85) !important;
+  position: relative;
+  display: inline-block;
+}
+
+.navbar-top__notif-item-fecha-tooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  background: $noche;
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.navbar-top__notif-item-fecha:hover .navbar-top__notif-item-fecha-tooltip,
+.navbar-top__notif-item-fecha:active .navbar-top__notif-item-fecha-tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .navbar-top__resultado-info {

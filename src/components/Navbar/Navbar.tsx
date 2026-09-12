@@ -221,6 +221,11 @@ export default function Navbar() {
     navigate(destinos[n.type] || '/feed');
   };
 
+  const formatFechaHoraExacta = (iso: string): string => {
+    const fecha = new Date(iso);
+    return fecha.toLocaleString('es-AR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
   const formatFechaNotif = (iso: string): string => {
     const fecha = new Date(iso);
     const diffMs = Date.now() - fecha.getTime();
@@ -439,7 +444,10 @@ export default function Navbar() {
                         </div>
                         <div className="navbar-top__notif-item-texto">
                           <span><strong>{nombre}</strong>{restoDelTexto}</span>
-                          <span className="navbar-top__notif-item-fecha">{formatFechaNotif(n.updatedAt || n.createdAt)}</span>
+                        <span className="navbar-top__notif-item-fecha">
+                          {formatFechaNotif(n.updatedAt || n.createdAt)}
+                          <span className="navbar-top__notif-item-fecha-tooltip">{formatFechaHoraExacta(n.updatedAt || n.createdAt)}</span>
+                        </span>
                         </div>
                       </button>
                     );
