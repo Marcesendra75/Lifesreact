@@ -68,6 +68,68 @@
   }
 }
 
+// ── Imágenes decorativas a los costados ──
+// El lado activo se ve a pleno color; el inactivo queda atenuado, con
+// una transición suave al cambiar de modo — nunca se ocultan del todo
+.landing-side-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100dvh;   // el ancho se define por variante; sin esto, el <img>
+  width: auto;       // calcula su alto solo por proporción y se corta
+  pointer-events: none;
+  z-index: 0;
+  filter: grayscale(1);
+  transition: filter 0.6s ease;
+
+  // desvanecido hacia el centro y hacia arriba/abajo — así el recorte
+  // nunca se ve como un rectángulo pegado, se disuelve en el fondo
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+
+  &--izquierda {
+    left: 0;
+    right: auto;
+    width: 34vw;
+    max-width: 560px;
+    object-fit: cover;
+    object-position: left center;
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%),
+      linear-gradient(to right, black 55%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%),
+      linear-gradient(to right, black 55%, transparent 100%);
+    mask-composite: intersect;
+  }
+
+  &--derecha {
+    left: auto;
+    right: 0;
+    width: 34vw;
+    max-width: 560px;
+    object-fit: cover;
+    object-position: right center;
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%),
+      linear-gradient(to left, black 55%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%),
+      linear-gradient(to left, black 55%, transparent 100%);
+    mask-composite: intersect;
+  }
+
+  &.active {
+    filter: grayscale(0);
+  }
+
+  @media (max-width: 1280px) {
+    display: none;
+  }
+}
+
 // ── Contenedor ──
 .landing-container {
   position: relative; z-index: 1;

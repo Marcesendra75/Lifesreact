@@ -223,7 +223,7 @@ export async function deleteMemory(id: string, userId: string) {
 const REACTION_TYPES = ['emocionante', 'inspirador', 'recordare', 'conmueve'] as const;
 
 function contadoresVacios() {
-  return { emocionante: 0, inspirador: 0, recordare: 0, conmueve: 0 };
+  return { emocionante: 0, inspirador: 0, recordare: 0, conmueve: 0, divierte: 0 };
 }
 
 export async function setReaction(memoryId: string, userId: string, type: string) {
@@ -271,7 +271,7 @@ export async function setReaction(memoryId: string, userId: string, type: string
 
   // solo notificamos cuando quedó puesta una reacción, no cuando se sacó
   if (miReaccion) {
-    await notify.reaction(memory.userId, userId, memoryId);
+  await notify.reaction(memory.userId, userId, memoryId, type);
   }
 
   return { miReaccion, reactionCounts };
@@ -336,6 +336,27 @@ export async function addComment(memoryId: string, userId: string, content: stri
   }
 
   return enrichComment(comment, userId, !parentIdFinal);
+}
+
+const VENTANA_EDICION_MINUTOS = 60;
+
+export async function editComment(commentId: string, userId: string, content: string) {
+  const comment = await prisma.memoryComment.findUnique({ where: { id: commentId } });
+  if (!comment) throw new Error('Comentario no encontrado');
+  if (comment.userId !== userId) throw new Error('Solo podés editar tus propios comentarios');
+
+  const minutosPasados = (Date.now() - comment.createdAt.getTime()) / 60000;
+  if (minutosPasados > VENTANA_EDICION_MINUTOS) {
+    throw new Error('Ya pasó la hora para editar este comentario');
+  }
+
+  const actualizado = await prisma.memoryComment.update({
+    where: { id: commentId },
+    data: { content, editedAt: new Date() },
+    include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+  });
+
+  return enrichComment(actualizado, userId, !actualizado.parentId);
 }
 
 export async function listComments(memoryId: string, viewerId: string, page: number, pageSize: number) {

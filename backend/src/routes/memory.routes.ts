@@ -23,6 +23,7 @@ router.get('/:id/reactions', memoryController.listReactions);
 router.get('/:id/comments', memoryController.listComments);
 router.post('/:id/comments', memoryController.addComment);
 router.delete('/:id/comments/:commentId', memoryController.removeComment);
+router.patch('/comments/:commentId', memoryController.editComment);
 router.get('/comments/:commentId/replies', memoryController.listReplies);
 router.post('/comments/:commentId/reaction', memoryController.setCommentReaction);
 router.get('/comments/:commentId/reactions', memoryController.listCommentReactions);

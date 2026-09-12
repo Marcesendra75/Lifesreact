@@ -9,9 +9,16 @@ import { NavLink, useLocation, useNavigate, Link } from 'react-router-dom';
 import {
   Home, Activity, GitBranch, User, Lock, Menu, Users,
   Search, Bell, ChevronDown, Settings as SettingsIcon, LogOut,
+  MessageCircle, TreePine, UserPlus,
 } from 'lucide-react';
+import emocionanteIcon from '../../assets/reactions/emocionante.svg';
+import inspiradorIcon from '../../assets/reactions/inspirador.svg';
+import recordareIcon from '../../assets/reactions/recordare.svg';
+import conmueveIcon from '../../assets/reactions/conmueve.svg';
+import divierteIcon from '../../assets/reactions/divierte.svg';
 import { connectionService, userService, notificationService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { connectSocket, disconnectSocket } from '../../services/socket';
 import logo from '../../assets/logo.webp';
 import './Navbar.scss';
 
@@ -228,24 +235,55 @@ export default function Navbar() {
     return fecha.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
   };
 
+  const REACCION_ICONO: Record<string, string> = {
+    emocionante: emocionanteIcon,
+    inspirador: inspiradorIcon,
+    recordare: recordareIcon,
+    conmueve: conmueveIcon,
+    divierte: divierteIcon,
+  };
+
+  // qué ícono chico va superpuesto en la esquina del avatar, según el tipo
+  const badgeDeNotificacion = (n: any) => {
+    if (n.type === 'reaction' && n.reactionType && REACCION_ICONO[n.reactionType]) {
+      return (
+        <span className="navbar-top__notif-item-badge navbar-top__notif-item-badge--emoji">
+          <img src={REACCION_ICONO[n.reactionType]} alt={n.reactionType} />
+        </span>
+      );
+    }
+    if (n.type === 'comment' || n.type === 'comment_reply') {
+      return <span className="navbar-top__notif-item-badge navbar-top__notif-item-badge--comentario"><MessageCircle size={11} strokeWidth={2.2} fill="currentColor" /></span>;
+    }
+    if (n.type.startsWith('family_link')) {
+      return <span className="navbar-top__notif-item-badge navbar-top__notif-item-badge--arbol"><TreePine size={11} strokeWidth={2.2} /></span>;
+    }
+    if (n.type.startsWith('connection') || n.type.startsWith('relation_type')) {
+      return <span className="navbar-top__notif-item-badge navbar-top__notif-item-badge--conexion"><UserPlus size={11} strokeWidth={2.4} /></span>;
+    }
+    return null;
+  };
+
+  const nombreCompleto = (n: any) => n.actor ? `${n.actor.firstName} ${n.actor.lastName || ''}`.trim() : 'Alguien';
+
   const NOTIF_TEXTO: Record<string, (n: any) => string> = {
-    connection_request: (n) => `${n.actor?.firstName || 'Alguien'} te envió una solicitud de conexión`,
-    connection_accepted: (n) => `${n.actor?.firstName || 'Alguien'} aceptó tu solicitud de conexión`,
-    connection_rejected: (n) => `${n.actor?.firstName || 'Alguien'} rechazó tu solicitud de conexión`,
-    relation_type_proposed: (n) => `${n.actor?.firstName || 'Alguien'} te propuso un tipo de vínculo`,
-    relation_type_accepted: (n) => `${n.actor?.firstName || 'Alguien'} aceptó tu propuesta de vínculo`,
-    relation_type_rejected: (n) => `${n.actor?.firstName || 'Alguien'} rechazó tu propuesta de vínculo`,
-    relation_type_cancelled: (n) => `${n.actor?.firstName || 'Alguien'} canceló su propuesta de vínculo`,
+    connection_request: (n) => `${nombreCompleto(n)} te envió una solicitud de conexión`,
+    connection_accepted: (n) => `${nombreCompleto(n)} aceptó tu solicitud de conexión`,
+    connection_rejected: (n) => `${nombreCompleto(n)} rechazó tu solicitud de conexión`,
+    relation_type_proposed: (n) => `${nombreCompleto(n)} te propuso un tipo de vínculo`,
+    relation_type_accepted: (n) => `${nombreCompleto(n)} aceptó tu propuesta de vínculo`,
+    relation_type_rejected: (n) => `${nombreCompleto(n)} rechazó tu propuesta de vínculo`,
+    relation_type_cancelled: (n) => `${nombreCompleto(n)} canceló su propuesta de vínculo`,
     reaction: (n) => n.actorsCount > 1
-      ? `${n.actor?.firstName || 'Alguien'} y ${n.actorsCount - 1} persona${n.actorsCount - 1 === 1 ? '' : 's'} más reaccionaron a tu recuerdo`
-      : `${n.actor?.firstName || 'Alguien'} reaccionó a tu recuerdo`,
+      ? `${nombreCompleto(n)} y ${n.actorsCount - 1} persona${n.actorsCount - 1 === 1 ? '' : 's'} más reaccionaron a tu recuerdo`
+      : `${nombreCompleto(n)} reaccionó a tu recuerdo`,
     comment: (n) => n.actorsCount > 1
-      ? `${n.actor?.firstName || 'Alguien'} y ${n.actorsCount - 1} persona${n.actorsCount - 1 === 1 ? '' : 's'} más comentaron tu recuerdo`
-      : `${n.actor?.firstName || 'Alguien'} comentó tu recuerdo`,
-    comment_reply: (n) => `${n.actor?.firstName || 'Alguien'} respondió tu comentario`,
-    family_link_proposed: (n) => `${n.actor?.firstName || 'Alguien'} te etiquetó en su árbol genealógico`,
-    family_link_accepted: (n) => `${n.actor?.firstName || 'Alguien'} aceptó tu etiqueta en su árbol`,
-    family_link_rejected: (n) => `${n.actor?.firstName || 'Alguien'} rechazó tu etiqueta en su árbol`,
+      ? `${nombreCompleto(n)} y ${n.actorsCount - 1} persona${n.actorsCount - 1 === 1 ? '' : 's'} más comentaron tu recuerdo`
+      : `${nombreCompleto(n)} comentó tu recuerdo`,
+    comment_reply: (n) => `${nombreCompleto(n)} respondió tu comentario`,
+    family_link_proposed: (n) => `${nombreCompleto(n)} te etiquetó en su árbol genealógico`,
+    family_link_accepted: (n) => `${nombreCompleto(n)} aceptó tu etiqueta en su árbol`,
+    family_link_rejected: (n) => `${nombreCompleto(n)} rechazó tu etiqueta en su árbol`,
   };
 
   const cargarPendientes = () => {
@@ -269,6 +307,37 @@ export default function Navbar() {
     window.addEventListener('lifes:solicitudes-actualizadas', onActualizado);
     return () => window.removeEventListener('lifes:solicitudes-actualizadas', onActualizado);
   }, []);
+
+  // ── Notificaciones en vivo ──
+  // apenas hay sesión, nos conectamos; el servidor nos avisa por este
+  // socket cada vez que llega algo nuevo, sin que haga falta refrescar
+  // ni esperar a la próxima navegación
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem('lifes_token');
+    if (!token) return;
+
+    const socket = connectSocket(token);
+    const onNuevaNotif = () => {
+      cargarNoLeidas();
+      // si el panel ya está abierto, lo repoblamos para que se vea al toque
+      if (notifAbiertas) {
+        notificationService.list(1, 15)
+          .then((res: any) => { setNotifItems(res.data.items); setNotifPage(1); setNotifTotalPages(res.data.totalPages); })
+          .catch(() => {});
+      }
+    };
+    socket.on('notification:new', onNuevaNotif);
+
+    return () => {
+      socket.off('notification:new', onNuevaNotif);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, notifAbiertas]);
+
+  useEffect(() => {
+    if (!user) disconnectSocket();
+  }, [user]);
 
   if (RUTAS_OCULTAS.includes(location.pathname)) return null;
   if (
@@ -351,22 +420,30 @@ export default function Navbar() {
                   {!cargandoNotifs && notifItems.length === 0 && (
                     <p className="navbar-top__notif-vacio">No tenés notificaciones todavía.</p>
                   )}
-                  {!cargandoNotifs && notifItems.map((n) => (
-                    <button
-                      key={n.id}
-                      className={`navbar-top__notif-item${n.isRead ? '' : ' sin-leer'}`}
-                      onClick={() => tocarNotificacion(n)}
-                    >
-                      {n.actor?.avatarUrl
-                        ? <img src={n.actor.avatarUrl} alt={n.actor.firstName} />
-                        : <div className="navbar-top__notif-item-vacio">{n.actor?.firstName?.[0] || '?'}</div>
-                      }
-                      <div className="navbar-top__notif-item-texto">
-                        <span>{NOTIF_TEXTO[n.type]?.(n) || 'Nueva notificación'}</span>
-                        <span className="navbar-top__notif-item-fecha">{formatFechaNotif(n.updatedAt || n.createdAt)}</span>
-                      </div>
-                    </button>
-                  ))}
+                  {!cargandoNotifs && notifItems.map((n) => {
+                    const texto = NOTIF_TEXTO[n.type]?.(n) || 'Nueva notificación';
+                    const nombre = nombreCompleto(n);
+                    const restoDelTexto = texto.startsWith(nombre) ? texto.slice(nombre.length) : ` ${texto}`;
+                    return (
+                      <button
+                        key={n.id}
+                        className={`navbar-top__notif-item${n.isRead ? '' : ' sin-leer'}`}
+                        onClick={() => tocarNotificacion(n)}
+                      >
+                        <div className="navbar-top__notif-item-avatar-wrap">
+                          {n.actor?.avatarUrl
+                            ? <img src={n.actor.avatarUrl} alt={n.actor.firstName} />
+                            : <div className="navbar-top__notif-item-vacio">{n.actor?.firstName?.[0] || '?'}</div>
+                          }
+                          {badgeDeNotificacion(n)}
+                        </div>
+                        <div className="navbar-top__notif-item-texto">
+                          <span><strong>{nombre}</strong>{restoDelTexto}</span>
+                          <span className="navbar-top__notif-item-fecha">{formatFechaNotif(n.updatedAt || n.createdAt)}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                   {cargandoMasNotifs && <p className="navbar-top__notif-vacio">Cargando más...</p>}
                 </div>
               </>

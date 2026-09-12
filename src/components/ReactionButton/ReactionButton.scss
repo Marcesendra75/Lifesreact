@@ -22,7 +22,10 @@
   font-family: 'Manrope', sans-serif;
   transition: all 0.2s;
   user-select: none;
-  width: 74px;
+  min-width: 74px;
+  width: auto;
+  height: 28px;
+  white-space: nowrap;
   box-sizing: border-box;
 
   &:hover { border-color: #855324; }
@@ -64,25 +67,39 @@
     color: #855324;
     cursor: pointer;
     user-select: none;
+    line-height: 1;
   }
 }
 
 .reaction-panel__backdrop {
   position: fixed;
   inset: 0;
-  z-index: 199;
+  z-index: 999;
 }
 
 .reaction-panel {
   position: absolute;
   bottom: calc(100% + 8px);
   left: 0;
-  z-index: 200;
+  z-index: 1000;
   background: white;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(3, 25, 46, 0.18);
   border: 1px solid rgba(3, 25, 46, 0.08);
   padding: 6px;
+
+  // versión que vive en el portal (fuera de la tarjeta del post): ya no
+  // se posiciona relativo a nada, usamos el top/left que calculamos en
+  // JS, y "sube" desde ese punto en vez de depender del flujo normal
+  &--portal {
+    position: fixed;
+    bottom: auto;
+    transform: translateY(-100%);
+  }
+
+  &--portal-abajo {
+    transform: translateY(0);
+  }
 
   &--iconos {
     display: flex;
@@ -104,6 +121,13 @@
     }
 
     .reaction-panel__icono-img { width: 26px; height: 26px; max-width: 26px; display: block; }
+
+    // el SVG de "Me divierte" tiene más margen en blanco alrededor del
+    // dibujo que el resto, así que a igual tamaño de caja se ve más chico
+    // — lo compensamos con un toque de escala, sin tocar el archivo
+    .reaction-panel__icono-img--divierte {
+      transform: scale(1.15);
+    }
   }
 }
 

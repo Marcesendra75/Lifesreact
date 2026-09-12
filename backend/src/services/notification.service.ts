@@ -1,5 +1,6 @@
 import prisma from '../config/prisma';
 import { getSignedFileUrl } from './storage.service';
+import { emitToUser } from '../realtime/socket';
 
 const VENTANA_AGRUPADO_HORAS = 24; // reacciones/comentarios del mismo día se agrupan juntos
 
@@ -9,8 +10,9 @@ async function notificarAgrupado(params: {
   type: 'reaction' | 'comment';
   actorId: string;
   entityId: string;
+  reactionType?: string;
 }) {
-  const { userId, type, actorId, entityId } = params;
+  const { userId, type, actorId, entityId, reactionType } = params;
   if (userId === actorId) return; // no te notificás a vos mismo
 
   const limite = new Date(Date.now() - VENTANA_AGRUPADO_HORAS * 60 * 60 * 1000);
@@ -21,23 +23,30 @@ async function notificarAgrupado(params: {
   });
 
   if (!existente) {
-    return prisma.notification.create({
-      data: { userId, type, actorId, entityType: 'memory', entityId, actorIds: [actorId], actorsCount: 1 },
+    const creada = await prisma.notification.create({
+      data: { userId, type, actorId, entityType: 'memory', entityId, actorIds: [actorId], actorsCount: 1, reactionType },
     });
+    emitToUser(userId, 'notification:new', {});
+    return creada;
   }
 
   const yaEstaba = existente.actorIds.includes(actorId);
   const actorIds = yaEstaba ? existente.actorIds : [...existente.actorIds, actorId];
 
-  return prisma.notification.update({
+  const actualizada = await prisma.notification.update({
     where: { id: existente.id },
     data: {
       actorId,
       actorIds,
       actorsCount: actorIds.length,
       isRead: false,
+      // mostramos el ícono de la reacción MÁS RECIENTE, no la primera —
+      // mismo criterio que Facebook cuando varios reaccionan distinto
+      ...(reactionType ? { reactionType } : {}),
     },
   });
+  emitToUser(userId, 'notification:new', {});
+  return actualizada;
 }
 
 // Notificaciones simples (1 evento = 1 notificación, sin agrupar)
@@ -50,9 +59,11 @@ async function notificarSimple(params: {
   const { userId, type, actorId, entityId } = params;
   if (userId === actorId) return;
 
-  return prisma.notification.create({
+  const creada = await prisma.notification.create({
     data: { userId, type, actorId, entityType: 'connection', entityId, actorIds: [actorId], actorsCount: 1 },
   });
+  emitToUser(userId, 'notification:new', {});
+  return creada;
 }
 
 export const notify = {
@@ -70,33 +81,41 @@ export const notify = {
     notificarSimple({ userId, type: 'relation_type_rejected', actorId, entityId: connectionId }),
   relationTypeCancelled: (userId: string, actorId: string, connectionId: string) =>
     notificarSimple({ userId, type: 'relation_type_cancelled', actorId, entityId: connectionId }),
-  reaction: (userId: string, actorId: string, memoryId: string) =>
-    notificarAgrupado({ userId, type: 'reaction', actorId, entityId: memoryId }),
+  reaction: (userId: string, actorId: string, memoryId: string, reactionType: string) =>
+    notificarAgrupado({ userId, type: 'reaction', actorId, entityId: memoryId, reactionType }),
   comment: (userId: string, actorId: string, memoryId: string) =>
     notificarAgrupado({ userId, type: 'comment', actorId, entityId: memoryId }),
-  commentReply: (userId: string, actorId: string, memoryId: string) => {
-    if (userId === actorId) return Promise.resolve(undefined);
-    return prisma.notification.create({
+  commentReply: async (userId: string, actorId: string, memoryId: string) => {
+    if (userId === actorId) return undefined;
+    const creada = await prisma.notification.create({
       data: { userId, type: 'comment_reply', actorId, entityType: 'memory', entityId: memoryId, actorIds: [actorId], actorsCount: 1 },
     });
+    emitToUser(userId, 'notification:new', {});
+    return creada;
   },
-  familyLinkProposed: (userId: string, actorId: string, memberId: string) => {
-    if (userId === actorId) return Promise.resolve(undefined);
-    return prisma.notification.create({
+  familyLinkProposed: async (userId: string, actorId: string, memberId: string) => {
+    if (userId === actorId) return undefined;
+    const creada = await prisma.notification.create({
       data: { userId, type: 'family_link_proposed', actorId, entityType: 'family_member', entityId: memberId, actorIds: [actorId], actorsCount: 1 },
     });
+    emitToUser(userId, 'notification:new', {});
+    return creada;
   },
-  familyLinkAccepted: (userId: string, actorId: string, memberId: string) => {
-    if (userId === actorId) return Promise.resolve(undefined);
-    return prisma.notification.create({
+  familyLinkAccepted: async (userId: string, actorId: string, memberId: string) => {
+    if (userId === actorId) return undefined;
+    const creada = await prisma.notification.create({
       data: { userId, type: 'family_link_accepted', actorId, entityType: 'family_member', entityId: memberId, actorIds: [actorId], actorsCount: 1 },
     });
+    emitToUser(userId, 'notification:new', {});
+    return creada;
   },
-  familyLinkRejected: (userId: string, actorId: string, memberId: string) => {
-    if (userId === actorId) return Promise.resolve(undefined);
-    return prisma.notification.create({
+  familyLinkRejected: async (userId: string, actorId: string, memberId: string) => {
+    if (userId === actorId) return undefined;
+    const creada = await prisma.notification.create({
       data: { userId, type: 'family_link_rejected', actorId, entityType: 'family_member', entityId: memberId, actorIds: [actorId], actorsCount: 1 },
     });
+    emitToUser(userId, 'notification:new', {});
+    return creada;
   },
 };
 

@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Search, UserPlus, Check, X, Lock, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { userService, connectionService } from '../../services/api';
+import { connectSocket } from '../../services/socket';
 import MutualsModal from '../../components/MutualsModal/MutualsModal';
 import PersonHoverCard from '../../components/PersonHoverCard/PersonHoverCard';
 import './Personas.scss';
@@ -106,6 +107,18 @@ export default function Personas() {
       setCargandoSolicitudes(false);
     }
   };
+
+  // en vivo: si alguien te manda o responde una solicitud mientras estás
+  // en esta pantalla, la lista se actualiza sola
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem('lifes_token');
+    if (!token) return;
+    const socket = connectSocket(token);
+    socket.on('notification:new', cargarSolicitudes);
+    return () => { socket.off('notification:new', cargarSolicitudes); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const cancelarEnviada = async (id: string) => {
     try {

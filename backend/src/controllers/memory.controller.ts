@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware';
-import { createMemorySchema, updateMemorySchema, createCommentSchema, reactionSchema } from '../validators/memory.validator';
+import { createMemorySchema, updateMemorySchema, createCommentSchema, editCommentSchema, reactionSchema } from '../validators/memory.validator';
 import * as memoryService from '../services/memory.service';
 
 export async function create(req: AuthRequest, res: Response) {
@@ -154,6 +154,19 @@ export async function addComment(req: AuthRequest, res: Response) {
     res.status(201).json({ success: true, data: comment });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message || 'Error al comentar' });
+  }
+}
+
+export async function editComment(req: AuthRequest, res: Response) {
+  try {
+    const parsed = editCommentSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, error: parsed.error.issues[0].message });
+    }
+    const comment = await memoryService.editComment(req.params.commentId, req.userId as string, parsed.data.content);
+    res.json({ success: true, data: comment });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al editar el comentario' });
   }
 }
 

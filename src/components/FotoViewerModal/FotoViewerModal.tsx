@@ -4,7 +4,7 @@
 // ============================================
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, X, Flag, MoreHorizontal, Bookmark, EyeOff, VolumeX, UserX, Trash2, Share2 } from 'lucide-react';
+import { MessageCircle, X, Flag, MoreHorizontal, Bookmark, EyeOff, VolumeX, UserX, Trash2, Share2, Edit2 } from 'lucide-react';
 import { memoryService, interactionService, blockService } from '../../services/api';
 import { formatConteo } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
@@ -19,6 +19,7 @@ interface Comment {
   id: string;
   content: string;
   createdAt: string;
+  editedAt?: string | null;
   parentId?: string | null;
   replyToUserId?: string | null;
   reactionCounts: Record<string, number>;
@@ -57,6 +58,9 @@ export default function FotoViewerModal({ memoryId, imageUrl, titulo, authorId, 
   const [guardado, setGuardado] = useState(false);
   const [menuComentarioAbierto, setMenuComentarioAbierto] = useState<string | null>(null);
   const [eliminandoComentarioId, setEliminandoComentarioId] = useState<string | null>(null);
+  const [editandoComentarioId, setEditandoComentarioId] = useState<string | null>(null);
+  const [textoEdicion, setTextoEdicion] = useState('');
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
   const [confirmandoBloqueo, setConfirmandoBloqueo] = useState(false);
   const [comentariosOcultos, setComentariosOcultos] = useState<Comment[]>([]);
   const [verOcultos, setVerOcultos] = useState(false);
@@ -102,6 +106,41 @@ export default function FotoViewerModal({ memoryId, imageUrl, titulo, authorId, 
       setCommentsCount(prev => prev + 1);
     } catch (err: any) {
       alert(err.message || 'Error al mostrar el comentario');
+    }
+  };
+
+  const VENTANA_EDICION_MS = 60 * 60 * 1000; // 1 hora, igual que el backend
+  const puedeEditar = (c: Comment) => user?.id === c.user.id && (Date.now() - new Date(c.createdAt).getTime()) < VENTANA_EDICION_MS;
+
+  const iniciarEdicion = (c: Comment) => {
+    setEditandoComentarioId(c.id);
+    setTextoEdicion(c.content);
+    setMenuComentarioAbierto(null);
+  };
+
+  const cancelarEdicion = () => {
+    setEditandoComentarioId(null);
+    setTextoEdicion('');
+  };
+
+  const guardarEdicionComentario = async (commentId: string, rootId?: string) => {
+    if (!textoEdicion.trim()) return;
+    setGuardandoEdicion(true);
+    try {
+      const res: any = await memoryService.editComment(commentId, textoEdicion.trim());
+      if (!rootId) {
+        setComments(comments.map(c => c.id === commentId ? { ...c, content: res.data.content, editedAt: res.data.editedAt } : c));
+      } else {
+        setRepliesByRoot(prev => ({
+          ...prev,
+          [rootId]: (prev[rootId] || []).map(r => r.id === commentId ? { ...r, content: res.data.content, editedAt: res.data.editedAt } : r),
+        }));
+      }
+      cancelarEdicion();
+    } catch (err: any) {
+      alert(err.message || 'No se pudo editar el comentario');
+    } finally {
+      setGuardandoEdicion(false);
     }
   };
 
@@ -550,6 +589,11 @@ export default function FotoViewerModal({ memoryId, imageUrl, titulo, authorId, 
                                   className="foto-viewer__menu foto-viewer__menu--comentario"
                                   style={{ top: posMenuComentario.top, left: posMenuComentario.left }}
                                 >
+                                  {esMiComentario && puedeEditar(c) && (
+                                    <button onClick={() => iniciarEdicion(c)}>
+                                      <Edit2 size={13} strokeWidth={1.8} /> Editar comentario
+                                    </button>
+                                  )}
                                   {!esMiComentario && (
                                     <button onClick={() => ocultarComentario(c.id)}>
                                       <EyeOff size={13} strokeWidth={1.8} /> Ocultar comentario
@@ -571,7 +615,24 @@ export default function FotoViewerModal({ memoryId, imageUrl, titulo, authorId, 
                           </div>
                         )}
                       </div>
-                      <span>{renderConTag(c.content, c.replyToUserId)}</span>
+                      {editandoComentarioId === c.id ? (
+                        <div className="foto-viewer__edicion-comentario">
+                          <input
+                            type="text"
+                            value={textoEdicion}
+                            onChange={e => setTextoEdicion(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && guardarEdicionComentario(c.id)}
+                            autoFocus
+                          />
+                          <button disabled={guardandoEdicion} onClick={() => guardarEdicionComentario(c.id)}>Guardar</button>
+                          <button className="foto-viewer__edicion-cancelar" onClick={cancelarEdicion}>Cancelar</button>
+                        </div>
+                      ) : (
+                        <span>
+                          {renderConTag(c.content, c.replyToUserId)}
+                          {c.editedAt && <span className="foto-viewer__editado"> (editado)</span>}
+                        </span>
+                      )}
                       <div className="foto-viewer__comentario-acciones">
                         <ReactionButton
                           reactionCounts={c.reactionCounts}
@@ -636,6 +697,11 @@ export default function FotoViewerModal({ memoryId, imageUrl, titulo, authorId, 
                                             className="foto-viewer__menu foto-viewer__menu--comentario"
                                             style={{ top: posMenuComentario.top, left: posMenuComentario.left }}
                                           >
+                                            {esMiRespuesta && puedeEditar(r) && (
+                                              <button onClick={() => iniciarEdicion(r)}>
+                                                <Edit2 size={13} strokeWidth={1.8} /> Editar respuesta
+                                              </button>
+                                            )}
                                             {puedeEliminarRespuesta && (
                                               <button className="foto-viewer__menu-eliminar" onClick={() => { setMenuComentarioAbierto(null); setEliminandoComentarioId(r.id); }}>
                                                 <Trash2 size={13} strokeWidth={1.8} /> Eliminar respuesta
@@ -652,7 +718,24 @@ export default function FotoViewerModal({ memoryId, imageUrl, titulo, authorId, 
                                     </div>
                                   )}
                                 </div>
-                                <span>{renderConTag(r.content, r.replyToUserId)}</span>
+                                {editandoComentarioId === r.id ? (
+                                  <div className="foto-viewer__edicion-comentario">
+                                    <input
+                                      type="text"
+                                      value={textoEdicion}
+                                      onChange={e => setTextoEdicion(e.target.value)}
+                                      onKeyDown={e => e.key === 'Enter' && guardarEdicionComentario(r.id, c.id)}
+                                      autoFocus
+                                    />
+                                    <button disabled={guardandoEdicion} onClick={() => guardarEdicionComentario(r.id, c.id)}>Guardar</button>
+                                    <button className="foto-viewer__edicion-cancelar" onClick={cancelarEdicion}>Cancelar</button>
+                                  </div>
+                                ) : (
+                                  <span>
+                                    {renderConTag(r.content, r.replyToUserId)}
+                                    {r.editedAt && <span className="foto-viewer__editado"> (editado)</span>}
+                                  </span>
+                                )}
                                 <div className="foto-viewer__comentario-acciones">
                                   <ReactionButton
                                     reactionCounts={r.reactionCounts}

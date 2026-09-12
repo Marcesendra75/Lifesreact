@@ -28,6 +28,14 @@ export const createCommentSchema = z.object({
   parentId: z.string().uuid('parentId inválido').optional(),
 });
 
+export const editCommentSchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, 'El comentario no puede estar vacío')
+    .max(1000, 'El comentario no puede superar los 1000 caracteres'),
+});
+
 export const reactionSchema = z.object({
-  type: z.enum(['emocionante', 'inspirador', 'recordare', 'conmueve']),
+  type: z.enum(['emocionante', 'inspirador', 'recordare', 'conmueve', 'divierte']),
 });

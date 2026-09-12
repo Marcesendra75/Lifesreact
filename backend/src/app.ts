@@ -8,6 +8,8 @@ import 'dotenv/config';
 
 import express from 'express';
 import cors from 'cors';
+import { createServer } from 'http';
+import { initSocket } from './realtime/socket';
 
 // Rutas
 import authRoutes from './routes/auth.routes';
@@ -30,6 +32,8 @@ import interactionRoutes from './routes/interaction.routes';
 // import savingsRoutes from './routes/savings.routes';
 
 const app = express();
+const httpServer = createServer(app);
+initSocket(httpServer);
 const PORT = process.env.PORT || 3001;
 
 // ── Middlewares ──
@@ -74,7 +78,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ success: false, error: 'Error interno del servidor' });
 });
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🌿 Life's API corriendo en http://localhost:${PORT}`);
 });
 

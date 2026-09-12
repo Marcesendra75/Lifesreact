@@ -11,6 +11,8 @@ import {
   Eye, EyeOff,
 } from 'lucide-react';
 import logo from '../../assets/logo.webp';
+import personasImg from './personas.webp';
+import empresasImg from './empresas.webp';
 import './Landing.scss';
 
 type Mode = 'personal' | 'empresa';
@@ -102,6 +104,18 @@ export default function Landing() {
       {/* Orbes de fondo */}
       <div className="landing-orb landing-orb--1" />
       <div className="landing-orb landing-orb--2" />
+
+      {/* Imágenes decorativas a los costados — resaltan según el modo activo */}
+      <img
+        src={personasImg}
+        alt=""
+        className={`landing-side-image landing-side-image--izquierda${mode === 'personal' ? ' active' : ''}`}
+      />
+      <img
+        src={empresasImg}
+        alt=""
+        className={`landing-side-image landing-side-image--derecha${mode === 'empresa' ? ' active' : ''}`}
+      />
 
       <div className="landing-container">
 

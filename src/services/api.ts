@@ -117,6 +117,8 @@ export const memoryService = {
     request(`/memories/${id}/comments?page=${page}&pageSize=${pageSize}`),
   addComment: (id: string, content: string, parentId?: string) =>
     request(`/memories/${id}/comments`, 'POST', { content, parentId }),
+  editComment: (commentId: string, content: string) =>
+    request(`/memories/comments/${commentId}`, 'PATCH', { content }),
   deleteComment: (id: string, commentId: string) =>
     request(`/memories/${id}/comments/${commentId}`, 'DELETE'),
   listReplies: (commentId: string) =>

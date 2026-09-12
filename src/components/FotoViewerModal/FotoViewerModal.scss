@@ -78,7 +78,7 @@
   &__acciones {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     padding-bottom: 12px;
     border-bottom: 1px solid rgba(3, 25, 46, 0.08);
     margin-bottom: 12px;
@@ -435,10 +435,13 @@
   }
 
   .reaction-pill {
-    width: 46px;
-    padding: 3px 6px;
+    min-width: 46px;
+    width: auto;
+    height: 22px;
+    padding: 3px 8px;
     gap: 3px;
     justify-content: center;
+    white-space: nowrap;
   }
 
   .reaction-pill__emoji {
@@ -616,7 +619,7 @@
   font-size: 0.85rem;
   color: #43474d;
   padding: 0;
-  margin-left: auto;
+  margin-left: 5px;
 
   &:hover { color: #855324; }
 }
@@ -635,3 +638,49 @@
   box-shadow: 0 8px 24px rgba(3, 25, 46, 0.3);
   z-index: 500;
 }
+
+.foto-viewer__comentario .foto-viewer__editado {
+  font-size: 0.68rem;
+  color: #b5b0a6 !important;
+  font-weight: 400;
+}
+
+.foto-viewer__edicion-comentario {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 5px 8px;
+    border: 1px solid rgba(3, 25, 46, 0.15);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    outline: none;
+
+    &:focus { border-color: #855324; }
+  }
+
+  button {
+    background: #855324;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  .foto-viewer__edicion-cancelar {
+    background: none;
+    color: #74777d;
+    padding: 5px 6px;
+  }
+}
+

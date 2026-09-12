@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { connectionService, userService } from '../../services/api';
+import { connectSocket } from '../../services/socket';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import MutualsModal from '../../components/MutualsModal/MutualsModal';
 import PersonHoverCard from '../../components/PersonHoverCard/PersonHoverCard';
@@ -134,6 +135,18 @@ export default function Vinculos() {
       setCargando(false);
     }
   };
+
+  // en vivo: si te llega/responden una propuesta de vínculo mientras
+  // estás en esta pantalla, la lista y las pestañas se actualizan solas
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem('lifes_token');
+    if (!token) return;
+    const socket = connectSocket(token);
+    socket.on('notification:new', cargarConexiones);
+    return () => { socket.off('notification:new', cargarConexiones); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const otroDe = (c: ConnectionItem): Persona =>
     c.requesterId === user?.id ? c.addressee : c.requester;

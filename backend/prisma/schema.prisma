@@ -107,8 +107,9 @@ model Notification {
   actorIds    String[]       @default([]) @map("actor_ids")
   actorsCount Int            @default(1)  @map("actors_count")
 
-  entityType String?         @map("entity_type") // "memory" | "connection"
-  entityId   String?         @map("entity_id")
+  entityType   String?  @map("entity_type") // "memory" | "connection"
+  entityId     String?  @map("entity_id")
+  reactionType String?  @map("reaction_type") // solo para type "reaction" — qué ícono mostrar
 
   isRead    Boolean          @default(false) @map("is_read")
   createdAt DateTime         @default(now()) @map("created_at")
@@ -283,6 +284,7 @@ enum ReactionType {
   inspirador  // 🍃
   recordare   // 📖 "lo recordaré"
   conmueve    // 😢 "me conmueve"
+  divierte    // 😄 "me divierte"
 }
 
 model MemoryReaction {
@@ -306,6 +308,7 @@ model MemoryComment {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   content   String   @db.Text
   createdAt DateTime @default(now()) @map("created_at")
+  editedAt  DateTime? @map("edited_at") // si no es null, se muestra "(editado)"
 
   // Un solo nivel de anidamiento: las respuestas a una respuesta también
   // cuelgan de la raíz — el "a quién le respondiste" se resuelve en el

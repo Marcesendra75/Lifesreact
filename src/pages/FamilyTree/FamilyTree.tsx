@@ -13,6 +13,7 @@ import {
   Check, Camera, Tag, Bell, Trash2,
 } from 'lucide-react';
 import { familyService, connectionService } from '../../services/api';
+import { connectSocket } from '../../services/socket';
 import { useAuth } from '../../context/AuthContext';
 import arbolFondo from './arbol-fondo.webp';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
@@ -694,15 +695,40 @@ export default function FamilyTree() {
     }
   };
 
-  // se cargan al entrar al árbol, así el numerito del header ya aparece
-  // sin que haga falta abrir el panel primero
-  useEffect(() => {
+  const cargarPropuestas = () => {
     setCargandoPropuestas(true);
     familyService.getPendingLinks()
       .then((res: any) => setPropuestas(res.data))
       .catch(() => setPropuestas([]))
       .finally(() => setCargandoPropuestas(false));
+  };
+
+  // se cargan al entrar al árbol, así el numerito del header ya aparece
+  // sin que haga falta abrir el panel primero
+  useEffect(() => {
+    cargarPropuestas();
   }, []);
+
+  // en vivo: si te etiquetan o te aceptan/rechazan mientras estás en el
+  // árbol, el badge y el panel de Propuestas se actualizan solos — y si
+  // tenés abierto el modal de esa persona puntual, también se refresca
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem('lifes_token');
+    if (!token) return;
+    const socket = connectSocket(token);
+    const onNuevo = () => {
+      cargarPropuestas();
+      if (modalNode) {
+        familyService.getMember(modalNode.id)
+          .then((res: any) => setMembers(prev => prev.map(m => m.id === modalNode.id ? res.data : m)))
+          .catch(() => {});
+      }
+    };
+    socket.on('notification:new', onNuevo);
+    return () => { socket.off('notification:new', onNuevo); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, modalNode]);
 
   // esto sí reacciona cada vez que cambia la URL — así, si ya estabas
   // parado en el árbol y tocás la notificación de nuevo, igual se abre
