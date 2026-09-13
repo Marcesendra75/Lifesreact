@@ -537,8 +537,9 @@ model Message {
 
   content        String?  @db.Text
   // preparado para Fase 2/3 — todavía sin usar
-  attachmentKey  String?  @map("attachment_key")
-  attachmentType String?  @map("attachment_type") // 'image' | 'voice' | 'gif' | 'sticker'
+  attachmentKey      String?  @map("attachment_key")
+  attachmentType     String?  @map("attachment_type") // 'image' | 'voice' | 'gif' | 'sticker'
+  attachmentDuration Int?     @map("attachment_duration") // segundos, solo para audios
   replyToId      String?  @map("reply_to_id")
   replyTo        Message? @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
   replies        Message[] @relation("MessageReply")

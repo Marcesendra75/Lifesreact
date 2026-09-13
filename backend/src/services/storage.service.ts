@@ -7,9 +7,20 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // tipos de archivo que vamos a aceptar por ahora, nada de ejecutables ni cualquier cosa
 const ALLOWED_MIME_TYPES = [
-  'image/jpeg', 'image/png', 'image/webp', 'image/gif',
-  'video/mp4', 'video/quicktime',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+
+  'video/mp4',
+  'video/quicktime',
+
+  'audio/webm',
+  'audio/mp4',
+  'audio/ogg',
+  'audio/mpeg',
 ];
+
 
 export function validateFile(mimetype: string, sizeBytes: number) {
   if (!ALLOWED_MIME_TYPES.includes(mimetype)) {

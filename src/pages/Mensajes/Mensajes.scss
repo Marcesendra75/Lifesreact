@@ -1228,3 +1228,106 @@
     .visto { color: #4fc3f7; }
   }
 }
+
+.mensajes-audio-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 180px;
+
+  &__play {
+    width: 30px;
+    height: 30px;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.1);
+    color: inherit;
+    flex-shrink: 0;
+  }
+
+  .mensajes-fila.mia & &__play { background: rgba(255,255,255,0.25); }
+
+  &__barra {
+    flex: 1;
+    height: 3px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .mensajes-fila.mia & &__barra { background: rgba(255,255,255,0.3); }
+
+  &__progreso {
+    height: 100%;
+    background: currentColor;
+  }
+
+  &__tiempo {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    white-space: nowrap;
+  }
+
+  &__velocidad {
+    background: rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 999px;
+    padding: 2px 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .mensajes-fila.mia & &__velocidad { background: rgba(255,255,255,0.25); color: white; }
+}
+
+.mensajes-grabando-bar, .mensajes-audio-pendiente-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 1.5rem;
+  background: rgba(186,26,26,0.06);
+  border-top: 1px solid rgba(3,25,46,0.06);
+
+  span { font-size: 0.82rem; color: #43474d; flex: 1; }
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #74777d;
+    flex-shrink: 0;
+  }
+
+  audio { flex: 1; height: 32px; }
+}
+
+.mensajes-grabando-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #ba1a1a;
+  flex: none !important;
+  animation: mensajesGrabandoPulso 1s infinite;
+}
+
+@keyframes mensajesGrabandoPulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.mensajes-grabando-detener {
+  background: #03192e !important;
+  color: white !important;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

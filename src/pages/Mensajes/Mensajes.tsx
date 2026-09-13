@@ -5,7 +5,7 @@
 // ============================================
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Send, Plus, X, Check, CheckCheck, Search, Settings2, ArrowLeft, Reply, Pin, PinOff, Flag, Image as ImageIcon, MoreHorizontal, Smile } from 'lucide-react';
+import { Send, Plus, X, Check, CheckCheck, Search, Settings2, ArrowLeft, Reply, Pin, PinOff, Flag, Image as ImageIcon, MoreHorizontal, Smile, Mic, Play, Pause } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { chatService, connectionService, userService, giphyService } from '../../services/api';
 import { connectSocket } from '../../services/socket';
@@ -14,6 +14,53 @@ import ReportModal from '../../components/ReportModal/ReportModal';
 import './Mensajes.scss';
 
 const EMOJIS_REACCION = ['👍', '❤️', '😂', '😮', '😢', '🙏', '💪', '😍', '😘', '😡', '🥰', '🤔', '😭', '😋', '🔥', '🫂', '🫶'];
+
+function formatDuracionAudio(s: number): string {
+  const seg = Math.floor(s) || 0;
+  return `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`;
+}
+
+function AudioMensaje({ src, duracionInicial }: { src: string; duracionInicial?: number | null }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [reproduciendo, setReproduciendo] = useState(false);
+  const [progreso, setProgreso] = useState(0);
+  const [duracion, setDuracion] = useState(duracionInicial || 0);
+  const [velocidad, setVelocidad] = useState(1);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (reproduciendo) audio.pause(); else audio.play();
+  };
+
+  const cambiarVelocidad = () => {
+    const siguiente = velocidad === 1 ? 1.5 : velocidad === 1.5 ? 2 : 1;
+    setVelocidad(siguiente);
+    if (audioRef.current) audioRef.current.playbackRate = siguiente;
+  };
+
+  return (
+    <div className="mensajes-audio-player">
+      <audio
+        ref={audioRef}
+        src={src}
+        onPlay={() => setReproduciendo(true)}
+        onPause={() => setReproduciendo(false)}
+        onEnded={() => { setReproduciendo(false); setProgreso(0); }}
+        onLoadedMetadata={(e) => { if (isFinite(e.currentTarget.duration)) setDuracion(e.currentTarget.duration); }}
+        onTimeUpdate={(e) => setProgreso(e.currentTarget.currentTime)}
+      />
+      <button className="mensajes-audio-player__play" onClick={togglePlay}>
+        {reproduciendo ? <Pause size={16} strokeWidth={2} /> : <Play size={16} strokeWidth={2} fill="currentColor" />}
+      </button>
+      <div className="mensajes-audio-player__barra">
+        <div className="mensajes-audio-player__progreso" style={{ width: duracion ? `${(progreso / duracion) * 100}%` : '0%' }} />
+      </div>
+      <span className="mensajes-audio-player__tiempo">{formatDuracionAudio(progreso > 0 ? progreso : duracion)}</span>
+      <button className="mensajes-audio-player__velocidad" onClick={cambiarVelocidad}>{velocidad}x</button>
+    </div>
+  );
+}
 
 interface ConversationSummary {
   conversationId: string;
@@ -33,6 +80,7 @@ interface Message {
   sender: { id: string; firstName: string; lastName: string; avatarUrl?: string | null };
   attachmentUrl?: string | null;
   attachmentType?: string | null;
+  attachmentDuration?: number | null;
   isPinned?: boolean;
   reactions?: { userId: string; emoji: string }[];
   replyTo?: { id: string; content: string | null; attachmentType: string | null; senderName: string } | null;
@@ -99,6 +147,15 @@ export default function Mensajes() {
   const inputTextoRef = useRef<HTMLInputElement>(null);
   const [imagenPendiente, setImagenPendiente] = useState<File | null>(null);
   const [previewImagenUrl, setPreviewImagenUrl] = useState<string | null>(null);
+
+  // ── Mensajes de voz ──
+  const [grabando, setGrabando] = useState(false);
+  const [tiempoGrabado, setTiempoGrabado] = useState(0);
+  const [audioPendiente, setAudioPendiente] = useState<{ blob: Blob; url: string; duracion: number; tipo: string } | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const grabacionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const grabacionInicioRef = useRef<number>(0);
 
   // ── GIPHY (gifs + stickers) ──
   const [giphyAbierto, setGiphyAbierto] = useState(false);
@@ -413,6 +470,10 @@ export default function Mensajes() {
       await confirmarEnvioImagen();
       return;
     }
+    if (audioPendiente) {
+      await confirmarEnvioAudio();
+      return;
+    }
     if (!texto.trim() || enviando) return;
     setEnviando(true);
     const contenido = texto.trim();
@@ -638,6 +699,83 @@ export default function Mensajes() {
       cargarListas();
     } catch (err: any) {
       alert(err.message || 'No se pudo enviar');
+    }
+  };
+
+  // ── Grabar y enviar audio ──
+  const LIMITE_GRABACION_SEG = 180;
+
+  const iniciarGrabacion = async () => {
+    if (!activeId) {
+      alert('Mandale primero un mensaje de texto para empezar la conversación');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const tipo = mr.mimeType || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: tipo });
+        const duracion = Math.round((Date.now() - grabacionInicioRef.current) / 1000);
+        setAudioPendiente({ blob, url: URL.createObjectURL(blob), duracion, tipo });
+      };
+      mediaRecorderRef.current = mr;
+      grabacionInicioRef.current = Date.now();
+      mr.start();
+      setGrabando(true);
+      setTiempoGrabado(0);
+      grabacionTimerRef.current = setInterval(() => {
+        setTiempoGrabado(prev => {
+          const nuevo = prev + 1;
+          if (nuevo >= LIMITE_GRABACION_SEG) detenerGrabacion();
+          return nuevo;
+        });
+      }, 1000);
+    } catch {
+      alert('No pudimos acceder al micrófono — revisá los permisos del navegador');
+    }
+  };
+
+  const detenerGrabacion = () => {
+    mediaRecorderRef.current?.stop();
+    setGrabando(false);
+    if (grabacionTimerRef.current) { clearInterval(grabacionTimerRef.current); grabacionTimerRef.current = null; }
+  };
+
+  const cancelarGrabacion = () => {
+    if (grabando) {
+      mediaRecorderRef.current?.stop();
+      setGrabando(false);
+      if (grabacionTimerRef.current) { clearInterval(grabacionTimerRef.current); grabacionTimerRef.current = null; }
+    }
+    if (audioPendiente) URL.revokeObjectURL(audioPendiente.url);
+    setAudioPendiente(null);
+    setTiempoGrabado(0);
+  };
+
+  const confirmarEnvioAudio = async () => {
+    if (!audioPendiente || !activeId) return;
+    setSubiendoImagen(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', audioPendiente.blob, `audio.${audioPendiente.tipo.includes('mp4') ? 'm4a' : 'webm'}`);
+      fd.append('duration', String(audioPendiente.duracion));
+      if (respondiendoAMensaje) fd.append('replyToId', respondiendoAMensaje.id);
+      const res: any = await chatService.sendVoice(activeId, fd);
+      setMensajes(prev => [...prev, res.data]);
+      setRespondiendoAMensaje(null);
+      cancelarGrabacion();
+      scrollAlFondo();
+      await chatService.markRead(activeId).catch(() => { });
+      avisarNavbar();
+      cargarListas();
+    } catch (err: any) {
+      alert(err.message || 'No se pudo enviar el audio');
+    } finally {
+      setSubiendoImagen(false);
     }
   };
 
@@ -888,6 +1026,9 @@ export default function Mensajes() {
                           {m.attachmentType === 'gif' && m.attachmentUrl && (
                             <img src={m.attachmentUrl} alt="" className="mensajes-burbuja__imagen mensajes-burbuja__gif" />
                           )}
+                          {m.attachmentType === 'voice' && m.attachmentUrl && (
+                            <AudioMensaje src={m.attachmentUrl} duracionInicial={m.attachmentDuration} />
+                          )}
                           {m.content && <p>{m.content}</p>}
                           <div className="mensajes-burbuja__pie">
                             {m.isPinned && <Pin size={11} strokeWidth={2} className="mensajes-burbuja__pin-icon" />}
@@ -974,6 +1115,22 @@ export default function Mensajes() {
               </div>
             )}
 
+            {grabando && (
+              <div className="mensajes-grabando-bar">
+                <span className="mensajes-grabando-punto" />
+                <span>Grabando... {formatDuracionAudio(tiempoGrabado)}</span>
+                <button onClick={cancelarGrabacion}><X size={16} strokeWidth={1.8} /></button>
+                <button className="mensajes-grabando-detener" onClick={detenerGrabacion}><Check size={16} strokeWidth={1.8} /></button>
+              </div>
+            )}
+
+            {!grabando && audioPendiente && (
+              <div className="mensajes-audio-pendiente-bar">
+                <audio src={audioPendiente.url} controls />
+                <button onClick={cancelarGrabacion} disabled={subiendoImagen}><X size={16} strokeWidth={1.8} /></button>
+              </div>
+            )}
+
             {imagenPendiente && previewImagenUrl && (
               <div className="mensajes-imagen-pendiente-bar">
                 <img src={previewImagenUrl} alt="" />
@@ -995,10 +1152,18 @@ export default function Mensajes() {
               <button
                 className="mensajes-input__imagen-btn"
                 onClick={abrirGiphy}
-                disabled={esSolicitudPendiente || !activeId}
+                disabled={esSolicitudPendiente || !activeId || grabando || !!audioPendiente}
                 title="GIF o sticker"
               >
                 <Smile size={18} strokeWidth={1.8} />
+              </button>
+              <button
+                className="mensajes-input__imagen-btn"
+                onClick={iniciarGrabacion}
+                disabled={esSolicitudPendiente || !activeId || grabando || !!audioPendiente}
+                title="Grabar audio"
+              >
+                <Mic size={18} strokeWidth={1.8} />
               </button>
               <input
                 ref={inputTextoRef}
@@ -1007,9 +1172,9 @@ export default function Mensajes() {
                 value={texto}
                 onChange={e => onCambiarTexto(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && enviar()}
-                disabled={esSolicitudPendiente || subiendoImagen}
+                disabled={esSolicitudPendiente || subiendoImagen || grabando || !!audioPendiente}
               />
-              <button onClick={enviar} disabled={enviando || subiendoImagen || (!texto.trim() && !imagenPendiente) || esSolicitudPendiente}>
+              <button onClick={enviar} disabled={enviando || subiendoImagen || grabando || (!texto.trim() && !imagenPendiente && !audioPendiente) || esSolicitudPendiente}>
                 <Send size={18} strokeWidth={1.8} />
               </button>
             </div>

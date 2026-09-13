@@ -349,4 +349,6 @@ export const chatService = {
   listPinned: (conversationId: string) => request(`/chat/${conversationId}/pinned`),
   sendExternalMedia: (conversationId: string, url: string, type: 'gif' | 'sticker', replyToId?: string) =>
     request(`/chat/${conversationId}/messages/external`, 'POST', { url, type, replyToId }),
+  sendVoice: (conversationId: string, formData: FormData) =>
+    requestFormData(`/chat/${conversationId}/messages/voice`, 'POST', formData),
 };

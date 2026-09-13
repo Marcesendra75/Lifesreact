@@ -175,7 +175,7 @@ async function enviarMensajeInterno(
   conversationId: string,
   senderId: string,
   content: string | null,
-  opts: { replyToId?: string; attachmentKey?: string; attachmentType?: string } = {}
+  opts: { replyToId?: string; attachmentKey?: string; attachmentType?: string; attachmentDuration?: number } = {}
 ) {
   const mensaje = await prisma.message.create({
     data: {
@@ -185,6 +185,7 @@ async function enviarMensajeInterno(
       replyToId: opts.replyToId,
       attachmentKey: opts.attachmentKey,
       attachmentType: opts.attachmentType,
+      attachmentDuration: opts.attachmentDuration,
     },
     include: { sender: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
   });
@@ -201,6 +202,42 @@ async function enviarMensajeInterno(
   }
 
   return mensajeEnriquecido;
+}
+
+const LIMITE_SEGUNDOS_AUDIO = 180; // 3 minutos
+
+// ── Mandar un mensaje de voz ──
+export async function sendVoiceMessage(
+  conversationId: string,
+  userId: string,
+  file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+  durationSeconds: number,
+  replyToId?: string
+) {
+  await assertPuedeEscribir(conversationId, userId);
+
+  if (!file.mimetype.startsWith('audio/')) throw new Error('El archivo debe ser un audio');
+  validateFile(file.mimetype, file.size);
+
+  if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > LIMITE_SEGUNDOS_AUDIO + 2) {
+    throw new Error('El audio no puede superar los 3 minutos');
+  }
+
+  let replyToIdValido: string | undefined;
+  if (replyToId) {
+    const original = await prisma.message.findFirst({ where: { id: replyToId, conversationId } });
+    if (!original) throw new Error('El mensaje al que respondés ya no existe');
+    replyToIdValido = original.id;
+  }
+
+  const attachmentKey = await uploadFile(file.buffer, file.originalname, file.mimetype, 'chat');
+
+  return enviarMensajeInterno(conversationId, userId, null, {
+    replyToId: replyToIdValido,
+    attachmentKey,
+    attachmentType: 'voice',
+    attachmentDuration: Math.round(durationSeconds),
+  });
 }
 
 // ── Mandar un GIF o sticker de GIPHY (la URL ya es pública, no subimos nada nuestro) ──

@@ -36,6 +36,17 @@ export async function sendAttachment(req: AuthRequest, res: Response) {
   }
 }
 
+export async function sendVoice(req: AuthRequest, res: Response) {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, error: 'Falta el audio' });
+    const { replyToId, duration } = req.body;
+    const mensaje = await chatService.sendVoiceMessage(req.params.id, req.userId as string, req.file, Number(duration), replyToId);
+    res.status(201).json({ success: true, data: mensaje });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al enviar el audio' });
+  }
+}
+
 export async function sendExternalMedia(req: AuthRequest, res: Response) {
   try {
     const parsed = externalMediaSchema.safeParse(req.body);

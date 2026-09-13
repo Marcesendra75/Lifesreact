@@ -15,6 +15,7 @@ router.get('/:id/messages', chatController.messages);
 router.post('/:id/messages', chatController.send);
 router.post('/:id/messages/image', upload.single('file'), chatController.sendAttachment);
 router.post('/:id/messages/external', chatController.sendExternalMedia);
+router.post('/:id/messages/voice', upload.single('file'), chatController.sendVoice);
 router.get('/:id/pinned', chatController.pinned);
 router.post('/messages/:messageId/react', chatController.react);
 router.patch('/messages/:messageId/pin', chatController.pin);
