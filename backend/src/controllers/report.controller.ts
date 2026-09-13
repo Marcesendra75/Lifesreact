@@ -2,7 +2,7 @@ import { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware';
 import * as reportService from '../services/report.service';
 
-const ENTITY_TYPES = ['memory', 'comment', 'user'];
+const ENTITY_TYPES = ['memory', 'comment', 'user', 'message'];
 const REASONS = [
   'spam', 'contenido_inapropiado', 'acoso', 'discurso_odio',
   'violencia', 'desnudez_sexual', 'informacion_falsa', 'suplantacion', 'otro',

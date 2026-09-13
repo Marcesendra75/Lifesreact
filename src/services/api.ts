@@ -224,6 +224,8 @@ export const userService = {
     request('/users/me/privacy', 'PATCH', { isPrivate }),
   updateCommentPrivacy: (commentPrivacy: 'everyone' | 'connections' | 'nobody') =>
     request('/users/me/comment-privacy', 'PATCH', { commentPrivacy }),
+  updateChatPrivacy: (campo: 'showReadReceipts' | 'showLastSeen', valor: boolean) =>
+    request('/users/me/chat-privacy', 'PATCH', { campo, valor }),
   getById: (id: string) =>
     request(`/users/${id}`),
   getSuggestions: () =>
@@ -291,7 +293,7 @@ export const notificationService = {
 };
 
 export const reportService = {
-  create: (entityType: 'memory' | 'comment' | 'user', entityId: string, reason: string, detalle?: string) =>
+  create: (entityType: 'memory' | 'comment' | 'user' | 'message', entityId: string, reason: string, detalle?: string) =>
     request('/reports', 'POST', { entityType, entityId, reason, detalle }),
 };
 
@@ -307,4 +309,44 @@ export const interactionService = {
   listSavedIds: () => request(`/interactions/save`),
   hideComment: (commentId: string) => request(`/interactions/hide-comment/${commentId}`, 'POST'),
   unhideComment: (commentId: string) => request(`/interactions/hide-comment/${commentId}`, 'DELETE'),
+};
+
+export const giphyService = {
+  searchGifs: (q: string) => request(`/giphy/gifs?q=${encodeURIComponent(q)}`),
+  trendingGifs: () => request('/giphy/gifs'),
+  searchStickers: (q: string) => request(`/giphy/stickers?q=${encodeURIComponent(q)}`),
+  trendingStickers: () => request('/giphy/stickers'),
+};
+
+export const chatService = {
+  list: () => request('/chat'),
+  listRequests: () => request('/chat/requests'),
+  requestsCount: () => request('/chat/requests/count'),
+  unreadTotalCount: () => request('/chat/unread-count'),
+  start: (userId: string, content: string) => request('/chat/start', 'POST', { userId, content }),
+  getMessages: (conversationId: string, page = 1, pageSize = 30) =>
+    request(`/chat/${conversationId}/messages?page=${page}&pageSize=${pageSize}`),
+  sendMessage: (conversationId: string, content: string, replyToId?: string) =>
+    request(`/chat/${conversationId}/messages`, 'POST', { content, replyToId }),
+  respond: (conversationId: string, decision: 'accept' | 'reject' | 'block' | 'spam') =>
+    request(`/chat/${conversationId}/respond`, 'PATCH', { decision }),
+  markRead: (conversationId: string) => request(`/chat/${conversationId}/read`, 'PATCH'),
+  typing: (conversationId: string, isTyping: boolean) =>
+    request(`/chat/${conversationId}/typing`, 'PATCH', { isTyping }),
+  updateSettings: (conversationId: string, data: { mutedUntil?: string | null; isPinned?: boolean }) =>
+    request(`/chat/${conversationId}/settings`, 'PATCH', data),
+  sendImage: (conversationId: string, file: File, opts: { replyToId?: string; caption?: string } = {}) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    if (opts.replyToId) fd.append('replyToId', opts.replyToId);
+    if (opts.caption) fd.append('caption', opts.caption);
+    return requestFormData(`/chat/${conversationId}/messages/image`, 'POST', fd);
+  },
+  reactToMessage: (messageId: string, emoji: string) =>
+    request(`/chat/messages/${messageId}/react`, 'POST', { emoji }),
+  togglePinMessage: (messageId: string) =>
+    request(`/chat/messages/${messageId}/pin`, 'PATCH'),
+  listPinned: (conversationId: string) => request(`/chat/${conversationId}/pinned`),
+  sendExternalMedia: (conversationId: string, url: string, type: 'gif' | 'sticker', replyToId?: string) =>
+    request(`/chat/${conversationId}/messages/external`, 'POST', { url, type, replyToId }),
 };

@@ -8,7 +8,7 @@ import { X, ChevronRight, ChevronLeft, AlertTriangle, EyeOff, UserX } from 'luci
 import { reportService, interactionService, blockService } from '../../services/api';
 import './ReportModal.scss';
 
-type EntityType = 'memory' | 'comment' | 'user';
+type EntityType = 'memory' | 'comment' | 'user' | 'message';
 
 interface Motivo {
   reason: string;
@@ -32,6 +32,7 @@ const TITULOS: Record<EntityType, string> = {
   memory: 'Reportar publicación',
   comment: 'Reportar comentario',
   user: 'Reportar perfil',
+  message: 'Reportar mensaje',
 };
 
 interface ReportModalProps {

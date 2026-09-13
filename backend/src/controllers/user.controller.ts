@@ -52,6 +52,19 @@ export async function updateCommentPrivacy(req: AuthRequest, res: Response) {
   }
 }
 
+export async function updateChatPrivacy(req: AuthRequest, res: Response) {
+  try {
+    const { campo, valor } = req.body;
+    if (!['showReadReceipts', 'showLastSeen'].includes(campo) || typeof valor !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'Datos inválidos' });
+    }
+    const user = await userService.setChatPrivacy(req.userId as string, campo, valor);
+    res.json({ success: true, data: user });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Error al actualizar' });
+  }
+}
+
 export async function updateProfile(req: AuthRequest, res: Response) {
   try {
     const parsed = updateProfileSchema.safeParse(req.body);

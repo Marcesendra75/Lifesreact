@@ -11,6 +11,42 @@ import jwt from 'jsonwebtoken';
 
 let io: SocketIOServer | null = null;
 
+// cuántas pestañas/dispositivos tiene conectados cada usuario ahora mismo —
+// simple en memoria, alcanza para un solo proceso de backend
+const conexionesPorUsuario = new Map<string, number>();
+
+export function isUserOnline(userId: string): boolean {
+  return (conexionesPorUsuario.get(userId) || 0) > 0;
+}
+
+// le avisamos SOLO a la gente con la que ya tenés una conversación
+// aceptada (no a todo el mundo) — y solo si los dos tienen "mostrar
+// última conexión" activado, misma reciprocidad que usamos en el resto
+async function emitirPresencia(userId: string, online: boolean) {
+  const prisma = (await import('../config/prisma')).default;
+
+  const yo = await prisma.user.findUnique({ where: { id: userId }, select: { showLastSeen: true } });
+  if (!yo?.showLastSeen) return;
+
+  const misConversaciones = await prisma.conversationParticipant.findMany({
+    where: { userId, status: 'accepted' },
+    select: { conversationId: true },
+  });
+  const ids = misConversaciones.map((c) => c.conversationId);
+  if (ids.length === 0) return;
+
+  const otros = await prisma.conversationParticipant.findMany({
+    where: { conversationId: { in: ids }, userId: { not: userId } },
+    select: { userId: true, user: { select: { showLastSeen: true } } },
+    distinct: ['userId'],
+  });
+
+  for (const o of otros) {
+    if (!o.user.showLastSeen) continue;
+    emitToUser(o.userId, 'chat:presence', { userId, online, lastSeenAt: online ? null : new Date().toISOString() });
+  }
+}
+
 export function initSocket(httpServer: HTTPServer) {
   io = new SocketIOServer(httpServer, {
     cors: {
@@ -36,9 +72,23 @@ export function initSocket(httpServer: HTTPServer) {
   io.on('connection', (socket) => {
     const userId = (socket as any).userId as string;
     socket.join(userId);
+    const eraOffline = !conexionesPorUsuario.has(userId);
+    conexionesPorUsuario.set(userId, (conexionesPorUsuario.get(userId) || 0) + 1);
+    if (eraOffline) emitirPresencia(userId, true).catch(() => {});
 
-    socket.on('disconnect', () => {
-      // Socket.IO ya limpia la room solo al desconectar, no hace falta nada acá
+    socket.on('disconnect', async () => {
+      const restantes = (conexionesPorUsuario.get(userId) || 1) - 1;
+      if (restantes <= 0) {
+        conexionesPorUsuario.delete(userId);
+        // recién cuando se desconecta la ÚLTIMA pestaña/dispositivo
+        // actualizamos "última vez" — mientras tenga algo abierto en
+        // cualquier lado, sigue contando como "en línea"
+        const prisma = (await import('../config/prisma')).default;
+        await prisma.user.update({ where: { id: userId }, data: { lastSeenAt: new Date() } }).catch(() => {});
+        emitirPresencia(userId, false).catch(() => {});
+      } else {
+        conexionesPorUsuario.set(userId, restantes);
+      }
     });
   });
 

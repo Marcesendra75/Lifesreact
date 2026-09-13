@@ -226,6 +226,14 @@ export async function setCommentPrivacy(userId: string, commentPrivacy: 'everyon
   return attachSignedUrls(user);
 }
 
+export async function setChatPrivacy(userId: string, campo: 'showReadReceipts' | 'showLastSeen', valor: boolean) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { [campo]: valor },
+  });
+  return attachSignedUrls(user);
+}
+
 export async function getMutualConnections(userId: string, otherUserId: string) {
   const misConexiones = await prisma.connection.findMany({
     where: { status: 'accepted', OR: [{ requesterId: userId }, { addresseeId: userId }] },

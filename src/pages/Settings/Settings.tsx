@@ -95,6 +95,8 @@ export default function Settings() {
     (user as any)?.commentPrivacy || 'everyone'
   );
   const [guardandoPriv, setGuardandoPriv] = useState(false);
+  const [mostrarVisto, setMostrarVisto] = useState((user as any)?.showReadReceipts ?? true);
+  const [mostrarUltimaVez, setMostrarUltimaVez] = useState((user as any)?.showLastSeen ?? true);
 
   const [bloqueados, setBloqueados] = useState<BloqueadoItem[]>([]);
   const [cargandoBloqueados, setCargandoBloqueados] = useState(false);
@@ -142,6 +144,30 @@ export default function Settings() {
       showToast(err.message || 'Error al guardar');
     } finally {
       setGuardandoPriv(false);
+    }
+  };
+
+  const toggleMostrarVisto = async () => {
+    const nuevoValor = !mostrarVisto;
+    setMostrarVisto(nuevoValor);
+    try {
+      await userService.updateChatPrivacy('showReadReceipts', nuevoValor);
+      refreshUser?.();
+    } catch (err: any) {
+      setMostrarVisto(!nuevoValor);
+      showToast(err.message || 'Error al guardar');
+    }
+  };
+
+  const toggleMostrarUltimaVez = async () => {
+    const nuevoValor = !mostrarUltimaVez;
+    setMostrarUltimaVez(nuevoValor);
+    try {
+      await userService.updateChatPrivacy('showLastSeen', nuevoValor);
+      refreshUser?.();
+    } catch (err: any) {
+      setMostrarUltimaVez(!nuevoValor);
+      showToast(err.message || 'Error al guardar');
     }
   };
 
@@ -272,6 +298,28 @@ export default function Settings() {
                 <span className="settings-toggle-row__label">{t('settings.privacy.profileLabel')}</span>
               </div>
               <div className={`settings-toggle ${perfilPrivado ? 'on' : ''} ${guardandoPriv ? 'disabled' : ''}`} onClick={togglePerfilPrivado}>
+                <div className="settings-toggle__thumb" />
+              </div>
+            </div>
+
+            <div className="settings-divider" />
+
+            <div className="settings-toggle-row">
+              <div className="settings-toggle-row__info">
+                <span className="settings-toggle-row__label">Mostrar cuando leíste un mensaje</span>
+                <span className="settings-toggle-row__sub">Si lo apagás, tampoco vas a ver cuándo te leyeron a vos</span>
+              </div>
+              <div className={`settings-toggle ${mostrarVisto ? 'on' : ''}`} onClick={toggleMostrarVisto}>
+                <div className="settings-toggle__thumb" />
+              </div>
+            </div>
+
+            <div className="settings-toggle-row">
+              <div className="settings-toggle-row__info">
+                <span className="settings-toggle-row__label">Mostrar mi última conexión</span>
+                <span className="settings-toggle-row__sub">Si lo apagás, tampoco vas a ver la última vez de nadie más</span>
+              </div>
+              <div className={`settings-toggle ${mostrarUltimaVez ? 'on' : ''}`} onClick={toggleMostrarUltimaVez}>
                 <div className="settings-toggle__thumb" />
               </div>
             </div>

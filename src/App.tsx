@@ -5,65 +5,66 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-
 import './styles/main.scss';
 
 // ── Contexto ──
-import { AuthProvider }  from './context/AuthContext';
-import PrivateRoute      from './components/PrivateRoute/PrivateRoute';
-import VaultRoute        from './components/VaultRoute/VaultRoute';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/PrivateRoute/PrivateRoute';
+import VaultRoute from './components/VaultRoute/VaultRoute';
 
 // ── Navbars ──
-import Navbar            from './components/Navbar/Navbar';
-import NavbarEmpresa     from './components/NavBarEmpresa/NavbarEmpresa';
+import Navbar from './components/Navbar/Navbar';
+import NavbarEmpresa from './components/NavBarEmpresa/NavbarEmpresa';
 
 // ── Páginas públicas ──
-import Landing           from './pages/Landing/Landing';
-import CrearCuenta       from './pages/Auth/CrearCuenta';
-import TripleSeguridad   from './pages/Auth/TripleSeguridad';
-import ForgotPassword    from './pages/Auth/ForgotPassword';
-import TarjetaPendiente  from './pages/Auth/TarjetaPendiente';
-import TarjetaLegado     from './pages/Auth/TarjetaLegado';
-import VerificarEmail    from './pages/Auth/VerificarEmail';
-import Terminos          from './pages/Legal/Terminos';
-import Privacidad        from './pages/Legal/Privacidad';
+import Landing from './pages/Landing/Landing';
+import CrearCuenta from './pages/Auth/CrearCuenta';
+import TripleSeguridad from './pages/Auth/TripleSeguridad';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import TarjetaPendiente from './pages/Auth/TarjetaPendiente';
+import TarjetaLegado from './pages/Auth/TarjetaLegado';
+import VerificarEmail from './pages/Auth/VerificarEmail';
+import Terminos from './pages/Legal/Terminos';
+import Privacidad from './pages/Legal/Privacidad';
 
 // ── Empresas ──
-import EmpresasLanding   from './pages/Empresas/EmpresasLanding';
-import PlanesEmpresa     from './pages/Empresas/PlanesEmpresa';
-import PerfilEmpresa     from './pages/Empresas/PerfilEmpresa';
-import LineaVidaEmpresa  from './pages/Empresas/LineaVidaEmpresa';
-import ArbolEmpresa      from './pages/Empresas/ArbolEmpresa';
-import LoginAdmin        from './pages/Empresas/LoginAdmin/LoginAdmin';
-import AdminEmpresa      from './pages/Empresas/AdminEmpresa/AdminEmpresa';
+import EmpresasLanding from './pages/Empresas/EmpresasLanding';
+import PlanesEmpresa from './pages/Empresas/PlanesEmpresa';
+import PerfilEmpresa from './pages/Empresas/PerfilEmpresa';
+import LineaVidaEmpresa from './pages/Empresas/LineaVidaEmpresa';
+import ArbolEmpresa from './pages/Empresas/ArbolEmpresa';
+import LoginAdmin from './pages/Empresas/LoginAdmin/LoginAdmin';
+import AdminEmpresa from './pages/Empresas/AdminEmpresa/AdminEmpresa';
 
 // ── Alta Empresa ──
-import AltaEmpresa       from './pages/LifesAdmin/AltaEmpresa/AltaEmpresa';
-import AltaEmpleado      from './pages/LifesAdmin/AltaEmpleado/AltaEmpleado';
+import AltaEmpresa from './pages/LifesAdmin/AltaEmpresa/AltaEmpresa';
+import AltaEmpleado from './pages/LifesAdmin/AltaEmpleado/AltaEmpleado';
 
 // ── Admin Life's ──
-import LoginLifesAdmin   from './pages/LifesAdmin/LoginLifesAdmin/LoginLifesAdmin';
-import LifesAdmin        from './pages/LifesAdmin/LifesAdmin/LifesAdmin';
+import LoginLifesAdmin from './pages/LifesAdmin/LoginLifesAdmin/LoginLifesAdmin';
+import LifesAdmin from './pages/LifesAdmin/LifesAdmin/LifesAdmin';
 
 // ── Páginas principales ──
-import Feed              from './pages/Feed/Feed';
-import Guardados         from './pages/Guardados/Guardados';
-import Personas          from './pages/Personas/Personas';
-import Profile           from './pages/Profile/Profile';
-import Timeline          from './pages/Timeline/Timeline';
-import FamilyTree        from './pages/FamilyTree/FamilyTree';
-import DigitalEcho       from './pages/DigitalEcho/DigitalEcho';
-import Settings          from './pages/Settings/Settings';
-import TimeCapsule       from './pages/TimeCapsule/TimeCapsule';
-import CartasPrivadas    from './pages/CartasPrivadas/CartasPrivadas';
-import Postal            from './pages/Postal/Postal';
-import Vinculos          from './pages/Vinculos/Vinculos';
+import Feed from './pages/Feed/Feed';
+import Guardados from './pages/Guardados/Guardados';
+import Personas from './pages/Personas/Personas';
+import Profile from './pages/Profile/Profile';
+import Timeline from './pages/Timeline/Timeline';
+import FamilyTree from './pages/FamilyTree/FamilyTree';
+import DigitalEcho from './pages/DigitalEcho/DigitalEcho';
+import Settings from './pages/Settings/Settings';
+import TimeCapsule from './pages/TimeCapsule/TimeCapsule';
+import CartasPrivadas from './pages/CartasPrivadas/CartasPrivadas';
+import Postal from './pages/Postal/Postal';
+import Vinculos from './pages/Vinculos/Vinculos';
+import Mensajes from './pages/Mensajes/Mensajes';
 
 // ── Páginas bóveda ──
-import SafeBox           from './pages/SafeBox/SafeBox';
-import Herederos         from './pages/Herederos/Herederos';
-import Testamento        from './pages/Testamento/Testamento';
-import FarewellVideo     from './pages/FarewellVideo/FarewellVideo';
-import CajaDeValores     from './pages/CajaDeValores/CajaDeValores';
+import SafeBox from './pages/SafeBox/SafeBox';
+import Herederos from './pages/Herederos/Herederos';
+import Testamento from './pages/Testamento/Testamento';
+import FarewellVideo from './pages/FarewellVideo/FarewellVideo';
+import CajaDeValores from './pages/CajaDeValores/CajaDeValores';
 
 // ── Shared ──
-import NotFound          from './pages/NotFound/NotFound';
+import NotFound from './pages/NotFound/NotFound';
 
 // ── Helper: redirige /muro-biografico/:userId → /perfil/:userId ──
 // (Muro Biográfico se unificó con Perfil. Este helper evita romper
@@ -84,79 +85,80 @@ function App() {
         <Routes>
 
           {/* ══ RUTAS PÚBLICAS ══ */}
-          <Route path="/"                  element={<Landing />} />
-          <Route path="/crear-cuenta"      element={<CrearCuenta />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/crear-cuenta" element={<CrearCuenta />} />
           {/* /login quedó reemplazado por el toggle Personal/Empresas de Landing en "/" */}
-          <Route path="/login"             element={<Navigate to="/" replace />} />
-          <Route path="/acceso-seguro"     element={<TripleSeguridad />} />
-          <Route path="/recuperar"         element={<ForgotPassword />} />
-          <Route path="/verificar-email"   element={<VerificarEmail />} />
-          <Route path="/terminos"          element={<Terminos />} />
-          <Route path="/privacidad"        element={<Privacidad />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/acceso-seguro" element={<TripleSeguridad />} />
+          <Route path="/recuperar" element={<ForgotPassword />} />
+          <Route path="/verificar-email" element={<VerificarEmail />} />
+          <Route path="/terminos" element={<Terminos />} />
+          <Route path="/privacidad" element={<Privacidad />} />
           <Route path="/tarjeta-pendiente" element={<TarjetaPendiente />} />
-          <Route path="/tarjeta-legado"    element={<TarjetaLegado />} />
+          <Route path="/tarjeta-legado" element={<TarjetaLegado />} />
 
           {/* ══ EMPRESAS ══ */}
-          <Route path="/empresas"                           element={<EmpresasLanding />} />
-          <Route path="/empresas/planes"                    element={<PlanesEmpresa />} />
-          <Route path="/empresas/perfil"                    element={<PerfilEmpresa />} />
-          <Route path="/empresas/perfil/:empresaId"         element={<PerfilEmpresa />} />
-          <Route path="/empresas/linea-de-vida"             element={<LineaVidaEmpresa />} />
-          <Route path="/empresas/linea-de-vida/:empresaId"  element={<LineaVidaEmpresa />} />
-          <Route path="/empresas/arbol"                     element={<ArbolEmpresa />} />
-          <Route path="/empresas/login-admin"               element={<LoginAdmin />} />
-          <Route path="/empresas/admin"                     element={<AdminEmpresa />} />
-          <Route path="/empresas/admin/:modulo"             element={<AdminEmpresa />} />
+          <Route path="/empresas" element={<EmpresasLanding />} />
+          <Route path="/empresas/planes" element={<PlanesEmpresa />} />
+          <Route path="/empresas/perfil" element={<PerfilEmpresa />} />
+          <Route path="/empresas/perfil/:empresaId" element={<PerfilEmpresa />} />
+          <Route path="/empresas/linea-de-vida" element={<LineaVidaEmpresa />} />
+          <Route path="/empresas/linea-de-vida/:empresaId" element={<LineaVidaEmpresa />} />
+          <Route path="/empresas/arbol" element={<ArbolEmpresa />} />
+          <Route path="/empresas/login-admin" element={<LoginAdmin />} />
+          <Route path="/empresas/admin" element={<AdminEmpresa />} />
+          <Route path="/empresas/admin/:modulo" element={<AdminEmpresa />} />
 
           {/* ══ ADMIN LIFE'S ══ */}
-          <Route path="/lifes-admin/login"  element={<LoginLifesAdmin />} />
-          <Route path="/lifes-admin"                element={<LifesAdmin />} />
-          <Route path="/lifes-admin/alta-empresa"   element={<AltaEmpresa />} />
-          <Route path="/lifes-admin/alta-empleado"  element={<AltaEmpleado />} />
+          <Route path="/lifes-admin/login" element={<LoginLifesAdmin />} />
+          <Route path="/lifes-admin" element={<LifesAdmin />} />
+          <Route path="/lifes-admin/alta-empresa" element={<AltaEmpresa />} />
+          <Route path="/lifes-admin/alta-empleado" element={<AltaEmpleado />} />
 
           {/* ══ PÁGINAS PRINCIPALES — requieren estar logueado ══ */}
           <Route element={<PrivateRoute />}>
-            <Route path="/feed"                               element={<Feed />} />
-            <Route path="/feed/:memoryId"                     element={<Feed />} />
-            <Route path="/guardados"                          element={<Guardados />} />
-            <Route path="/personas"                           element={<Personas />} />
+            <Route path="/feed" element={<Feed />} />
+            <Route path="/feed/:memoryId" element={<Feed />} />
+            <Route path="/guardados" element={<Guardados />} />
+            <Route path="/personas" element={<Personas />} />
+            <Route path="/mensajes" element={<Mensajes />} />
 
             {/* Perfil — unifica Muro Biográfico + Perfil */}
-            <Route path="/perfil"                             element={<Profile />} />
-            <Route path="/perfil/:userId"                     element={<Profile />} />
+            <Route path="/perfil" element={<Profile />} />
+            <Route path="/perfil/:userId" element={<Profile />} />
 
             {/* Compatibilidad: rutas viejas de Muro Biográfico redirigen a Perfil */}
-            <Route path="/muro-biografico"                    element={<Navigate to="/perfil" replace />} />
-            <Route path="/muro-biografico/:userId"            element={<RedirectMuroConUserId />} />
+            <Route path="/muro-biografico" element={<Navigate to="/perfil" replace />} />
+            <Route path="/muro-biografico/:userId" element={<RedirectMuroConUserId />} />
 
-            <Route path="/linea-de-vida"                      element={<Timeline />} />
-            <Route path="/linea-de-vida/:userId"              element={<Timeline />} />
-            <Route path="/arbol-genealogico"                  element={<FamilyTree />} />
-            <Route path="/arbol-genealogico/:userId"          element={<FamilyTree />} />
-            <Route path="/ecos/:userId"                       element={<DigitalEcho />} />
-            <Route path="/configuracion"                      element={<Settings />} />
-            <Route path="/capsula-del-tiempo"                 element={<TimeCapsule />} />
-            <Route path="/cartas-privadas"                    element={<CartasPrivadas />} />
-            <Route path="/postal"                             element={<Postal />} />
-            <Route path="/vinculos"                           element={<Vinculos />} />
-            <Route path="/mapa-linaje"                        element={<Feed />} />
+            <Route path="/linea-de-vida" element={<Timeline />} />
+            <Route path="/linea-de-vida/:userId" element={<Timeline />} />
+            <Route path="/arbol-genealogico" element={<FamilyTree />} />
+            <Route path="/arbol-genealogico/:userId" element={<FamilyTree />} />
+            <Route path="/ecos/:userId" element={<DigitalEcho />} />
+            <Route path="/configuracion" element={<Settings />} />
+            <Route path="/capsula-del-tiempo" element={<TimeCapsule />} />
+            <Route path="/cartas-privadas" element={<CartasPrivadas />} />
+            <Route path="/postal" element={<Postal />} />
+            <Route path="/vinculos" element={<Vinculos />} />
+            <Route path="/mapa-linaje" element={<Feed />} />
           </Route>
 
           {/* ══ BÓVEDA — requiere login Y Triple Seguridad ══ */}
           <Route element={<PrivateRoute />}>
             <Route element={<VaultRoute />}>
-              <Route path="/caja-fuerte"      element={<SafeBox />} />
-              <Route path="/caja-de-valores"  element={<CajaDeValores />} />
-              <Route path="/ahorro"           element={<CajaDeValores />} />
-              <Route path="/testamento"       element={<Testamento />} />
-              <Route path="/herederos"        element={<Herederos />} />
-              <Route path="/ultimo-tributo"   element={<FarewellVideo />} />
+              <Route path="/caja-fuerte" element={<SafeBox />} />
+              <Route path="/caja-de-valores" element={<CajaDeValores />} />
+              <Route path="/ahorro" element={<CajaDeValores />} />
+              <Route path="/testamento" element={<Testamento />} />
+              <Route path="/herederos" element={<Herederos />} />
+              <Route path="/ultimo-tributo" element={<FarewellVideo />} />
             </Route>
           </Route>
 
           {/* ══ 404 ══ */}
           <Route path="/404" element={<NotFound />} />
-          <Route path="*"    element={<Navigate to="/404" replace />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
 
         </Routes>
       </BrowserRouter>

@@ -48,6 +48,12 @@ model User {
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime? @map("locked_until")
 
+  // ── privacidad del chat (global, mismo criterio que WhatsApp: si lo
+  // ocultás, tampoco ves el de nadie más) ──
+  showLastSeen     Boolean   @default(true) @map("show_last_seen")
+  showReadReceipts Boolean   @default(true) @map("show_read_receipts")
+  lastSeenAt       DateTime? @map("last_seen_at")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt      @map("updated_at")
 
@@ -58,6 +64,9 @@ model User {
   connectionsReceived  Connection[]    @relation("ConnectionAddressee")
   blocksMade           Block[]         @relation("BlockerRelation")
   blocksReceived       Block[]         @relation("BlockedRelation")
+  conversationsIn      ConversationParticipant[]
+  messagesSent         Message[]
+  messageReactions     MessageReaction[]
   notificationsRecibidas Notification[] @relation("NotificationRecipient")
   notificationsGeneradas Notification[] @relation("NotificationActor")
   linkedFamilyNodes   FamilyMember[] @relation("FamilyLinkedUser")
@@ -366,6 +375,7 @@ enum ReportEntityType {
   memory
   comment
   user
+  message
 }
 
 enum ReportReason {
@@ -463,4 +473,96 @@ model HiddenComment {
 
   @@unique([userId, commentId])
   @@map("hidden_comments")
+}
+
+// ════════════════════════════════════════════════════════════
+// CHAT — Fase 1: 1 a 1, con solicitud de mensaje. La tabla de
+// participantes está pensada desde ya para admitir grupos más
+// adelante (Fase 4) sin tener que rediseñar nada — ahí solo se
+// permitirán más de 2 filas por conversación.
+// ════════════════════════════════════════════════════════════
+
+enum ParticipantStatus {
+  pending   // todavía no respondió (solicitud de mensaje)
+  accepted
+  rejected
+  blocked   // bloqueó esta conversación puntual, sin bloquear a la persona
+  left      // se fue de un grupo (Fase 4)
+}
+
+enum ParticipantRole {
+  member
+  admin // para grupos (Fase 4)
+}
+
+model Conversation {
+  id          String    @id @default(uuid())
+  isGroup     Boolean   @default(false) @map("is_group")
+  name        String?   // solo grupos
+  createdById String?   @map("created_by_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt      @map("updated_at") // para ordenar la bandeja por última actividad
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String            @id @default(uuid())
+  conversationId String            @map("conversation_id")
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String            @map("user_id")
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status     ParticipantStatus @default(pending)
+  isSpam     Boolean           @default(false) @map("is_spam")
+  isPinned   Boolean           @default(false) @map("is_pinned")
+  mutedUntil DateTime?         @map("muted_until")
+  lastReadAt DateTime?         @map("last_read_at")
+  role       ParticipantRole   @default(member)
+  joinedAt   DateTime          @default(now()) @map("joined_at")
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String       @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String       @map("sender_id")
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  content        String?  @db.Text
+  // preparado para Fase 2/3 — todavía sin usar
+  attachmentKey  String?  @map("attachment_key")
+  attachmentType String?  @map("attachment_type") // 'image' | 'voice' | 'gif' | 'sticker'
+  replyToId      String?  @map("reply_to_id")
+  replyTo        Message? @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies        Message[] @relation("MessageReply")
+  isPinned       Boolean  @default(false) @map("is_pinned")
+  isDeleted      Boolean  @default(false) @map("is_deleted")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  editedAt  DateTime? @map("edited_at")
+
+  reactions MessageReaction[]
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emoji     String   // Fase 2 — set fijo de 6-7 emojis, validado en el backend
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([messageId, userId])
+  @@map("message_reactions")
 }

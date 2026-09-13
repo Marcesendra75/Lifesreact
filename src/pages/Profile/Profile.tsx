@@ -644,6 +644,13 @@ export default function Profile() {
                     <button className="profile-hero__conectar" onClick={conectar}>Conectar</button>
                   )}
 
+                  <button
+                    className="profile-hero__mensaje"
+                    onClick={() => navigate(`/mensajes?to=${perfilAjeno?.id}`)}
+                  >
+                    <MessageCircle size={15} strokeWidth={1.8} /> Mensaje
+                  </button>
+
                   {!perfilAjeno?.estaConectado && (
                     <div className="profile-hero__menu-wrap">
                       <button className="profile-hero__mas-btn" onClick={() => setMenuAbierto(v => !v)} aria-label="Más opciones">

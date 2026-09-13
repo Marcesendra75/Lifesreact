@@ -2,7 +2,7 @@ import prisma from '../config/prisma';
 import { getSignedFileUrl } from './storage.service';
 import { classifyText, classifyImage } from './moderation.service';
 
-type EntityType = 'memory' | 'comment' | 'user';
+type EntityType = 'memory' | 'comment' | 'user' | 'message';
 type Reason =
   | 'spam' | 'contenido_inapropiado' | 'acoso' | 'discurso_odio'
   | 'violencia' | 'desnudez_sexual' | 'informacion_falsa' | 'suplantacion' | 'otro';
@@ -60,6 +60,9 @@ async function validarQueExiste(entityType: EntityType, entityId: string) {
   } else if (entityType === 'user') {
     const u = await prisma.user.findUnique({ where: { id: entityId } });
     if (!u) throw new Error('Ese usuario no existe');
+  } else if (entityType === 'message') {
+    const m = await prisma.message.findUnique({ where: { id: entityId } });
+    if (!m) throw new Error('Ese mensaje no existe');
   }
 }
 
@@ -75,6 +78,10 @@ async function obtenerContenidoParaClasificar(entityType: EntityType, entityId: 
   if (entityType === 'user') {
     const u = await prisma.user.findUnique({ where: { id: entityId } });
     return { texto: u?.bio || '', imageKey: null };
+  }
+  if (entityType === 'message') {
+    const m = await prisma.message.findUnique({ where: { id: entityId } });
+    return { texto: m?.content || '', imageKey: m?.attachmentType === 'image' ? m?.attachmentKey : null };
   }
   return { texto: '', imageKey: null };
 }

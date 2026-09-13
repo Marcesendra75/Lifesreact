@@ -16,7 +16,7 @@ import inspiradorIcon from '../../assets/reactions/inspirador.svg';
 import recordareIcon from '../../assets/reactions/recordare.svg';
 import conmueveIcon from '../../assets/reactions/conmueve.svg';
 import divierteIcon from '../../assets/reactions/divierte.svg';
-import { connectionService, userService, notificationService } from '../../services/api';
+import { connectionService, userService, notificationService, chatService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { connectSocket, disconnectSocket } from '../../services/socket';
 import logo from '../../assets/logo.webp';
@@ -98,6 +98,11 @@ export default function Navbar() {
   const [notifPage, setNotifPage] = useState(1);
   const [notifTotalPages, setNotifTotalPages] = useState(1);
   const [noLeidas, setNoLeidas] = useState(0);
+  const [mensajesSinLeer, setMensajesSinLeer] = useState(0);
+
+  const cargarMensajesSinLeer = () => {
+    chatService.unreadTotalCount().then((res: any) => setMensajesSinLeer(res.data.count)).catch(() => {});
+  };
   const notifPanelRef = useRef<HTMLDivElement>(null);
   const notifWrapRef = useRef<HTMLDivElement>(null);
 
@@ -313,6 +318,15 @@ export default function Navbar() {
     return () => window.removeEventListener('lifes:solicitudes-actualizadas', onActualizado);
   }, []);
 
+  // cuando VOS mismo marcás algo como leído dentro de Mensajes, nadie te
+  // avisa por socket (eso solo pasa cuando OTRO hace algo) — así que
+  // Mensajes.tsx dispara este evento propio para que el Navbar se entere
+  useEffect(() => {
+    const onMensajesActualizados = () => cargarMensajesSinLeer();
+    window.addEventListener('lifes:mensajes-actualizados', onMensajesActualizados);
+    return () => window.removeEventListener('lifes:mensajes-actualizados', onMensajesActualizados);
+  }, []);
+
   // ── Notificaciones en vivo ──
   // apenas hay sesión, nos conectamos; el servidor nos avisa por este
   // socket cada vez que llega algo nuevo, sin que haga falta refrescar
@@ -334,8 +348,19 @@ export default function Navbar() {
     };
     socket.on('notification:new', onNuevaNotif);
 
+    // ── Chat en vivo — el contador de "solicitudes de mensaje" ──
+    cargarMensajesSinLeer();
+    const onNuevoMensaje = () => cargarMensajesSinLeer();
+    const onRespuestaDeSolicitud = () => cargarMensajesSinLeer();
+    socket.on('chat:message', onNuevoMensaje);
+    socket.on('chat:request-accepted', onRespuestaDeSolicitud);
+    socket.on('chat:request-rejected', onRespuestaDeSolicitud);
+
     return () => {
       socket.off('notification:new', onNuevaNotif);
+      socket.off('chat:message', onNuevoMensaje);
+      socket.off('chat:request-accepted', onRespuestaDeSolicitud);
+      socket.off('chat:request-rejected', onRespuestaDeSolicitud);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, notifAbiertas]);
@@ -411,6 +436,12 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-top__acciones">
+          <div className="navbar-top__notif-wrap">
+            <button className="navbar-top__icon-btn" aria-label="Mensajes" onClick={() => navigate('/mensajes')}>
+              <MessageCircle size={19} strokeWidth={1.8} />
+              {mensajesSinLeer > 0 && <span className="navbar-top__notif-badge">{mensajesSinLeer > 9 ? '9+' : mensajesSinLeer}</span>}
+            </button>
+          </div>
           <div className="navbar-top__notif-wrap" ref={notifWrapRef}>
             <button className="navbar-top__icon-btn" aria-label="Notificaciones" onClick={abrirNotificaciones}>
               <Bell size={19} strokeWidth={1.8} />

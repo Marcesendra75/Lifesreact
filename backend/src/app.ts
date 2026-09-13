@@ -23,6 +23,8 @@ import blockRoutes from './routes/block.routes';
 import notificationRoutes from './routes/notification.routes';
 import reportRoutes from './routes/report.routes';
 import interactionRoutes from './routes/interaction.routes';
+import chatRoutes from './routes/chat.routes';
+import giphyRoutes from './routes/giphy.routes';
 
 
 // import capsuleRoutes from './routes/capsule.routes';
@@ -55,6 +57,8 @@ app.use('/api/blocks', blockRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/interactions', interactionRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/giphy', giphyRoutes);
 
 // app.use('/api/capsules', capsuleRoutes);
 // app.use('/api/farewells',farewellRoutes);
